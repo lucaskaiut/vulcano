@@ -1,12 +1,21 @@
-const API_BASE = '/api'
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? '/api'
 
 function getXsrfToken(): string | null {
   const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)
   return match ? decodeURIComponent(match[1]) : null
 }
 
+function getOrigin(): string {
+  if (API_BASE.startsWith('http')) {
+    // Remove trailing /api to get the host origin for sanctum
+    return API_BASE.replace(/\/api\/?$/, '')
+  }
+  return '' // relative path — same origin
+}
+
 async function ensureCsrfCookie(): Promise<void> {
-  await fetch('/sanctum/csrf-cookie', {
+  const sanctumPath = `${getOrigin()}/sanctum/csrf-cookie`
+  await fetch(sanctumPath, {
     credentials: 'include',
   })
 }

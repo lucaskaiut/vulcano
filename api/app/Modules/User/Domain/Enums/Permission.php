@@ -20,6 +20,14 @@ enum Permission: string
     case WorkflowInstancesApprove = 'workflow_instances.approve';
     case WorkflowInstancesReject = 'workflow_instances.reject';
     case WorkflowInstancesCancel = 'workflow_instances.cancel';
+    case VacationBalancesView = 'vacation_balances.view';
+    case VacationBalancesCreate = 'vacation_balances.create';
+    case VacationBalancesUpdate = 'vacation_balances.update';
+    case VacationGrantsView = 'vacation_grants.view';
+    case VacationGrantsCreate = 'vacation_grants.create';
+    case VacationPeriodsView = 'vacation_periods.view';
+    case VacationPeriodsCreate = 'vacation_periods.create';
+    case VacationPeriodsClose = 'vacation_periods.close';
 
     public function label(): string
     {
@@ -40,6 +48,14 @@ enum Permission: string
             self::WorkflowInstancesApprove => 'Aprovar Processos',
             self::WorkflowInstancesReject => 'Reprovar Processos',
             self::WorkflowInstancesCancel => 'Cancelar Processos',
+            self::VacationBalancesView => 'Visualizar Saldos de Férias',
+            self::VacationBalancesCreate => 'Criar Saldos de Férias',
+            self::VacationBalancesUpdate => 'Atualizar Saldos de Férias',
+            self::VacationGrantsView => 'Visualizar Férias Concedidas',
+            self::VacationGrantsCreate => 'Registrar Férias Concedidas',
+            self::VacationPeriodsView => 'Visualizar Períodos Aquisitivos',
+            self::VacationPeriodsCreate => 'Criar Períodos Aquisitivos',
+            self::VacationPeriodsClose => 'Encerrar Períodos Aquisitivos',
         };
     }
 

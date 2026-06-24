@@ -578,32 +578,113 @@ Todo o histórico deve estar registrado e consultável.
 
 # Gestão de Férias
 
-## TDD
+## Objetivo
 
-Testar:
+Implementar toda a estrutura responsável pelo controle de saldo de férias dos colaboradores, sem envolver solicitações ou aprovações.
 
-* Cálculo saldo
-* Programação
-* Concessão
-* Períodos aquisitivos
+Esta etapa é responsável apenas pelo cálculo e armazenamento das informações de férias.
 
 ---
 
-## Funcionalidades
+## Entidades
 
-Saldo
+### VacationBalance
 
-Programadas
+Responsável por armazenar o saldo do colaborador.
 
-Concedidas
+Campos:
 
-Dias adicionais
+* collaborator_id
+* available_days
+* accrued_days
+* used_days
+* additional_days
+
+### VacationPeriod
+
+Representa um período aquisitivo.
+
+Campos:
+
+* collaborator_id
+* start_date
+* end_date
+* entitled_days
+
+### VacationGrant
+
+Representa férias concedidas.
+
+Campos:
+
+* collaborator_id
+* start_date
+* end_date
+* days_used
+
+---
+
+## TDD
+
+Criar testes para:
+
+### Saldo
+
+* Criar saldo inicial
+* Atualizar saldo
+* Consultar saldo
+
+### Período aquisitivo
+
+* Criar período
+* Encerrar período
+* Calcular dias adquiridos
+
+### Concessão
+
+* Registrar férias concedidas
+* Debitar saldo
+* Impedir saldo negativo
+
+---
+
+## APIs
+
+```http
+GET /vacation-balances
+
+GET /vacation-balances/{id}
+
+POST /vacation-grants
+
+GET /vacation-periods
+```
+
+---
+
+## Frontend
+
+* Listagem de saldos
+* Detalhes do colaborador
+* Histórico de férias
+* Histórico de períodos aquisitivos
+
+---
+
+## Critério de aceite
+
+Ao acessar um colaborador deve ser possível visualizar:
+
+* Saldo atual
+* Férias concedidas
+* Dias utilizados
+* Períodos aquisitivos
 
 ---
 
 ## Entregável
 
-Módulo de férias concluído.
+Módulo de controle de férias operacional.
 
 ---
 
@@ -611,25 +692,82 @@ Módulo de férias concluído.
 
 # Solicitação de Férias
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Solicitação
-* Aprovação
-* Reprovação
+Permitir que colaboradores solicitem férias e que a solicitação passe pelo fluxo de aprovação configurado na Etapa 6.
 
 ---
 
-## Integração
+## Entidades
 
-Workflow Engine
+### VacationRequest
+
+Campos:
+
+* collaborator_id
+* start_date
+* end_date
+* requested_days
+* justification
+* status
+
+---
+
+## TDD
+
+Criar testes para:
+
+* Criar solicitação
+* Cancelar solicitação
+* Aprovar solicitação
+* Reprovar solicitação
+* Integrar com workflow
+* Atualizar saldo após aprovação
+
+---
+
+## APIs
+
+```http
+POST /vacation-requests
+
+GET /vacation-requests
+
+POST /vacation-requests/{id}/cancel
+```
+
+---
+
+## Frontend
+
+* Solicitar férias
+* Listar solicitações
+* Aprovar solicitação
+* Reprovar solicitação
+* Visualizar histórico
+
+---
+
+## Critério de aceite
+
+Criar uma solicitação de férias.
+
+Fluxo:
+
+* Gestora aprova
+* Controlador aprova
+* RH aprova
+
+Resultado:
+
+* Solicitação aprovada
+* Saldo atualizado
 
 ---
 
 ## Entregável
 
-Fluxo completo funcionando.
+Fluxo completo de solicitação de férias funcionando.
 
 ---
 
@@ -637,28 +775,87 @@ Fluxo completo funcionando.
 
 # Gestão de Comissões
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Cadastro venda
-* Cálculo comissão
-* Aprovação
-* Pagamento
+Permitir registrar vendas e calcular comissões dos colaboradores.
 
 ---
 
-## Dados
+## Entidades
 
-Empreendimento
+### Sale
 
-Unidade
+* collaborator_id
+* development_name
+* unit
+* sale_date
+* sale_amount
 
-Valor venda
+### Commission
 
-Percentual
+* sale_id
+* percentage
+* commission_amount
+* status
 
-Valor comissão
+---
+
+## TDD
+
+Criar testes para:
+
+* Registrar venda
+* Calcular comissão
+* Aprovar comissão
+* Reprovar comissão
+* Marcar pagamento
+
+---
+
+## APIs
+
+```http
+POST /sales
+
+GET /sales
+
+POST /commissions/{id}/approve
+
+POST /commissions/{id}/reject
+
+POST /commissions/{id}/pay
+```
+
+---
+
+## Frontend
+
+* Cadastro de venda
+* Listagem de vendas
+* Aprovação
+* Controle de pagamento
+
+---
+
+## Critério de aceite
+
+Cadastrar uma venda.
+
+Valor:
+
+R$ 500.000,00
+
+Percentual:
+
+2%
+
+Resultado esperado:
+
+Comissão gerada:
+
+R$ 10.000,00
+
+Fluxo aprovado e pagamento registrado.
 
 ---
 
@@ -674,37 +871,78 @@ Controle de comissão operacional.
 
 ## Objetivo
 
-Motor configurável.
+Calcular automaticamente o custo mensal de cada colaborador.
+
+---
+
+## Entidades
+
+### CostCategory
+
+* name
+* type
+* active
+
+### CollaboratorCost
+
+* collaborator_id
+* category_id
+* amount
+* recurring
 
 ---
 
 ## TDD
 
-Testar:
+Criar testes para:
 
-* Categorias
-* Custos fixos
-* Custos provisionados
+* Criar categoria
+* Vincular custo
+* Calcular custo mensal
+* Provisionar férias
+* Provisionar 13º
 
 ---
 
-## Funcionalidades
+## APIs
 
-Categorias configuráveis:
+```http
+POST /cost-categories
 
-* Remuneração
-* Férias
-* 13º
-* Saúde
-* Alimentação
-* VT
-* Combustível
+GET /cost-categories
+
+POST /collaborator-costs
+
+GET /collaborator-costs
+```
+
+---
+
+## Frontend
+
+* Cadastro de categorias
+* Cadastro de custos
+* Demonstrativo mensal
+
+---
+
+## Critério de aceite
+
+Colaborador:
+
+* Remuneração: R$ 5.000
+* Plano de saúde: R$ 300
+* Alimentação: R$ 500
+
+Resultado:
+
+Custo mensal exibido corretamente.
 
 ---
 
 ## Entregável
 
-Custo mensal calculado.
+Motor de custos operacional.
 
 ---
 
@@ -712,25 +950,69 @@ Custo mensal calculado.
 
 # Gestão de Documentos
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Upload
-* Download
-* Vencimento
+Permitir armazenamento e controle de documentos dos colaboradores.
 
 ---
 
-## Funcionalidades
+## Entidades
 
-Tipos configuráveis.
+### DocumentType
+
+* name
+* expiration_required
+
+### Document
+
+* collaborator_id
+* document_type_id
+* file_path
+* expiration_date
+
+---
+
+## TDD
+
+Criar testes para:
+
+* Upload
+* Download
+* Exclusão
+* Controle de vencimento
+
+---
+
+## APIs
+
+```http
+POST /documents
+
+GET /documents
+
+DELETE /documents/{id}
+```
+
+---
+
+## Frontend
+
+* Upload
+* Download
+* Listagem
+* Filtros
+
+---
+
+## Critério de aceite
+
+Enviar documento e visualizar posteriormente.
 
 ---
 
 ## Entregável
 
-Documentos controlados.
+Gestão documental concluída.
 
 ---
 
@@ -738,13 +1020,39 @@ Documentos controlados.
 
 # Notas Fiscais Mensais
 
+## Objetivo
+
+Controlar recebimento de notas fiscais dos colaboradores.
+
+---
+
+## Entidades
+
+### Invoice
+
+* collaborator_id
+* competence
+* invoice_number
+* amount
+* issue_date
+* status
+
+---
+
 ## TDD
 
-Testar:
+Criar testes para:
 
 * Cadastro
 * Aprovação
-* Pendências
+* Reprovação
+* Pendência
+
+---
+
+## Critério de aceite
+
+Identificar colaboradores com NF pendente.
 
 ---
 
@@ -758,19 +1066,32 @@ Controle fiscal operacional.
 
 # Exames Periódicos
 
-## TDD
+## Objetivo
 
-Testar:
+Controlar vencimento de ASOs e demais exames.
 
-* Cadastro
-* Vencimento
-* Alertas
+---
+
+## Entidades
+
+### MedicalExam
+
+* collaborator_id
+* exam_type
+* execution_date
+* expiration_date
+
+---
+
+## Critério de aceite
+
+Exame vencido deve aparecer em alertas.
 
 ---
 
 ## Entregável
 
-Controle de ASO funcional.
+Controle de exames concluído.
 
 ---
 
@@ -778,30 +1099,31 @@ Controle de ASO funcional.
 
 # Notificações
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Disparo
-* Filas
-* Templates
+Centralizar envio de e-mails do sistema.
 
 ---
 
 ## Funcionalidades
 
-Emails:
-
 * Aprovação
 * Reprovação
-* Solicitações
-* Alertas
+* Solicitação criada
+* Documento vencendo
+* NF pendente
+
+---
+
+## Critério de aceite
+
+Evento ocorre e e-mail é enviado automaticamente.
 
 ---
 
 ## Entregável
 
-Notificações automáticas.
+Central de notificações operacional.
 
 ---
 
@@ -809,30 +1131,32 @@ Notificações automáticas.
 
 # Dashboard Executivo
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Indicadores
-* Filtros
-* Consolidação
+Consolidar indicadores estratégicos.
 
 ---
 
-## Funcionalidades
+## Indicadores
 
-KPIs:
+* Total colaboradores
+* Custos mensais
+* Férias pendentes
+* Comissões pendentes
+* NFs pendentes
+* Exames vencidos
 
-* Custos
-* Férias
-* Comissões
-* Pendências
+---
+
+## Critério de aceite
+
+Dashboard exibe informações consolidadas em tempo real.
 
 ---
 
 ## Entregável
 
-Dashboard operacional.
+Dashboard executivo concluído.
 
 ---
 
@@ -840,32 +1164,32 @@ Dashboard operacional.
 
 # Relatórios
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Excel
-* PDF
+Permitir exportação de dados.
 
 ---
 
 ## Relatórios
 
-Colaboradores
+* Colaboradores
+* Custos
+* Férias
+* Comissões
+* Notas fiscais
+* Exames
 
-Custos
+---
 
-Comissões
+## Critério de aceite
 
-Férias
-
-Documentos
+Exportação para Excel e PDF funcionando.
 
 ---
 
 ## Entregável
 
-Exportações concluídas.
+Relatórios concluídos.
 
 ---
 
@@ -873,30 +1197,34 @@ Exportações concluídas.
 
 # Auditoria
 
-## TDD
+## Objetivo
 
-Testar:
-
-* Inclusão
-* Alteração
-* Exclusão
-* Aprovação
+Registrar todas as alterações relevantes.
 
 ---
 
-## Funcionalidades
+## Entidades
 
-Registrar:
+### AuditLog
 
-* Usuário
-* Data
-* Operação
+* user_id
+* action
+* entity
+* entity_id
+* old_data
+* new_data
+
+---
+
+## Critério de aceite
+
+Toda alteração deve gerar registro auditável.
 
 ---
 
 ## Entregável
 
-Rastreabilidade completa.
+Auditoria completa funcionando.
 
 ---
 
@@ -906,22 +1234,21 @@ Rastreabilidade completa.
 
 ## Objetivo
 
-Validar todo o sistema.
+Validar todo o sistema antes da publicação.
 
 ---
 
-## Critérios
+## Checklist
 
-100% dos testes passando.
-
-Cobertura mínima:
-
-* Services: 90%
-* Requests: 90%
-* Workflows: 90%
+* Todos os testes passando
+* APIs documentadas
+* Frontend integrado
+* Relatórios funcionando
+* Workflow funcionando
+* Permissões funcionando
 
 ---
 
 ## Entregável
 
-Sistema pronto para produção.
+Sistema homologado e pronto para produção.

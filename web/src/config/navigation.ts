@@ -1,4 +1,4 @@
-import { LayoutDashboard, Shield, Users, type LucideIcon } from 'lucide-react'
+import { LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
 
 export type NavigationItem = {
   label: string
@@ -10,6 +10,7 @@ export type NavigationItem = {
 export const navigationItems: NavigationItem[] = [
   { label: 'Dashboard', href: '/', title: 'Dashboard', icon: LayoutDashboard },
   { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users },
+  { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield },
 ]
 

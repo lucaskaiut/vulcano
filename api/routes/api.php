@@ -15,6 +15,11 @@ use App\Modules\Workflow\Http\Controllers\WorkflowStepController;
 use App\Modules\Workflow\Domain\Models\Workflow;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
+use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
+use App\Modules\Vacation\Http\Controllers\VacationGrantController;
+use App\Modules\Vacation\Http\Controllers\VacationPeriodController;
+use App\Modules\Vacation\Domain\Models\VacationBalance;
+use App\Modules\Vacation\Domain\Models\VacationPeriod;
 use Illuminate\Support\Facades\Route;
 
 Route::bind('user', fn (string $value) => User::query()->findOrFail($value));
@@ -22,6 +27,8 @@ Route::bind('role', fn (string $value) => Role::query()->findOrFail($value));
 Route::bind('workflow', fn (string $value) => Workflow::query()->findOrFail($value));
 Route::bind('workflow_step', fn (string $value) => WorkflowStep::query()->findOrFail($value));
 Route::bind('workflow_instance', fn (string $value) => WorkflowInstance::query()->findOrFail($value));
+Route::bind('vacation_balance', fn (string $value) => VacationBalance::query()->findOrFail($value));
+Route::bind('vacation_period', fn (string $value) => VacationPeriod::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -91,4 +98,25 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:workflow_instances.reject');
     Route::post('workflow-instances/{workflow_instance}/cancel', [WorkflowInstanceController::class, 'cancel'])
         ->middleware('permission:workflow_instances.cancel');
+
+    Route::get('vacation-balances', [VacationBalanceController::class, 'index'])
+        ->middleware('permission:vacation_balances.view');
+    Route::post('vacation-balances', [VacationBalanceController::class, 'store'])
+        ->middleware('permission:vacation_balances.create');
+    Route::get('vacation-balances/{vacation_balance}', [VacationBalanceController::class, 'show'])
+        ->middleware('permission:vacation_balances.view');
+    Route::put('vacation-balances/{vacation_balance}', [VacationBalanceController::class, 'update'])
+        ->middleware('permission:vacation_balances.update');
+
+    Route::get('vacation-periods', [VacationPeriodController::class, 'index'])
+        ->middleware('permission:vacation_periods.view');
+    Route::post('vacation-periods', [VacationPeriodController::class, 'store'])
+        ->middleware('permission:vacation_periods.create');
+    Route::post('vacation-periods/{vacation_period}/close', [VacationPeriodController::class, 'close'])
+        ->middleware('permission:vacation_periods.close');
+
+    Route::get('vacation-grants', [VacationGrantController::class, 'index'])
+        ->middleware('permission:vacation_grants.view');
+    Route::post('vacation-grants', [VacationGrantController::class, 'store'])
+        ->middleware('permission:vacation_grants.create');
 });

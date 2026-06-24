@@ -61,3 +61,11 @@ export function toInputDate(value: string | null | undefined): string {
 
   return value.slice(0, 10)
 }
+
+export function formatDays(value: number | null | undefined): string {
+  if (value === null || value === undefined) {
+    return '—'
+  }
+
+  return `${value} ${value === 1 ? 'dia' : 'dias'}`
+}

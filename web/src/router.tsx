@@ -9,6 +9,7 @@ import { RoleFormPage } from './pages/RoleFormPage'
 import { RolesPage } from './pages/RolesPage'
 import { UserDetailPage } from './pages/UserDetailPage'
 import { UserFormPage } from './pages/UserFormPage'
+import { VacationBalancesPage } from './pages/VacationBalancesPage'
 import { UsersPage } from './pages/UsersPage'
 
 export const router = createBrowserRouter([
@@ -31,6 +32,7 @@ export const router = createBrowserRouter([
           { path: 'users/novo', element: <UserFormPage /> },
           { path: 'users/:id/editar', element: <UserFormPage /> },
           { path: 'users/:id', element: <UserDetailPage /> },
+          { path: 'vacation-balances', element: <VacationBalancesPage /> },
           { path: 'roles', element: <RolesPage /> },
           { path: 'roles/novo', element: <RoleFormPage /> },
           { path: 'roles/:id/editar', element: <RoleFormPage /> },
