@@ -2,7 +2,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import { Link, Navigate, useNavigate, useParams } from "react-router-dom";
+import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import { z } from "zod";
 import { applyApiErrors } from "../lib/applyApiErrors";
 import { toInputDate } from "../lib/format";
@@ -68,7 +68,7 @@ function createUserFormSchema(isEditing: boolean) {
 }
 
 export function UserFormPage() {
-  const { id } = useParams();
+  const { id } = useParams({ strict: false });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const userId = id ? Number(id) : null;
@@ -176,7 +176,7 @@ export function UserFormPage() {
     },
     onSuccess: async (savedUser) => {
       await queryClient.invalidateQueries({ queryKey: ["users"] });
-      navigate(`/users/${savedUser.id}`);
+      navigate({ to: `/users/${savedUser.id}` });
     },
     onError: (error) => {
       setFormError(null);

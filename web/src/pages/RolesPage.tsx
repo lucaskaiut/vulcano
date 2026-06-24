@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { ApiError } from '../services/api'
 import { getApiErrorMessage } from '../services/getApiErrorMessage'
 import * as aclService from '../services/aclService'
@@ -124,7 +124,7 @@ export function RolesPage() {
                     <TableRowActions
                       editLabel={`Editar perfil ${role.name}`}
                       deleteLabel={`Excluir perfil ${role.name}`}
-                      onEdit={() => navigate(`/roles/${role.id}/editar`)}
+                      onEdit={() => navigate({ to: `/roles/${role.id}/editar` })}
                       onDelete={async () => {
                         const confirmed = await confirm({
                           title: 'Excluir perfil',

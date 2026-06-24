@@ -1,32 +1,33 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { useAuth } from '../contexts/AuthContext'
 import { getTableFiltersPreference, userDrawerFiltersToPreference } from '../lib/filterPreferences'
 import {
-  applyUserDrawerFiltersToSearchParams,
-  clearUserDrawerFiltersFromSearchParams,
   countActiveUserDrawerFilters,
   EMPTY_USER_DRAWER_FILTERS,
-  hasUserFilterParams,
   parseUserDrawerFilters,
   removeUserDrawerFilter,
   toUserListFilters,
   type UserDrawerFilters,
   type UserListFilters,
+  USER_FILTER_KEYS,
 } from '../lib/userFilters'
 
 type UseUserFiltersOptions = {
   tableKey?: string
 }
 
+type SearchObject = Record<string, string | undefined>
+
 export function useUserFilters({ tableKey = 'users' }: UseUserFiltersOptions = {}) {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const search = useSearch({ strict: false }) as SearchObject
+  const navigate = useNavigate()
   const { user, mergePreferences } = useAuth()
   const hasSyncedFromPreferences = useRef(false)
 
   const drawerFilters = useMemo(
-    () => parseUserDrawerFilters(searchParams),
-    [searchParams],
+    () => parseUserDrawerFilters(search),
+    [search],
   )
 
   const apiFilters = useMemo<UserListFilters>(() => toUserListFilters(drawerFilters), [drawerFilters])
@@ -54,7 +55,8 @@ export function useUserFilters({ tableKey = 'users' }: UseUserFiltersOptions = {
       return
     }
 
-    if (hasUserFilterParams(searchParams)) {
+    const hasFilters = USER_FILTER_KEYS.some((key) => search[key])
+    if (hasFilters) {
       hasSyncedFromPreferences.current = true
       return
     }
@@ -62,40 +64,84 @@ export function useUserFilters({ tableKey = 'users' }: UseUserFiltersOptions = {
     const saved = getTableFiltersPreference(user.preferences, tableKey)
 
     if (saved) {
-      setSearchParams((current) => applyUserDrawerFiltersToSearchParams(current, saved), {
+      navigate({
+        search: ((prev: SearchObject) => {
+          const next = { ...prev }
+          for (const key of USER_FILTER_KEYS) {
+            delete next[key]
+          }
+          for (const [k, v] of Object.entries(saved)) {
+            if (v) next[k] = v
+          }
+          next.page = '1'
+          return next
+        }) as any,
         replace: true,
       })
     }
 
     hasSyncedFromPreferences.current = true
-    // Sincroniza preferências salvas apenas na carga inicial da listagem.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- searchParams é lido só na primeira sincronização
-  }, [user, tableKey, setSearchParams])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, tableKey, navigate])
 
   const applyDrawerFilters = useCallback(
     (filters: UserDrawerFilters) => {
-      setSearchParams((current) => applyUserDrawerFiltersToSearchParams(current, filters), {
+      navigate({
+        search: ((prev: SearchObject) => {
+          const next = { ...prev }
+          for (const key of USER_FILTER_KEYS) {
+            delete next[key]
+          }
+          for (const key of USER_FILTER_KEYS) {
+            const value = filters[key].trim()
+            if (value) next[key] = value
+          }
+          next.page = '1'
+          return next
+        }) as any,
         replace: true,
       })
       persistFilters(filters)
     },
-    [setSearchParams, persistFilters],
+    [navigate, persistFilters],
   )
 
   const clearDrawerFilters = useCallback(() => {
-    setSearchParams((current) => clearUserDrawerFiltersFromSearchParams(current), { replace: true })
+    navigate({
+      search: ((prev: SearchObject) => {
+        const next = { ...prev }
+        for (const key of USER_FILTER_KEYS) {
+          delete next[key]
+        }
+        next.page = '1'
+        return next
+      }) as any,
+      replace: true,
+    })
     persistFilters(EMPTY_USER_DRAWER_FILTERS)
-  }, [setSearchParams, persistFilters])
+  }, [navigate, persistFilters])
 
   const removeFilter = useCallback(
     (key: Parameters<typeof removeUserDrawerFilter>[1]) => {
       const nextFilters = removeUserDrawerFilter(drawerFilters, key)
-      setSearchParams((current) => applyUserDrawerFiltersToSearchParams(current, nextFilters), {
+      navigate({
+        search: ((prev: SearchObject) => {
+          const next = { ...prev }
+          for (const k of USER_FILTER_KEYS) {
+            delete next[k]
+          }
+          for (const k of USER_FILTER_KEYS) {
+            const value = nextFilters[k].trim()
+            if (value) next[k] = value
+          }
+          next.page = '1'
+          return next
+        }) as any,
         replace: true,
       })
       persistFilters(nextFilters)
     },
-    [drawerFilters, setSearchParams, persistFilters],
+    [drawerFilters, navigate, persistFilters],
   )
 
   return {

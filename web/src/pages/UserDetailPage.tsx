@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import * as aclService from '../services/aclService'
 import { Alert } from '../components/ui/Alert'
 import { Button } from '../components/ui/Button'
@@ -18,7 +18,7 @@ function DetailItem({ label, value }: { label: string; value: string }) {
 }
 
 export function UserDetailPage() {
-  const { id } = useParams()
+  const { id } = useParams({ strict: false })
   const navigate = useNavigate()
   const userId = id ? Number(id) : null
 
@@ -57,10 +57,10 @@ export function UserDetailPage() {
         description={user.job_title}
         action={
           <div className="flex flex-col gap-2 sm:flex-row">
-            <Button type="button" variant="ghost" onClick={() => navigate('/users')}>
+            <Button type="button" variant="ghost" onClick={() => navigate({ to: '/users' })}>
               Voltar
             </Button>
-            <Button type="button" onClick={() => navigate(`/users/${user.id}/editar`)}>
+            <Button type="button" onClick={() => navigate({ to: `/users/${user.id}/editar` })}>
               Editar
             </Button>
           </div>

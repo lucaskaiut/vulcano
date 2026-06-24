@@ -1,5 +1,5 @@
 import { LogOut } from 'lucide-react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
 import { getNavigationTitle } from '../../config/navigation'
 

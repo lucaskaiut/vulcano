@@ -1,4 +1,4 @@
-import { RouterProvider } from 'react-router-dom'
+import { RouterProvider } from '@tanstack/react-router'
 import { AuthProvider } from './contexts/AuthContext'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import { router } from './router'

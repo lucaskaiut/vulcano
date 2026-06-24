@@ -1,11 +1,21 @@
 import { LogOut } from 'lucide-react'
-import { NavLink } from 'react-router-dom'
+import { useCallback } from 'react'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
-import { navigationItems } from '../../config/navigation'
+import { isNavItemActive, navigationItems } from '../../config/navigation'
 import { getInitials } from '../../lib/layout'
 
 export function Sidebar() {
   const { user, logout } = useAuth()
+  const { pathname } = useLocation()
+  const navigate = useNavigate()
+
+  const goTo = useCallback(
+    (href: string) => {
+      navigate({ to: href })
+    },
+    [navigate],
+  )
 
   return (
     <aside className="hidden h-screen w-64 shrink-0 flex-col bg-surface shadow-overlay md:flex">
@@ -39,25 +49,24 @@ export function Sidebar() {
       )}
 
       <nav className="flex-1 space-y-1 px-3">
-        {navigationItems.map((item) => (
-          <NavLink
-            key={item.href}
-            to={item.href}
-            end={item.href === '/'}
-            onClick={() => {
-              document.body.style.overflow = ''
-            }}
-            className={({ isActive }) =>
-              `block rounded-lg px-3 py-2.5 text-sm font-medium transition ${
+        {navigationItems.map((item) => {
+          const isActive = isNavItemActive(item.href, pathname)
+
+          return (
+            <button
+              key={item.href}
+              type="button"
+              onClick={() => goTo(item.href)}
+              className={`block w-full rounded-lg px-3 py-2.5 text-left text-sm font-medium transition ${
                 isActive
                   ? 'bg-primary-muted text-primary shadow-surface'
                   : 'text-foreground-muted hover:bg-surface-sunken hover:text-foreground'
-              }`
-            }
-          >
-            {item.label}
-          </NavLink>
-        ))}
+              }`}
+            >
+              {item.label}
+            </button>
+          )
+        })}
       </nav>
     </aside>
   )

@@ -40,15 +40,24 @@ export const EMPTY_USER_DRAWER_FILTERS: UserDrawerFilters = {
   salary_max: '',
 }
 
-export function parseUserDrawerFilters(searchParams: URLSearchParams): UserDrawerFilters {
+export function parseUserDrawerFilters(searchParams: URLSearchParams): UserDrawerFilters
+export function parseUserDrawerFilters(search: Record<string, string | undefined>): UserDrawerFilters
+export function parseUserDrawerFilters(source: URLSearchParams | Record<string, string | undefined>): UserDrawerFilters {
+  const get = (key: string) => {
+    if (source instanceof URLSearchParams) {
+      return source.get(key) ?? ''
+    }
+    return (source as Record<string, string | undefined>)[key] ?? ''
+  }
+
   return {
-    email: searchParams.get('email') ?? '',
-    hired_from: searchParams.get('hired_from') ?? '',
-    hired_to: searchParams.get('hired_to') ?? '',
-    created_from: searchParams.get('created_from') ?? '',
-    created_to: searchParams.get('created_to') ?? '',
-    salary_min: searchParams.get('salary_min') ?? '',
-    salary_max: searchParams.get('salary_max') ?? '',
+    email: get('email'),
+    hired_from: get('hired_from'),
+    hired_to: get('hired_to'),
+    created_from: get('created_from'),
+    created_to: get('created_to'),
+    salary_min: get('salary_min'),
+    salary_max: get('salary_max'),
   }
 }
 

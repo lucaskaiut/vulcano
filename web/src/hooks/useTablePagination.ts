@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { getPerPagePreference, isAllowedPerPage } from '../lib/paginationPreferences'
 import {
   ALLOWED_PER_PAGE,
@@ -8,7 +8,7 @@ import {
 } from '../types/preferences'
 import { useAuth } from '../contexts/AuthContext'
 
-function parsePage(value: string | null): number {
+function parsePage(value: string | undefined): number {
   const page = Number.parseInt(value ?? '1', 10)
 
   if (Number.isNaN(page) || page < 1) {
@@ -18,7 +18,7 @@ function parsePage(value: string | null): number {
   return page
 }
 
-function parsePerPage(value: string | null): AllowedPerPage | null {
+function parsePerPage(value: string | undefined): AllowedPerPage | null {
   if (!value) {
     return null
   }
@@ -33,12 +33,13 @@ function parsePerPage(value: string | null): AllowedPerPage | null {
 }
 
 export function useTablePagination() {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const search = useSearch({ strict: false }) as Record<string, string | undefined>
+  const navigate = useNavigate()
   const { user, mergePreferences } = useAuth()
   const hasSyncedUrl = useRef(false)
 
-  const page = parsePage(searchParams.get('page'))
-  const perPageFromUrl = parsePerPage(searchParams.get('per_page'))
+  const page = parsePage(search.page)
+  const perPageFromUrl = parsePerPage(search.per_page)
   const savedPerPage = getPerPagePreference(user?.preferences)
   const perPage = perPageFromUrl ?? savedPerPage ?? DEFAULT_PER_PAGE
 
@@ -47,57 +48,51 @@ export function useTablePagination() {
       return
     }
 
-    const hasPage = searchParams.has('page')
-    const hasPerPage = searchParams.has('per_page')
+    const hasPage = search.page !== undefined
+    const hasPerPage = search.per_page !== undefined
 
     if (hasPage && hasPerPage) {
       hasSyncedUrl.current = true
       return
     }
 
-    setSearchParams(
-      (current) => {
-        if (!hasPage) {
-          current.set('page', '1')
-        }
-
-        if (!hasPerPage) {
-          current.set('per_page', String(savedPerPage))
-        }
-
-        return current
-      },
-      { replace: true },
-    )
+    navigate({
+      search: ((prev: Record<string, string | undefined>) => ({
+        ...prev,
+        ...(hasPage ? {} : { page: '1' }),
+        ...(hasPerPage ? {} : { per_page: String(savedPerPage) }),
+      })) as any,
+      replace: true,
+    })
 
     hasSyncedUrl.current = true
-  }, [savedPerPage, searchParams, setSearchParams])
+  }, [savedPerPage, search, navigate])
 
   const setPage = useCallback(
     (nextPage: number) => {
       const safePage = Math.max(1, nextPage)
 
-      setSearchParams(
-        (current) => {
-          current.set('page', String(safePage))
-          return current
-        },
-        { replace: true },
-      )
+      navigate({
+        search: ((prev: Record<string, string | undefined>) => ({
+          ...prev,
+          page: String(safePage),
+        })) as any,
+        replace: true,
+      })
     },
-    [setSearchParams],
+    [navigate],
   )
 
   const setPerPage = useCallback(
     (nextPerPage: AllowedPerPage) => {
-      setSearchParams(
-        (current) => {
-          current.set('per_page', String(nextPerPage))
-          current.set('page', '1')
-          return current
-        },
-        { replace: true },
-      )
+      navigate({
+        search: ((prev: Record<string, string | undefined>) => ({
+          ...prev,
+          per_page: String(nextPerPage),
+          page: '1',
+        })) as any,
+        replace: true,
+      })
 
       mergePreferences({
         pagination: {
@@ -105,7 +100,7 @@ export function useTablePagination() {
         },
       })
     },
-    [mergePreferences, setSearchParams],
+    [mergePreferences, navigate],
   )
 
   return {

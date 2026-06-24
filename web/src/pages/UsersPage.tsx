@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Filter } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { ApiError } from '../services/api'
 import { getApiErrorMessage } from '../services/getApiErrorMessage'
 import * as aclService from '../services/aclService'
@@ -179,8 +179,8 @@ export function UsersPage() {
                       viewLabel={`Ver ${user.name}`}
                       editLabel={`Editar ${user.name}`}
                       deleteLabel={`Excluir ${user.name}`}
-                      onView={() => navigate(`/users/${user.id}`)}
-                      onEdit={() => navigate(`/users/${user.id}/editar`)}
+                      onView={() => navigate({ to: `/users/${user.id}` })}
+                      onEdit={() => navigate({ to: `/users/${user.id}/editar` })}
                       onDelete={async () => {
                         const confirmed = await confirm({
                           title: 'Excluir colaborador',

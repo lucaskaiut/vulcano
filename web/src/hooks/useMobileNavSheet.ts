@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
-import { useLocation } from 'react-router-dom'
+import { useLocation } from '@tanstack/react-router'
 
 export const MOBILE_NAV_SHEET_ANIMATION_MS = 320
 const SNAP_RATIO = 0.35

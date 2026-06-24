@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from 'react-router-dom'
+import { Link } from '@tanstack/react-router'
 import * as vacationService from '../services/vacationService'
 import { Alert } from '../components/ui/Alert'
 import { Card } from '../components/ui/Card'
@@ -63,7 +63,7 @@ export function VacationBalancesPage() {
                   <TableRow key={balance.id}>
                     <TableCell>
                       <Link
-                        to={`/users/${balance.user_id}`}
+                        to={`/users/${balance.user_id}` as any}
                         className="font-medium text-primary hover:underline"
                       >
                         {balance.user?.name ?? `Colaborador #${balance.user_id}`}

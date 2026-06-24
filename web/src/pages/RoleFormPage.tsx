@@ -2,7 +2,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
-import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
+import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import { applyApiErrors } from '../lib/applyApiErrors'
 import * as aclService from '../services/aclService'
 import { ApiError } from '../services/api'
@@ -15,7 +15,7 @@ import { PermissionGroupPicker } from '../components/ui/PermissionGroupPicker'
 import { PageHeader } from '../components/ui/PageHeader'
 
 export function RoleFormPage() {
-  const { id } = useParams()
+  const { id } = useParams({ strict: false });
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const roleId = id ? Number(id) : null
@@ -81,7 +81,7 @@ export function RoleFormPage() {
     },
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['roles'] })
-      navigate('/roles')
+      navigate({ to: '/roles' })
     },
     onError: (error) => {
       setFormError(null)

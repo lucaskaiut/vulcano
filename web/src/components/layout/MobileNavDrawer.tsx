@@ -1,6 +1,6 @@
 import { LogOut, X } from 'lucide-react'
-import { useEffect, type PointerEvent as ReactPointerEvent } from 'react'
-import { NavLink, useLocation } from 'react-router-dom'
+import { useCallback, useEffect, type PointerEvent as ReactPointerEvent } from 'react'
+import { useLocation, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
 import { isNavItemActive, navigationItems } from '../../config/navigation'
 import { MOBILE_NAV_SHEET_ANIMATION_MS } from '../../hooks/useMobileNavSheet'
@@ -32,8 +32,17 @@ export function MobileNavDrawer({
 }: MobileNavDrawerProps) {
   const { pathname } = useLocation()
   const { user, logout } = useAuth()
+  const navigate = useNavigate()
 
   const menuItems = navigationItems.filter((item) => item.href !== '/')
+
+  const goTo = useCallback(
+    (href: string) => {
+      onClose()
+      navigate({ to: href })
+    },
+    [navigate, onClose],
+  )
 
   useEffect(() => {
     if (!isVisible) {
@@ -148,13 +157,11 @@ export function MobileNavDrawer({
             const Icon = item.icon
 
             return (
-              <NavLink
+              <button
                 key={item.href}
-                to={item.href}
-                onClick={() => {
-                  document.body.style.overflow = ''
-                }}
-                className={`flex items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium transition ${
+                type="button"
+                onClick={() => goTo(item.href)}
+                className={`flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm font-medium transition ${
                   isActive
                     ? 'bg-primary-muted text-primary shadow-surface'
                     : 'text-foreground-muted hover:bg-surface-sunken hover:text-foreground'
@@ -162,7 +169,7 @@ export function MobileNavDrawer({
               >
                 <Icon className="size-5 shrink-0" aria-hidden />
                 {item.label}
-              </NavLink>
+              </button>
             )
           })}
         </nav>

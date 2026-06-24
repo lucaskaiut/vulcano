@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useSearch } from '@tanstack/react-router'
 import { ApiError } from '../services/api'
 import { getApiErrorMessage } from '../services/getApiErrorMessage'
 import { resetPassword } from '../services/authService'
@@ -9,15 +9,15 @@ import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
 
 export function ResetPasswordPage() {
-  const [searchParams] = useSearchParams()
-  const [email, setEmail] = useState(searchParams.get('email') ?? '')
+  const searchParams = useSearch({ strict: false }) as Record<string, string | undefined>
+  const [email, setEmail] = useState(searchParams.email ?? '')
   const [password, setPassword] = useState('')
   const [passwordConfirmation, setPasswordConfirmation] = useState('')
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const token = searchParams.get('token') ?? ''
+  const token = searchParams.token ?? ''
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()

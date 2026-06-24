@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate } from '@tanstack/react-router'
 import { ApiError } from '../services/api'
 import { getApiErrorMessage } from '../services/getApiErrorMessage'
 import { useAuth } from '../contexts/AuthContext'
@@ -23,7 +23,7 @@ export function LoginPage() {
 
     try {
       await login(email, password)
-      navigate('/', { replace: true })
+      navigate({ to: '/', replace: true })
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(getApiErrorMessage(submitError, 'email'))

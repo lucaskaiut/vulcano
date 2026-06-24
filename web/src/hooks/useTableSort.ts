@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { useSearchParams } from 'react-router-dom'
+import { useNavigate, useSearch } from '@tanstack/react-router'
 import { decodeSorts, encodeSorts, getNextSorts } from '../lib/sortQuery'
 import { getTableSortsPreference } from '../lib/tablePreferences'
 import type { TableSort } from '../types/preferences'
@@ -11,23 +11,13 @@ type UseTableSortOptions = {
   defaultSorts?: TableSort[]
 }
 
-function applySortParams(params: URLSearchParams, sorts: TableSort[]): void {
-  if (sorts.length === 0) {
-    params.delete('sort')
-    params.delete('direction')
-    return
-  }
-
-  params.set('sort', encodeSorts(sorts))
-  params.delete('direction')
-}
-
 export function useTableSort({
   tableKey,
   sortableColumns,
   defaultSorts = [{ column: 'name', direction: 'asc' }],
 }: UseTableSortOptions) {
-  const [searchParams, setSearchParams] = useSearchParams()
+  const search = useSearch({ strict: false }) as Record<string, string | undefined>
+  const navigate = useNavigate()
   const { user, mergePreferences } = useAuth()
   const hasSyncedUrl = useRef(false)
 
@@ -37,8 +27,8 @@ export function useTableSort({
   )
 
   const sorts = useMemo((): TableSort[] => {
-    return decodeSorts(searchParams.get('sort'), sortableColumns)
-  }, [searchParams, sortableColumns])
+    return decodeSorts(search.sort ?? null, sortableColumns)
+  }, [search.sort, sortableColumns])
 
   const querySorts = useMemo(
     () => (sorts.length > 0 ? sorts : defaultQuerySorts),
@@ -50,7 +40,7 @@ export function useTableSort({
       return
     }
 
-    if (searchParams.get('sort')) {
+    if (search.sort) {
       hasSyncedUrl.current = true
       return
     }
@@ -69,16 +59,16 @@ export function useTableSort({
       return
     }
 
-    setSearchParams(
-      (current) => {
-        applySortParams(current, validSaved)
-        return current
-      },
-      { replace: true },
-    )
+    navigate({
+      search: ((prev: Record<string, string | undefined>) => ({
+        ...prev,
+        sort: encodeSorts(validSaved),
+      })) as any,
+      replace: true,
+    })
 
     hasSyncedUrl.current = true
-  }, [user?.preferences, tableKey, searchParams, setSearchParams, sortableColumns])
+  }, [user?.preferences, tableKey, search.sort, navigate, sortableColumns])
 
   const toggleSort = useCallback(
     (column: string) => {
@@ -86,17 +76,17 @@ export function useTableSort({
         return
       }
 
-      const currentSorts = decodeSorts(searchParams.get('sort'), sortableColumns)
+      const currentSorts = decodeSorts(search.sort ?? null, sortableColumns)
       const nextSorts = getNextSorts(currentSorts, column)
 
-      setSearchParams(
-        (current) => {
-          applySortParams(current, nextSorts)
-          current.set('page', '1')
-          return current
-        },
-        { replace: true },
-      )
+      navigate({
+        search: ((prev: Record<string, string | undefined>) => ({
+          ...prev,
+          sort: nextSorts.length > 0 ? encodeSorts(nextSorts) : undefined,
+          page: '1',
+        })) as any,
+        replace: true,
+      })
 
       mergePreferences({
         tables: {
@@ -106,7 +96,7 @@ export function useTableSort({
         },
       })
     },
-    [searchParams, sortableColumns, setSearchParams, tableKey, mergePreferences],
+    [search.sort, sortableColumns, navigate, tableKey, mergePreferences],
   )
 
   return {
