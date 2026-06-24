@@ -50,7 +50,7 @@ export async function listVacationBalances(
 }
 
 export async function getVacationBalanceForUser(userId: number): Promise<VacationBalance | null> {
-  const response = await listVacationBalances({ user_id: userId, per_page: 1 })
+  const response = await listVacationBalances({ user_id: userId, per_page: 10 })
   return response.data[0] ?? null
 }
 
