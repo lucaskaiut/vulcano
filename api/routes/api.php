@@ -1,0 +1,94 @@
+<?php
+
+use App\Modules\User\Http\Controllers\AuthController;
+use App\Modules\User\Http\Controllers\PermissionController;
+use App\Modules\User\Http\Controllers\RoleController;
+use App\Modules\User\Http\Controllers\SalaryHistoryController;
+use App\Modules\User\Http\Controllers\UserController;
+use App\Modules\User\Http\Controllers\UserPreferenceController;
+use App\Modules\User\Domain\Models\Role;
+use App\Modules\User\Domain\Models\SalaryHistory;
+use App\Modules\User\Domain\Models\User;
+use App\Modules\Workflow\Http\Controllers\WorkflowController;
+use App\Modules\Workflow\Http\Controllers\WorkflowInstanceController;
+use App\Modules\Workflow\Http\Controllers\WorkflowStepController;
+use App\Modules\Workflow\Domain\Models\Workflow;
+use App\Modules\Workflow\Domain\Models\WorkflowInstance;
+use App\Modules\Workflow\Domain\Models\WorkflowStep;
+use Illuminate\Support\Facades\Route;
+
+Route::bind('user', fn (string $value) => User::query()->findOrFail($value));
+Route::bind('role', fn (string $value) => Role::query()->findOrFail($value));
+Route::bind('workflow', fn (string $value) => Workflow::query()->findOrFail($value));
+Route::bind('workflow_step', fn (string $value) => WorkflowStep::query()->findOrFail($value));
+Route::bind('workflow_instance', fn (string $value) => WorkflowInstance::query()->findOrFail($value));
+Route::bind('salary_history', function (string $value, $route) {
+    $user = $route->parameter('user');
+
+    return SalaryHistory::query()
+        ->where('user_id', $user->id)
+        ->findOrFail($value);
+});
+
+Route::post('/login', [AuthController::class, 'login']);
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
+Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/me', [AuthController::class, 'me']);
+    Route::post('/logout', [AuthController::class, 'logout']);
+
+    Route::get('/me/preferences', [UserPreferenceController::class, 'show']);
+    Route::patch('/me/preferences', [UserPreferenceController::class, 'update']);
+
+    Route::apiResource('users', UserController::class)->middleware([
+        'index' => 'permission:users.view',
+        'store' => 'permission:users.create',
+        'show' => 'permission:users.view',
+        'update' => 'permission:users.update',
+        'destroy' => 'permission:users.delete',
+    ]);
+
+    Route::get('users/{user}/salary-histories', [SalaryHistoryController::class, 'index'])
+        ->middleware('permission:users.view');
+    Route::post('users/{user}/salary-histories', [SalaryHistoryController::class, 'store'])
+        ->middleware('permission:users.update');
+    Route::put('users/{user}/salary-histories/{salary_history}', [SalaryHistoryController::class, 'update'])
+        ->middleware('permission:users.update');
+
+    Route::apiResource('roles', RoleController::class)->middleware([
+        'index' => 'permission:roles.view',
+        'store' => 'permission:roles.create',
+        'show' => 'permission:roles.view',
+        'update' => 'permission:roles.update',
+        'destroy' => 'permission:roles.delete',
+    ]);
+
+    Route::get('permissions', [PermissionController::class, 'index'])
+        ->middleware('permission:roles.view');
+
+    Route::get('workflows', [WorkflowController::class, 'index'])
+        ->middleware('permission:workflows.view');
+    Route::post('workflows', [WorkflowController::class, 'store'])
+        ->middleware('permission:workflows.create');
+    Route::put('workflows/{workflow}', [WorkflowController::class, 'update'])
+        ->middleware('permission:workflows.update');
+
+    Route::post('workflows/{workflow}/steps', [WorkflowStepController::class, 'store'])
+        ->middleware('permission:workflows.update');
+    Route::put('workflow-steps/{workflow_step}', [WorkflowStepController::class, 'update'])
+        ->middleware('permission:workflows.update');
+    Route::delete('workflow-steps/{workflow_step}', [WorkflowStepController::class, 'destroy'])
+        ->middleware('permission:workflows.update');
+
+    Route::post('workflow-instances', [WorkflowInstanceController::class, 'store'])
+        ->middleware('permission:workflow_instances.create');
+    Route::get('workflow-instances/{workflow_instance}', [WorkflowInstanceController::class, 'show'])
+        ->middleware('permission:workflow_instances.view');
+    Route::post('workflow-instances/{workflow_instance}/approve', [WorkflowInstanceController::class, 'approve'])
+        ->middleware('permission:workflow_instances.approve');
+    Route::post('workflow-instances/{workflow_instance}/reject', [WorkflowInstanceController::class, 'reject'])
+        ->middleware('permission:workflow_instances.reject');
+    Route::post('workflow-instances/{workflow_instance}/cancel', [WorkflowInstanceController::class, 'cancel'])
+        ->middleware('permission:workflow_instances.cancel');
+});

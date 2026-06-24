@@ -1,0 +1,60 @@
+---
+description: Todo bug relatado pelo usuário deve incluir cenário de teste (frontend ou backend)
+alwaysApply: true
+---
+
+# Bug reportado = teste obrigatório
+
+Quando o usuário relatar um erro, comportamento incorreto ou regressão, a correção **não está completa** sem um cenário de teste que reproduza e proteja o caso.
+
+## Fluxo obrigatório
+
+1. **Reproduzir** o problema descrito (ou confirmar a causa no código).
+2. **Escrever o teste primeiro** (TDD) ou junto com a correção, cobrindo o cenário exato reportado.
+3. **Implementar a correção** com o menor diff possível.
+4. **Executar os testes** e garantir que o novo teste passa e os existentes continuam passando.
+
+## Onde escrever o teste
+
+| Contexto | Stack | Local sugerido |
+|----------|-------|----------------|
+| API, regra de negócio, validação, mensagens | Pest (Laravel) | `api/tests/Feature/` ou `api/tests/Unit/` |
+| Componente, fluxo de UI, helper de erro | Vitest + Testing Library (quando existir) ou teste E2E | `web/src/**/*.test.ts(x)` |
+
+Se a stack de testes do frontend ainda não existir no projeto, **crie a infraestrutura mínima necessária** em vez de pular o teste.
+
+## Critérios do teste
+
+- Nome/descrição em português claro, refletindo o bug reportado.
+- Assertiva sobre o **comportamento esperado** (status HTTP, mensagem amigável, redirecionamento, estado da UI), não só “não quebra”.
+- Preferir teste de integração/feature para bugs de API; teste de componente para bugs de renderização/UX.
+
+## Exemplos
+
+```php
+// ✅ Backend — credencial inválida retorna mensagem amigável
+it('rejects invalid credentials with friendly message', function () {
+    $response = $this->postJson('/api/login', [
+        'email' => 'user@example.com',
+        'password' => 'wrong-password',
+    ]);
+
+    $response
+        ->assertUnprocessable()
+        ->assertJsonPath('errors.email.0', AuthMessages::INVALID_CREDENTIALS);
+});
+```
+
+```typescript
+// ✅ Frontend — exibe mensagem da API, não chave técnica
+it('shows friendly login error message', async () => {
+  // mock API retornando errors.email: ['E-mail ou senha incorretos...']
+  // assert tela exibe o texto amigável, não 'auth.failed'
+});
+```
+
+## Proibido
+
+- Corrigir bug reportado **sem** teste de regressão.
+- Teste que só verifica status code genérico quando o bug era sobre mensagem, fluxo ou estado específico.
+- Adiar o teste “para depois” ou marcar a tarefa como concluída sem executá-lo.

@@ -1,0 +1,105 @@
+services:
+  app:
+    env_file:
+      - .env.docker
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: vulcano-app
+    restart: unless-stopped
+    working_dir: /var/www/html
+    entrypoint: ["/usr/local/bin/entrypoint.sh"]
+    command: ["php-fpm"]
+    volumes:
+      - ./api/:/var/www/html
+      - ./docker/php/entrypoint.sh:/usr/local/bin/entrypoint.sh:ro
+    environment:
+      MAIL_MAILER: smtp
+      MAIL_HOST: mailhog
+      MAIL_PORT: 1025
+      MAIL_USERNAME: null
+      MAIL_PASSWORD: null
+      MAIL_ENCRYPTION: null
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - vulcano
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: vulcano-nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    volumes:
+      - ./api:/var/www/html:ro
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - app
+    networks:
+      - vulcano
+
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    container_name: vulcano-mailhog
+    restart: unless-stopped
+    ports:
+      - "${MAILHOG_SMTP_PORT:-1025}:1025"
+      - "${MAILHOG_UI_PORT:-8025}:8025"
+    networks:
+      - vulcano
+
+  mysql:
+    image: mysql:8.4
+    container_name: vulcano-mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-secret}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-vulcano}
+      MYSQL_USER: ${MYSQL_USER:-vulcano}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-secret}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-secret}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - vulcano
+
+  web:
+    env_file:
+      - .env.docker
+    build:
+      context: ./docker/node
+      dockerfile: Dockerfile
+    image: vulcano-web
+    container_name: vulcano-web
+    restart: unless-stopped
+    working_dir: /app
+    stdin_open: true
+    tty: true
+    ports:
+      - "${WEB_PORT:-5173}:${WEB_PORT:-5173}"
+    environment:
+      PORT: ${WEB_PORT:-5173}
+      HOST: 0.0.0.0
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    volumes:
+      - ./web:/app
+    networks:
+      - vulcano
+
+networks:
+  vulcano:
+    driver: bridge
+
+volumes:
+  mysql_data:
+  web_node_modules:

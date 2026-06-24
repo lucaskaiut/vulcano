@@ -1,0 +1,40 @@
+---
+description: Padrões de responsividade e mobile-first para o frontend React
+globs: web/**/*.{tsx,ts,css}
+alwaysApply: false
+---
+
+# Responsividade do frontend
+
+Todo o sistema deve ser utilizável em celular. Projete mobile-first e valide em viewport estreita (~375px).
+
+## Navegação
+
+- **Desktop (`md:` e acima):** sidebar lateral fixa (`Sidebar`).
+- **Mobile (abaixo de `md`):** sidebar oculta; barra inferior com **Dashboard** + botão **Menu** (hambúrguer). O menu abre um drawer (`MobileNavDrawer`) com os demais itens de `navigation.ts`, dados do usuário e logout.
+- Itens de menu centralizados em `web/src/config/navigation.ts` (label, href, ícone).
+- Conteúdo principal com `pb-24` no mobile para não ficar atrás da bottom nav; usar `env(safe-area-inset-bottom)` na nav.
+
+## Layout autenticado
+
+- `AppLayout`: padding `px-4 py-4` no mobile, `px-8 py-8` no desktop.
+- `AppHeader`: título truncável; botão de logout visível só no mobile (sidebar cobre desktop).
+- Área principal com `min-w-0` para evitar overflow horizontal.
+
+## Componentes e páginas
+
+- Tabelas: sem scroll horizontal. Colunas extras usam `TableCellCollapsible` / `ExpandableTableRow`. Listagens paginadas com `useTablePagination` + `TablePagination`; `page` e `per_page` na URL; `pagination.perPage` salvo nas preferências do usuário via `mergePreferences`.
+- `PageHeader`: ações empilham abaixo do título no mobile; botões primários em largura total quando necessário.
+- `FormActions`: coluna no mobile (`flex-col-reverse`), linha a partir de `sm:`.
+- Formulários e cards: padding `p-6 sm:p-8`; grids com `grid-cols-1` por padrão.
+- Evitar larguras fixas que quebrem em telas pequenas; preferir `w-full`, `min-w-0`, `flex-wrap`.
+
+## Breakpoint padrão
+
+- Usar `md:` (768px) como corte sidebar ↔ bottom nav, salvo exceção documentada.
+
+## Ao criar telas novas
+
+1. Testar scroll horizontal — não deve existir no body.
+2. Garantir toques confortáveis (alvos ~44px onde possível).
+3. Reutilizar componentes de layout existentes antes de criar navegação alternativa.
