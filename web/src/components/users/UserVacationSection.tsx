@@ -13,6 +13,7 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { DatePicker } from '../ui/DatePicker'
 import { Input } from '../ui/Input'
+import { AdditionalDaysSection } from './AdditionalDaysSection'
 import { PeriodosAquisitivos } from './PeriodosAquisitivos'
 
 const grantSchema = z.object({
@@ -115,6 +116,19 @@ export function UserVacationSection({ userId, hireDate, readonly = false }: User
     },
   })
 
+  const additionalDaysMutation = useMutation({
+    mutationFn: (entries: { description: string; days: number }[]) => {
+      if (!balanceQuery.data?.balance) return Promise.resolve(null)
+
+      return vacationService.updateVacationBalance(balanceQuery.data.balance.id, {
+        additional_days_entries: entries,
+      } as any)
+    },
+    onSuccess: () => {
+      invalidateVacationQueries()
+    },
+  })
+
   const balance = balanceQuery.data?.balance
   const grants = useMemo(() => balanceQuery.data?.grants ?? [], [balanceQuery.data?.grants])
 
@@ -136,7 +150,16 @@ export function UserVacationSection({ userId, hireDate, readonly = false }: User
       </div>
 
       {balance ? (
-        <BalanceSummary balance={balance} />
+        <>
+          <BalanceSummary balance={balance} />
+
+          {!readonly && balance && (
+            <AdditionalDaysSection
+              entries={(balance as any).additional_days_entries ?? []}
+              onChange={(entries) => additionalDaysMutation.mutate(entries)}
+            />
+          )}
+        </>
       ) : hireDate ? (
         <p className="rounded-lg border border-dashed border-surface-sunken px-4 py-6 text-center text-sm text-foreground-muted">
           Os dados de férias estão sendo processados. Atualize a página.

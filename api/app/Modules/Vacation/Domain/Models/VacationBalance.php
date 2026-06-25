@@ -16,11 +16,19 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'accrued_days',
     'used_days',
     'additional_days',
+    'additional_days_entries',
 ])]
 class VacationBalance extends Model
 {
     /** @use HasFactory<VacationBalanceFactory> */
     use HasFactory;
+
+    protected function casts(): array
+    {
+        return [
+            'additional_days_entries' => 'array',
+        ];
+    }
 
     public function user(): BelongsTo
     {

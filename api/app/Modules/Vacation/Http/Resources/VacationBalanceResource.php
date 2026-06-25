@@ -24,6 +24,7 @@ class VacationBalanceResource extends JsonResource
             'accrued_days' => $accruedDays,
             'used_days' => $this->used_days,
             'additional_days' => $this->additional_days,
+            'additional_days_entries' => $this->additional_days_entries ?? [],
             'grants' => VacationGrantResource::collection($this->whenLoaded('grants')),
             'periods' => VacationPeriodResource::collection($this->whenLoaded('periods')),
             'created_at' => $this->created_at?->toIso8601String(),

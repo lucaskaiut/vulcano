@@ -94,11 +94,23 @@ class VacationBalanceService
         return $balance->fresh('user');
     }
 
-    /** @param  array{additional_days?: int}  $data */
+    /** @param  array{additional_days?: int, additional_days_entries?: list<array{description: string, days: int}>}  $data */
     public function update(VacationBalance $balance, array $data): VacationBalance
     {
+        $shouldSync = false;
+
         if (array_key_exists('additional_days', $data)) {
             $balance->additional_days = $data['additional_days'];
+            $shouldSync = true;
+        }
+
+        if (array_key_exists('additional_days_entries', $data)) {
+            $balance->additional_days_entries = $data['additional_days_entries'];
+            $balance->additional_days = collect($data['additional_days_entries'])->sum('days');
+            $shouldSync = true;
+        }
+
+        if ($shouldSync) {
             $this->syncAvailableDays($balance);
             $balance->save();
         }
