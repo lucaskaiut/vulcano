@@ -3,6 +3,8 @@
 namespace App\Modules\Workflow\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\Vacation\Domain\Services\VacationRequestService;
+use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
 use App\Modules\Workflow\Http\Requests\StoreWorkflowInstanceRequest;
@@ -12,7 +14,10 @@ use Illuminate\Http\JsonResponse;
 
 class WorkflowInstanceController extends Controller
 {
-    public function __construct(private readonly WorkflowInstanceService $workflowInstanceService) {}
+    public function __construct(
+        private readonly WorkflowInstanceService $workflowInstanceService,
+        private readonly VacationRequestService $vacationRequestService,
+    ) {}
 
     public function store(StoreWorkflowInstanceRequest $request): JsonResponse
     {
@@ -44,6 +49,10 @@ class WorkflowInstanceController extends Controller
             $request->validated('notes'),
         );
 
+        if ($instance->status === WorkflowInstanceStatus::Approved) {
+            $this->vacationRequestService->handleWorkflowApproved($instance);
+        }
+
         return response()->json([
             'data' => new WorkflowInstanceResource($instance),
             'message' => 'Etapa aprovada com sucesso.',
@@ -57,6 +66,8 @@ class WorkflowInstanceController extends Controller
             $request->user(),
             $request->validated('notes'),
         );
+
+        $this->vacationRequestService->handleWorkflowRejected($instance);
 
         return response()->json([
             'data' => new WorkflowInstanceResource($instance),
