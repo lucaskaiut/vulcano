@@ -21,7 +21,7 @@ class AuthService
         /** @var User $user */
         $user = Auth::user();
 
-        return $user;
+        return $user->load('roles');
     }
 
     public function logout(): void
