@@ -1,11 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { useNavigate, useParams } from '@tanstack/react-router'
 import { ArrowDown, ArrowUp, Plus, Trash2 } from 'lucide-react'
 import { z } from 'zod'
 import { applyApiErrors } from '../lib/applyApiErrors'
+import * as aclService from '../services/aclService'
 import { ApiError } from '../services/api'
 import * as workflowService from '../services/workflowService'
 import { Alert } from '../components/ui/Alert'
@@ -26,6 +27,7 @@ type WorkflowFormValues = z.infer<typeof workflowSchema>
 type StepDraft = {
   id: number
   name: string
+  responsible_role_id: number | null
 }
 
 let draftIdCounter = -1
@@ -48,6 +50,16 @@ export function WorkflowFormPage() {
     enabled: isEditing,
   })
 
+  const rolesQuery = useQuery({
+    queryKey: ['roles', 'name:asc', 50],
+    queryFn: () =>
+      aclService.listRoles({
+        sorts: [{ column: 'name', direction: 'asc' }],
+        per_page: 50,
+      }),
+    enabled: isEditing,
+  })
+
   const {
     register,
     handleSubmit,
@@ -59,10 +71,16 @@ export function WorkflowFormPage() {
     defaultValues: { name: '', description: '', is_active: true },
   })
 
+  const roles = useMemo(() => rolesQuery.data?.data ?? [], [rolesQuery.data])
+
   useEffect(() => {
     if (!isEditing || !workflowQuery.data?.steps) return
     setStepDrafts(
-      workflowQuery.data.steps.map((s) => ({ id: s.id, name: s.name })),
+      workflowQuery.data.steps.map((s) => ({
+        id: s.id,
+        name: s.name,
+        responsible_role_id: s.responsible_role_id ?? null,
+      })),
     )
   }, [isEditing, workflowQuery.data])
 
@@ -110,11 +128,13 @@ export function WorkflowFormPage() {
   })
 
   const addStepDraft = () => {
-    setStepDrafts((prev) => [...prev, { id: nextDraftId(), name: '' }])
+    setStepDrafts((prev) => [...prev, { id: nextDraftId(), name: '', responsible_role_id: null }])
   }
 
-  const updateStepDraft = (draftId: number, name: string) => {
-    setStepDrafts((prev) => prev.map((s) => (s.id === draftId ? { ...s, name } : s)))
+  const updateStepDraft = (draftId: number, patch: Partial<Pick<StepDraft, 'name' | 'responsible_role_id'>>) => {
+    setStepDrafts((prev) =>
+      prev.map((s) => (s.id === draftId ? { ...s, ...patch } : s)),
+    )
   }
 
   const removeStepDraft = (draftId: number) => {
@@ -146,18 +166,20 @@ export function WorkflowFormPage() {
 
     let order = 1
     for (const draft of stepDrafts) {
+      if (!draft.name.trim()) continue
+
       if (draft.id < 0) {
-        if (draft.name.trim()) {
-          await workflowService.addWorkflowStep(workflowId, {
-            name: draft.name.trim(),
-            order,
-          })
-          order++
-        }
+        await workflowService.addWorkflowStep(workflowId, {
+          name: draft.name.trim(),
+          order,
+          responsible_role_id: draft.responsible_role_id,
+        })
+        order++
       } else {
         await workflowService.updateWorkflowStep(draft.id, {
           name: draft.name.trim(),
           order,
+          responsible_role_id: draft.responsible_role_id,
         })
         order++
       }
@@ -223,7 +245,7 @@ export function WorkflowFormPage() {
             <div>
               <h2 className="text-base font-semibold text-foreground">Etapas</h2>
               <p className="mt-1 text-sm text-foreground-muted">
-                Configure a ordem e os responsáveis de cada etapa.
+                Configure a ordem e o perfil responsável de cada etapa.
               </p>
             </div>
             <Button type="button" variant="ghost" size="sm" onClick={addStepDraft}>
@@ -241,9 +263,9 @@ export function WorkflowFormPage() {
               {stepDrafts.map((draft, index) => (
                 <div
                   key={draft.id}
-                  className="flex items-center gap-2 rounded-lg border border-surface-sunken bg-surface-sunken/30 p-3"
+                  className="flex flex-col gap-2 rounded-lg border border-surface-sunken bg-surface-sunken/30 p-3 sm:flex-row sm:items-center"
                 >
-                  <div className="flex flex-col gap-1 sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-1">
                     <button
                       type="button"
                       disabled={index === 0}
@@ -262,24 +284,43 @@ export function WorkflowFormPage() {
                     >
                       <ArrowDown className="size-3.5" />
                     </button>
+                    <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold text-foreground-muted">
+                      {index + 1}
+                    </span>
                   </div>
 
-                  <span className="flex size-6 shrink-0 items-center justify-center rounded-full bg-surface text-xs font-semibold text-foreground-muted">
-                    {index + 1}
-                  </span>
+                  <div className="flex flex-1 flex-col gap-2 sm:flex-row">
+                    <input
+                      type="text"
+                      value={draft.name}
+                      onChange={(e) => updateStepDraft(draft.id, { name: e.target.value })}
+                      placeholder="Nome da etapa"
+                      className="min-w-0 flex-1 rounded-md border border-surface-sunken bg-surface px-2.5 py-1.5 text-sm text-foreground placeholder:text-foreground-subtle focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
+                    />
 
-                  <input
-                    type="text"
-                    value={draft.name}
-                    onChange={(e) => updateStepDraft(draft.id, e.target.value)}
-                    placeholder="Nome da etapa"
-                    className="min-w-0 flex-1 rounded-md border border-surface-sunken bg-surface px-2.5 py-1.5 text-sm text-foreground placeholder:text-foreground-subtle focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20"
-                  />
+                    <select
+                      value={draft.responsible_role_id ?? ''}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        updateStepDraft(draft.id, {
+                          responsible_role_id: val ? Number(val) : null,
+                        })
+                      }}
+                      className="w-full rounded-md border border-surface-sunken bg-surface px-2.5 py-1.5 text-sm text-foreground focus:border-primary/40 focus:outline-none focus:ring-2 focus:ring-primary/20 sm:w-48"
+                    >
+                      <option value="">Sem perfil definido</option>
+                      {roles.map((role) => (
+                        <option key={role.id} value={role.id}>
+                          {role.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
                   <button
                     type="button"
                     onClick={() => removeStepDraft(draft.id)}
-                    className="rounded p-1.5 text-foreground-muted transition hover:text-danger"
+                    className="rounded p-1.5 text-foreground-muted transition hover:text-danger sm:self-start"
                     aria-label="Remover etapa"
                   >
                     <Trash2 className="size-4" />
