@@ -2,7 +2,7 @@ import { LogOut, X } from 'lucide-react'
 import { useCallback, useEffect, type PointerEvent as ReactPointerEvent } from 'react'
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
-import { isNavItemActive, navigationItems } from '../../config/navigation'
+import { isNavItemActive, useFilteredNavigation } from '../../config/navigation'
 import { MOBILE_NAV_SHEET_ANIMATION_MS } from '../../hooks/useMobileNavSheet'
 import { getInitials } from '../../lib/layout'
 
@@ -33,8 +33,9 @@ export function MobileNavDrawer({
   const { pathname } = useLocation()
   const { user, logout } = useAuth()
   const navigate = useNavigate()
+  const allItems = useFilteredNavigation()
 
-  const menuItems = navigationItems.filter((item) => item.href !== '/')
+  const menuItems = allItems.filter((item) => item.href !== '/')
 
   const goTo = useCallback(
     (href: string) => {

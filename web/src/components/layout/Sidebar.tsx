@@ -2,13 +2,14 @@ import { LogOut } from 'lucide-react'
 import { useCallback } from 'react'
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
-import { isNavItemActive, navigationItems } from '../../config/navigation'
+import { isNavItemActive, useFilteredNavigation } from '../../config/navigation'
 import { getInitials } from '../../lib/layout'
 
 export function Sidebar() {
   const { user, logout } = useAuth()
   const { pathname } = useLocation()
   const navigate = useNavigate()
+  const items = useFilteredNavigation()
 
   const goTo = useCallback(
     (href: string) => {
@@ -49,7 +50,7 @@ export function Sidebar() {
       )}
 
       <nav className="flex-1 space-y-1 px-3">
-        {navigationItems.map((item) => {
+        {items.map((item) => {
           const isActive = isNavItemActive(item.href, pathname)
 
           return (

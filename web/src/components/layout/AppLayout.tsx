@@ -1,6 +1,7 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useMemo, useRef } from 'react'
 import { Navigate, Outlet, useLocation } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
+import { routeRequiresPermission } from '../../config/navigation'
 import { AppHeader } from './AppHeader'
 import { BottomNav } from './BottomNav'
 import { Sidebar } from './Sidebar'
@@ -14,7 +15,7 @@ function LoadingScreen() {
 }
 
 export default function AppLayout() {
-  const { isAuthenticated, isLoading } = useAuth()
+  const { user, isAuthenticated, isLoading } = useAuth()
   const location = useLocation()
   const mainRef = useRef<HTMLElement>(null)
 
@@ -22,12 +23,32 @@ export default function AppLayout() {
     mainRef.current?.scrollTo({ top: 0, left: 0 })
   }, [location.pathname])
 
+  const requiredPermission = useMemo(
+    () => routeRequiresPermission(location.pathname),
+    [location.pathname],
+  )
+
+  const userPermissionSlugs = useMemo(
+    () =>
+      user?.roles
+        ? [...new Set(user.roles.flatMap((r) => r.permission_slugs))]
+        : [],
+    [user?.roles],
+  )
+
+  const hasPermission =
+    !requiredPermission || userPermissionSlugs.includes(requiredPermission)
+
   if (isLoading) {
     return <LoadingScreen />
   }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" />
+  }
+
+  if (!hasPermission) {
+    return <Navigate to="/" />
   }
 
   return (
