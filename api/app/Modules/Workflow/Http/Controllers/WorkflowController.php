@@ -31,15 +31,6 @@ class WorkflowController extends Controller
         ], 201);
     }
 
-    public function show(Workflow $workflow): JsonResponse
-    {
-        return response()->json([
-            'data' => new WorkflowResource(
-                $this->workflowService->find($workflow->id),
-            ),
-        ]);
-    }
-
     public function update(UpdateWorkflowRequest $request, Workflow $workflow): JsonResponse
     {
         $workflow = $this->workflowService->update($workflow, $request->validated());
