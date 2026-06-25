@@ -32,6 +32,7 @@ export function VacationRequestsPage() {
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['vacation-requests'],
     queryFn: listVacationRequests,
+    refetchInterval: 10_000,
   })
 
   const createMutation = useMutation({
