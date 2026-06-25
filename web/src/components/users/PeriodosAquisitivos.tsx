@@ -1,5 +1,8 @@
 import { useMemo } from 'react'
-import { formatDate } from '../../lib/format'
+
+function fmt(date: Date): string {
+  return date.toLocaleDateString('pt-BR')
+}
 
 type AcquisitionPeriod = {
   yearNumber: number
@@ -105,7 +108,7 @@ export function PeriodosAquisitivos({ hireDate }: PeriodosAquisitivosProps) {
             </div>
 
             <p className="text-xs text-foreground-muted">
-              {formatDate(period.startDate.toISOString())} — {formatDate(period.endDate.toISOString())}
+              {fmt(period.startDate)} — {fmt(period.endDate)}
             </p>
 
             <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-gray-200">
