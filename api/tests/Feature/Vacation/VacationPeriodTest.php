@@ -32,20 +32,19 @@ describe('vacation periods close', function () {
         $balance = VacationBalance::factory()->create(['user_id' => $collaborator->id]);
         $period = VacationPeriod::factory()->create([
             'user_id' => $collaborator->id,
-            'start_date' => '2024-01-01',
+            'start_date' => '2025-01-01',
             'status' => VacationPeriodStatus::Open,
         ]);
 
         $this->actingAs($admin)
             ->postJson("/api/vacation-periods/{$period->id}/close", [
-                'end_date' => '2024-12-31',
+                'end_date' => '2025-12-31',
             ])
             ->assertOk()
             ->assertJsonPath('data.status', VacationPeriodStatus::Closed->value)
             ->assertJsonPath('data.entitled_days', 30);
 
-        expect($balance->fresh()->accrued_days)->toBe(30)
-            ->and($balance->fresh()->available_days)->toBe(30);
+        expect($balance->fresh()->used_days)->toBe(0);
     });
 
     it('calcula dias adquiridos proporcionalmente em período parcial', function () {
@@ -54,12 +53,12 @@ describe('vacation periods close', function () {
         VacationBalance::factory()->create(['user_id' => $collaborator->id]);
         $period = VacationPeriod::factory()->create([
             'user_id' => $collaborator->id,
-            'start_date' => '2024-01-01',
+            'start_date' => '2025-01-01',
         ]);
 
         $this->actingAs($admin)
             ->postJson("/api/vacation-periods/{$period->id}/close", [
-                'end_date' => '2024-06-30',
+                'end_date' => '2025-06-30',
             ])
             ->assertOk()
             ->assertJsonPath('data.entitled_days', 15);

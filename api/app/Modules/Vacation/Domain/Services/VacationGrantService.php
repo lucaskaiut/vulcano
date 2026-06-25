@@ -6,6 +6,7 @@ use App\Modules\Vacation\Domain\Models\VacationBalance;
 use App\Modules\Vacation\Domain\Models\VacationGrant;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 
 class VacationGrantService
 {
@@ -23,6 +24,11 @@ class VacationGrantService
     /** @param  array{user_id: int, start_date: string, end_date: string, days_used: int}  $data */
     public function create(array $data): VacationGrant
     {
+        if ($data['days_used'] <= 0 || floor($data['days_used']) !== (float) $data['days_used']) {
+            throw ValidationException::withMessages([
+                'days_used' => 'A quantidade de dias deve ser um número inteiro positivo.',
+            ]);
+        }
         return DB::transaction(function () use ($data) {
             $balance = VacationBalance::query()
                 ->where('user_id', $data['user_id'])

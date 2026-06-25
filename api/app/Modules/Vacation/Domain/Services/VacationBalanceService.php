@@ -6,6 +6,7 @@ use App\Modules\User\Domain\Models\User;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
+use App\Modules\Vacation\Domain\Support\VacationEntitlementCalculator;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Validation\ValidationException;
 
@@ -61,13 +62,18 @@ class VacationBalanceService
 
         $additionalDays = $data['additional_days'] ?? 0;
 
-        return VacationBalance::query()->create([
+        $balance = VacationBalance::query()->create([
             'user_id' => $data['user_id'],
             'available_days' => $additionalDays,
             'accrued_days' => 0,
             'used_days' => 0,
             'additional_days' => $additionalDays,
         ])->load('user');
+
+        $this->syncAvailableDays($balance);
+        $balance->save();
+
+        return $balance->fresh('user');
     }
 
     /** @param  array{additional_days?: int}  $data */
@@ -91,6 +97,8 @@ class VacationBalanceService
 
     public function debitUsedDays(VacationBalance $balance, int $days): void
     {
+        $this->syncAvailableDays($balance);
+
         if ($balance->available_days < $days) {
             throw ValidationException::withMessages([
                 'days_used' => 'Saldo de férias insuficiente para esta concessão.',
@@ -104,9 +112,15 @@ class VacationBalanceService
 
     public function syncAvailableDays(VacationBalance $balance): void
     {
+        $balance->loadMissing('user');
+
+        $accrued = VacationEntitlementCalculator::calculateAccruedDays(
+            $balance->user->hired_at,
+        );
+
         $balance->available_days = max(
             0,
-            $balance->accrued_days + $balance->additional_days - $balance->used_days,
+            $accrued + $balance->additional_days - $balance->used_days,
         );
     }
 }

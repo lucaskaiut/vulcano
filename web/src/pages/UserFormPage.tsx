@@ -387,7 +387,7 @@ export function UserFormPage() {
 
       {isEditing && userId && userQuery.data && (
         <Card className="mt-4 p-6">
-          <UserVacationSection userId={userId} />
+          <UserVacationSection userId={userId} hireDate={userQuery.data?.hired_at} />
         </Card>
       )}
     </div>

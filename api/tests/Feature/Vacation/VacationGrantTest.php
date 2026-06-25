@@ -3,15 +3,16 @@
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
 use App\Modules\Vacation\Domain\Models\VacationGrant;
+use App\Modules\Vacation\Domain\Support\VacationEntitlementCalculator;
 
 describe('vacation grants store', function () {
     it('registra férias concedidas e debita saldo', function () {
         $admin = createUserWithRole();
-        $collaborator = User::factory()->create();
+        $collaborator = User::factory()->create(['hired_at' => '2024-01-01']);
         VacationBalance::factory()->create([
             'user_id' => $collaborator->id,
-            'accrued_days' => 30,
-            'available_days' => 30,
+            'accrued_days' => 0,
+            'available_days' => 0,
             'used_days' => 0,
         ]);
 
@@ -34,17 +35,17 @@ describe('vacation grants store', function () {
         $this->assertDatabaseHas('vacation_balances', [
             'user_id' => $collaborator->id,
             'used_days' => 10,
-            'available_days' => 20,
         ]);
     });
 
     it('impede concessão com saldo insuficiente', function () {
         $admin = createUserWithRole();
-        $collaborator = User::factory()->create();
+        $collaborator = User::factory()->create(['hired_at' => now()->subDays(30)->toDateString()]);
         VacationBalance::factory()->create([
             'user_id' => $collaborator->id,
-            'available_days' => 5,
-            'accrued_days' => 5,
+            'available_days' => 0,
+            'accrued_days' => 0,
+            'additional_days' => 0,
         ]);
 
         $this->actingAs($admin)

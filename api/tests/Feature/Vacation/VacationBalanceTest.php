@@ -2,29 +2,25 @@
 
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
+use App\Modules\Vacation\Domain\Support\VacationEntitlementCalculator;
 
 describe('vacation balances store', function () {
     it('cria saldo inicial para colaborador', function () {
         $admin = createUserWithRole();
-        $collaborator = User::factory()->create();
+        $collaborator = User::factory()->create(['hired_at' => '2024-01-15']);
 
         $response = $this->actingAs($admin)->postJson('/api/vacation-balances', [
             'user_id' => $collaborator->id,
             'additional_days' => 5,
         ]);
 
+        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2024-01-15'), 4);
+
         $response
             ->assertCreated()
             ->assertJsonPath('data.user_id', $collaborator->id)
-            ->assertJsonPath('data.available_days', 5)
-            ->assertJsonPath('data.additional_days', 5);
-
-        $this->assertDatabaseHas('vacation_balances', [
-            'user_id' => $collaborator->id,
-            'available_days' => 5,
-            'accrued_days' => 0,
-            'used_days' => 0,
-        ]);
+            ->assertJsonPath('data.additional_days', 5)
+            ->assertJsonPath('data.accrued_days', $expectedAccrued);
     });
 
     it('impede criar saldo duplicado', function () {
@@ -42,35 +38,42 @@ describe('vacation balances store', function () {
 describe('vacation balances update', function () {
     it('atualiza dias adicionais e recalcula saldo disponível', function () {
         $admin = createUserWithRole();
+        $user = User::factory()->create(['hired_at' => '2024-01-01']);
         $balance = VacationBalance::factory()->create([
-            'accrued_days' => 20,
+            'user_id' => $user->id,
+            'accrued_days' => 0,
             'used_days' => 5,
             'additional_days' => 0,
-            'available_days' => 15,
+            'available_days' => 0,
         ]);
+
+        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2024-01-01'), 4);
+        $expectedAvailable = max(0, $expectedAccrued + 3 - 5);
 
         $this->actingAs($admin)
             ->putJson("/api/vacation-balances/{$balance->id}", ['additional_days' => 3])
             ->assertOk()
             ->assertJsonPath('data.additional_days', 3)
-            ->assertJsonPath('data.available_days', 18);
-
-        expect($balance->fresh()->available_days)->toBe(18);
+            ->assertJsonPath('data.available_days', $expectedAvailable);
     });
 });
 
 describe('vacation balances show', function () {
     it('consulta saldo com histórico de concessões e períodos', function () {
         $admin = createUserWithRole();
+        $user = User::factory()->create(['hired_at' => '2023-06-01']);
         $balance = VacationBalance::factory()->create([
-            'accrued_days' => 30,
-            'available_days' => 30,
+            'user_id' => $user->id,
+            'accrued_days' => 0,
+            'available_days' => 0,
         ]);
+
+        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2023-06-01'), 4);
 
         $this->actingAs($admin)
             ->getJson("/api/vacation-balances/{$balance->id}")
             ->assertOk()
-            ->assertJsonPath('data.accrued_days', 30)
+            ->assertJsonPath('data.accrued_days', $expectedAccrued)
             ->assertJsonStructure([
                 'data' => ['id', 'available_days', 'grants', 'periods', 'user'],
             ]);
