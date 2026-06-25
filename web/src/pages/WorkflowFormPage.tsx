@@ -43,6 +43,8 @@ export function WorkflowFormPage() {
   const isEditing = workflowId !== null && !Number.isNaN(workflowId)
   const [formError, setFormError] = useState<string | null>(null)
   const [stepDrafts, setStepDrafts] = useState<StepDraft[]>([])
+  const [stepsMessage, setStepsMessage] = useState<{ type: 'success' | 'danger'; text: string } | null>(null)
+  const [savingSteps, setSavingSteps] = useState(false)
 
   const workflowQuery = useQuery({
     queryKey: ['workflows', workflowId],
@@ -156,36 +158,46 @@ export function WorkflowFormPage() {
   const saveSteps = useCallback(async () => {
     if (!workflowId) return
 
-    const existingSteps = workflowQuery.data?.steps ?? []
+    setSavingSteps(true)
+    setStepsMessage(null)
 
-    for (const step of existingSteps) {
-      if (!stepDrafts.some((d) => d.id === step.id)) {
-        await workflowService.deleteWorkflowStep(step.id)
+    try {
+      const existingSteps = workflowQuery.data?.steps ?? []
+
+      for (const step of existingSteps) {
+        if (!stepDrafts.some((d) => d.id === step.id)) {
+          await workflowService.deleteWorkflowStep(step.id)
+        }
       }
-    }
 
-    let order = 1
-    for (const draft of stepDrafts) {
-      if (!draft.name.trim()) continue
+      let order = 1
+      for (const draft of stepDrafts) {
+        if (!draft.name.trim()) continue
 
-      if (draft.id < 0) {
-        await workflowService.addWorkflowStep(workflowId, {
-          name: draft.name.trim(),
-          order,
-          responsible_role_id: draft.responsible_role_id,
-        })
-        order++
-      } else {
-        await workflowService.updateWorkflowStep(draft.id, {
-          name: draft.name.trim(),
-          order,
-          responsible_role_id: draft.responsible_role_id,
-        })
-        order++
+        if (draft.id < 0) {
+          await workflowService.addWorkflowStep(workflowId, {
+            name: draft.name.trim(),
+            order,
+            responsible_role_id: draft.responsible_role_id,
+          })
+          order++
+        } else {
+          await workflowService.updateWorkflowStep(draft.id, {
+            name: draft.name.trim(),
+            order,
+            responsible_role_id: draft.responsible_role_id,
+          })
+          order++
+        }
       }
-    }
 
-    await queryClient.invalidateQueries({ queryKey: ['workflows', workflowId] })
+      await queryClient.invalidateQueries({ queryKey: ['workflows', workflowId] })
+      setStepsMessage({ type: 'success', text: 'Etapas salvas com sucesso.' })
+    } catch {
+      setStepsMessage({ type: 'danger', text: 'Não foi possível salvar as etapas.' })
+    } finally {
+      setSavingSteps(false)
+    }
   }, [workflowId, stepDrafts, workflowQuery.data, queryClient])
 
   if (isEditing && workflowQuery.isLoading) {
@@ -330,10 +342,13 @@ export function WorkflowFormPage() {
             </div>
           )}
 
-          <div className="mt-4">
-            <Button type="button" onClick={saveSteps}>
-              Salvar etapas
+          <div className="mt-4 flex items-center gap-3">
+            <Button type="button" onClick={saveSteps} disabled={savingSteps}>
+              {savingSteps ? 'Salvando...' : 'Salvar etapas'}
             </Button>
+            {stepsMessage && (
+              <Alert variant={stepsMessage.type}>{stepsMessage.text}</Alert>
+            )}
           </div>
         </Card>
       )}
