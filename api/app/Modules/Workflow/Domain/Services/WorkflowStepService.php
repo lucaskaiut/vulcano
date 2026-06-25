@@ -2,7 +2,9 @@
 
 namespace App\Modules\Workflow\Domain\Services;
 
+use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
+use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
@@ -63,6 +65,8 @@ class WorkflowStepService
         DB::transaction(function () use ($step) {
             $type = $step->workflow_type;
             $deletedOrder = $step->order;
+
+            $this->reassignInstancesBeforeDelete($step, $type);
 
             $step->delete();
 
@@ -125,5 +129,53 @@ class WorkflowStepService
         return (int) (WorkflowStep::query()
             ->where('workflow_type', $type->value)
             ->max('order') ?? 0);
+    }
+
+    private function reassignInstancesBeforeDelete(WorkflowStep $step, string $type): void
+    {
+        $instanceIds = WorkflowInstance::query()
+            ->where('workflow_type', $type)
+            ->where('status', WorkflowInstanceStatus::InProgress)
+            ->where('current_step_id', $step->id)
+            ->pluck('id');
+
+        if ($instanceIds->isEmpty()) {
+            return;
+        }
+
+        $nextStep = WorkflowStep::query()
+            ->where('workflow_type', $type)
+            ->where('order', '>', $step->order)
+            ->orderBy('order')
+            ->first();
+
+        if ($nextStep) {
+            WorkflowInstance::query()
+                ->whereIn('id', $instanceIds)
+                ->update(['current_step_id' => $nextStep->id]);
+
+            return;
+        }
+
+        $firstStep = WorkflowStep::query()
+            ->where('workflow_type', $type)
+            ->where('id', '!=', $step->id)
+            ->orderBy('order')
+            ->first();
+
+        if ($firstStep) {
+            WorkflowInstance::query()
+                ->whereIn('id', $instanceIds)
+                ->update(['current_step_id' => $firstStep->id]);
+
+            return;
+        }
+
+        WorkflowInstance::query()
+            ->whereIn('id', $instanceIds)
+            ->update([
+                'status' => WorkflowInstanceStatus::Cancelled,
+                'current_step_id' => null,
+            ]);
     }
 }
