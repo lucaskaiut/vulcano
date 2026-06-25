@@ -73,7 +73,7 @@ export async function createVacationBalance(payload: {
 
 export async function updateVacationBalance(
   id: number,
-  payload: { additional_days: number },
+  payload: { additional_days?: number; additional_days_entries?: { description: string; days: number }[] },
 ): Promise<VacationBalance> {
   const response = await apiFetch<ItemResponse<VacationBalance>>(`/vacation-balances/${id}`, {
     method: 'PUT',

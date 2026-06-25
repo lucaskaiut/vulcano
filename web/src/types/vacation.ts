@@ -34,10 +34,16 @@ export type VacationBalance = {
   accrued_days: number
   used_days: number
   additional_days: number
+  additional_days_entries?: AdditionalDaysEntry[]
   grants?: VacationGrant[]
   periods?: VacationPeriod[]
   created_at: string
   updated_at: string
+}
+
+export type AdditionalDaysEntry = {
+  description: string
+  days: number
 }
 
 export type VacationRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'

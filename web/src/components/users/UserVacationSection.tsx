@@ -122,7 +122,7 @@ export function UserVacationSection({ userId, hireDate, readonly = false }: User
 
       return vacationService.updateVacationBalance(balanceQuery.data.balance.id, {
         additional_days_entries: entries,
-      } as any)
+      })
     },
     onSuccess: () => {
       invalidateVacationQueries()
@@ -155,7 +155,7 @@ export function UserVacationSection({ userId, hireDate, readonly = false }: User
 
           {!readonly && balance && (
             <AdditionalDaysSection
-              entries={(balance as any).additional_days_entries ?? []}
+              entries={balance.additional_days_entries ?? []}
               onChange={(entries) => additionalDaysMutation.mutate(entries)}
             />
           )}
