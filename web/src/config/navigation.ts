@@ -16,7 +16,7 @@ const allNavigationItems: NavigationItem[] = [
   { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree, permission: 'vacation_balances.view' },
   { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarPlus, permission: 'vacation_requests.view' },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield, permission: 'roles.view' },
-  { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.view' },
+  { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.update' },
 ]
 
 const routePermissionMap: Record<string, string> = {
@@ -26,7 +26,7 @@ const routePermissionMap: Record<string, string> = {
   '/vacation-requests': 'vacation_requests.view',
   '/roles': 'roles.view',
   '/roles/novo': 'roles.create',
-  '/workflows': 'workflow_steps.view',
+  '/workflows': 'workflow_steps.update',
   '/workflow-instances': 'workflow_instances.view',
 }
 
