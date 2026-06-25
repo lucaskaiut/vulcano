@@ -81,6 +81,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:workflows.view');
     Route::post('workflows', [WorkflowController::class, 'store'])
         ->middleware('permission:workflows.create');
+    Route::get('workflows/{workflow}', [WorkflowController::class, 'show'])
+        ->middleware('permission:workflows.view');
     Route::put('workflows/{workflow}', [WorkflowController::class, 'update'])
         ->middleware('permission:workflows.update');
 
