@@ -106,7 +106,7 @@ export function WorkflowInstancesPage() {
                 </TableCell>
                 <TableCell>
                   <Link
-                    to="/layout/workflow-instances/$id"
+                    to="/workflow-instances/$id"
                     params={{ id: String(instance.id) }}
                   >
                     <Button variant="ghost" size="sm" aria-label="Ver detalhes">
