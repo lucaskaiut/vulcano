@@ -50,6 +50,8 @@ export type VacationRequestWorkflowInstance = {
     id: number
     name: string
     order: number
+    responsible_role: { id: number; name: string } | null
+    responsible_user: { id: number; name: string } | null
   } | null
 }
 

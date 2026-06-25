@@ -17,7 +17,7 @@ import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
 import { WORKFLOW_TYPE_LABELS } from '../services/workflowService'
-import type { WorkflowType } from '../types/workflow'
+import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
 
 export function VacationRequestsPage() {
   const queryClient = useQueryClient()
@@ -87,30 +87,31 @@ export function VacationRequestsPage() {
     queryClient.invalidateQueries({ queryKey: ['vacation-requests'] })
   }
 
-  const kanbanInstances = requests.map((r) => ({
-    id: r.id,
-    workflow_type: 'vacation_request' as WorkflowType,
-    title: r.user.name,
-    status: r.workflow_instance?.status ?? r.status,
-    status_label: r.workflow_instance?.status_label ?? r.status_label,
-    current_step: r.workflow_instance?.current_step
-      ? {
-          id: r.workflow_instance.current_step.id,
-          name: r.workflow_instance.current_step.name,
-          workflow_type: 'vacation_request' as WorkflowType,
-          order: r.workflow_instance.current_step.order,
-          created_at: '',
-          updated_at: '',
-          responsible_role: null,
-          responsible_user: null,
-        }
-      : null,
-    initiated_by: { id: r.user.id, name: r.user.name },
-    histories: [],
-    created_at: r.created_at,
-    updated_at: r.updated_at,
-    _requestId: r.id,
-  }))
+  const kanbanInstances = requests
+    .filter((r) => r.workflow_instance)
+    .map((r) => ({
+      id: r.workflow_instance!.id,
+      workflow_type: 'vacation_request' as WorkflowType,
+      title: `${r.user.name} — ${r.start_date} a ${r.end_date}`,
+      status: r.workflow_instance!.status as WorkflowInstanceStatus,
+      status_label: r.workflow_instance!.status_label,
+      current_step: r.workflow_instance!.current_step
+        ? {
+            id: r.workflow_instance!.current_step.id,
+            name: r.workflow_instance!.current_step.name,
+            workflow_type: 'vacation_request' as WorkflowType,
+            order: r.workflow_instance!.current_step.order,
+            created_at: '',
+            updated_at: '',
+            responsible_role: r.workflow_instance!.current_step.responsible_role,
+            responsible_user: r.workflow_instance!.current_step.responsible_user,
+          }
+        : null,
+      initiated_by: { id: r.user.id, name: r.user.name },
+      histories: [],
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+    }))
 
   return (
     <>
@@ -173,13 +174,11 @@ export function VacationRequestsPage() {
         <WorkflowKanban
           type="vacation_request"
           instances={kanbanInstances}
-          onApprove={(instanceId) => {
-            const request = requests.find((r) => r.workflow_instance?.id === instanceId)
-            if (request?.workflow_instance) {
-              approveMutation.mutate(request.workflow_instance.id)
-            }
+          onApprove={(instanceId) => approveMutation.mutate(instanceId)}
+          onReject={(instanceId) => {
+            const req = requests.find((r) => r.workflow_instance?.id === instanceId)
+            if (req) setRejectTarget(req.id)
           }}
-          onReject={(requestId) => setRejectTarget(requestId)}
           onRefresh={refresh}
         />
       )}
@@ -192,9 +191,9 @@ export function VacationRequestsPage() {
         isLoading={rejectMutation.isPending}
         onConfirm={() => {
           if (rejectTarget !== null) {
-            const request = requests.find((r) => r.id === rejectTarget)
-            if (request?.workflow_instance) {
-              rejectMutation.mutate(request.workflow_instance.id)
+            const req = requests.find((r) => r.id === rejectTarget)
+            if (req?.workflow_instance) {
+              rejectMutation.mutate(req.workflow_instance.id)
             }
           }
         }}

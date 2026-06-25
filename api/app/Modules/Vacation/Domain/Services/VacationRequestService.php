@@ -24,7 +24,7 @@ class VacationRequestService
     public function list(User $user): Collection
     {
         $query = VacationRequest::query()
-            ->with(['user', 'workflowInstance.currentStep']);
+            ->with(['user', 'workflowInstance.currentStep.responsibleRole', 'workflowInstance.currentStep.responsibleUser']);
 
         if ($user->hasPermission(PermissionEnum::WorkflowInstancesViewAll->value)) {
             return $query->orderByDesc('created_at')->get();
