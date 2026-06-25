@@ -30,7 +30,9 @@ class VacationRequestService
             return $query->orderByDesc('created_at')->get();
         }
 
-        $query->where(function ($q) use ($user) {
+        $roleIds = $user->roles()->pluck('roles.id');
+
+        $query->where(function ($q) use ($user, $roleIds) {
             $q->where('user_id', $user->id);
 
             $subordinateIds = User::query()
@@ -41,13 +43,19 @@ class VacationRequestService
                 $q->orWhereIn('user_id', $subordinateIds);
             }
 
-            $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($user) {
-                $stepQuery->where('responsible_user_id', $user->id);
+            $q->orWhereHas('workflowInstance', function ($instanceQuery) use ($user, $roleIds) {
+                $instanceQuery->whereExists(function ($existsQuery) use ($user, $roleIds) {
+                    $existsQuery->selectRaw('1')
+                        ->from('workflow_steps')
+                        ->whereColumn('workflow_steps.workflow_type', 'workflow_instances.workflow_type')
+                        ->where(function ($stepQuery) use ($user, $roleIds) {
+                            $stepQuery->where('workflow_steps.responsible_user_id', $user->id);
 
-                $roleIds = $user->roles()->pluck('roles.id');
-                if ($roleIds->isNotEmpty()) {
-                    $stepQuery->orWhereIn('responsible_role_id', $roleIds);
-                }
+                            if ($roleIds->isNotEmpty()) {
+                                $stepQuery->orWhereIn('workflow_steps.responsible_role_id', $roleIds);
+                            }
+                        });
+                });
             });
         });
 
