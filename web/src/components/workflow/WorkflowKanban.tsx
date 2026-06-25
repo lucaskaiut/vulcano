@@ -20,7 +20,7 @@ export function WorkflowKanban({
   instances,
   onApprove,
   onReject,
-  onRefresh,
+  onRefresh: _onRefresh,
 }: WorkflowKanbanProps) {
   const [rejectTarget, setRejectTarget] = useState<number | null>(null)
 
@@ -51,8 +51,6 @@ export function WorkflowKanban({
       </div>
     )
   }
-
-  const stepIds = steps.map((s) => s.id)
 
   function getCardsForStep(stepId: number): WorkflowInstance[] {
     return inProgress.filter(

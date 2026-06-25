@@ -1,5 +1,5 @@
 import { useAuth } from '../../contexts/AuthContext'
-import type { WorkflowInstance, WorkflowStep } from '../../types/workflow'
+import type { WorkflowInstance } from '../../types/workflow'
 import { Button } from '../ui/Button'
 
 type WorkflowKanbanCardProps = {

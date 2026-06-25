@@ -30,7 +30,7 @@ function formatDate(iso?: string | null): string {
 }
 
 export function WorkflowInstanceDetailPage() {
-  const { id } = useParams({ from: '/workflow-instances/$id' })
+  const { id } = useParams({ from: '/layout/workflow-instances/$id' })
   const navigate = useNavigate()
   const queryClient = useQueryClient()
 
@@ -166,7 +166,7 @@ export function WorkflowInstanceDetailPage() {
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => navigate({ to: '/workflow-instances' })}
+            onClick={() => navigate({ to: '/layout/workflow-instances' })}
           >
             Voltar
           </Button>

@@ -61,7 +61,7 @@ export function WorkflowInstancesPage() {
               <TableHeaderCellCollapsible>Etapa atual</TableHeaderCellCollapsible>
               <TableHeaderCell>Status</TableHeaderCell>
               <TableHeaderCellCollapsible>Data</TableHeaderCellCollapsible>
-              <TableHeaderCell />
+              <TableHeaderCell> </TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -106,7 +106,7 @@ export function WorkflowInstancesPage() {
                 </TableCell>
                 <TableCell>
                   <Link
-                    to="/workflow-instances/$id"
+                    to="/layout/workflow-instances/$id"
                     params={{ id: String(instance.id) }}
                   >
                     <Button variant="ghost" size="sm" aria-label="Ver detalhes">
