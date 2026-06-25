@@ -4,6 +4,9 @@ namespace App\Modules\Workflow\Domain\Services;
 
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
+use App\Modules\Vacation\Domain\Models\VacationBalance;
+use App\Modules\Vacation\Domain\Models\VacationRequest;
+use App\Modules\Vacation\Domain\Services\VacationGrantService;
 use App\Modules\Workflow\Domain\Enums\WorkflowHistoryAction;
 use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
@@ -116,7 +119,7 @@ class WorkflowInstanceService
         $currentStep = $this->resolveCurrentStep($instance);
         $this->assertCanActOnStep($approver, $currentStep);
 
-        return DB::transaction(function () use ($instance, $approver, $currentStep, $notes) {
+        $result = DB::transaction(function () use ($instance, $approver, $currentStep, $notes) {
             $this->recordHistory(
                 $instance,
                 $approver,
@@ -133,15 +136,23 @@ class WorkflowInstanceService
 
             if ($nextStep) {
                 $instance->update(['current_step_id' => $nextStep->id]);
-            } else {
-                $instance->update([
-                    'status' => WorkflowInstanceStatus::Approved,
-                    'current_step_id' => null,
-                ]);
+
+                return false;
             }
 
-            return $this->find($instance->id);
+            $instance->update([
+                'status' => WorkflowInstanceStatus::Approved,
+                'current_step_id' => null,
+            ]);
+
+            return true;
         });
+
+        if ($result === true) {
+            $this->handleSubjectApproval($instance);
+        }
+
+        return $this->find($instance->id);
     }
 
     public function reject(WorkflowInstance $instance, User $rejector, ?string $notes = null): WorkflowInstance
@@ -246,6 +257,36 @@ class WorkflowInstanceService
             'workflow_step_id' => $step?->id,
             'action' => $action,
             'notes' => $notes,
+        ]);
+    }
+
+    private function handleSubjectApproval(WorkflowInstance $instance): void
+    {
+        if ($instance->subject_type !== VacationRequest::class || ! $instance->subject_id) {
+            return;
+        }
+
+        $request = VacationRequest::query()->find($instance->subject_id);
+
+        if (! $request) {
+            return;
+        }
+
+        $request->update(['status' => \App\Modules\Vacation\Domain\Enums\VacationRequestStatus::Approved]);
+
+        $balance = VacationBalance::query()
+            ->where('user_id', $request->user_id)
+            ->first();
+
+        if (! $balance) {
+            return;
+        }
+
+        app(VacationGrantService::class)->create([
+            'user_id' => $request->user_id,
+            'start_date' => $request->start_date->toDateString(),
+            'end_date' => $request->end_date->toDateString(),
+            'days_used' => $request->requested_days,
         ]);
     }
 }

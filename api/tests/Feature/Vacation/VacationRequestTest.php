@@ -145,11 +145,19 @@ describe('vacation requests cancel', function () {
 });
 
 describe('vacation requests status sync', function () {
-    it('atualiza status ao aprovar workflow', function () {
+    it('atualiza status ao aprovar workflow e cria concessao de ferias', function () {
         $user = createUserWithRole('Colaborador');
         $gestor = createWorkflowActor('Gestor');
         $controlador = createWorkflowActor('Controlador');
         createWorkflowStepsForType(WorkflowType::VacationRequest);
+
+        \App\Modules\Vacation\Domain\Models\VacationBalance::query()->create([
+            'user_id' => $user->id,
+            'available_days' => 30,
+            'accrued_days' => 30,
+            'used_days' => 0,
+            'additional_days' => 0,
+        ]);
 
         $requestId = $this->actingAs($user)->postJson('/api/vacation-requests', [
             'start_date' => now()->addDays(10)->toDateString(),
@@ -167,7 +175,16 @@ describe('vacation requests status sync', function () {
             ->postJson("/api/workflow-instances/{$instanceId}/approve")
             ->assertOk();
 
-        expect($request->fresh()->status)->toBe(VacationRequestStatus::Approved);
+        $request->refresh();
+
+        expect($request->status)->toBe(VacationRequestStatus::Approved);
+
+        $grant = \App\Modules\Vacation\Domain\Models\VacationGrant::query()
+            ->where('user_id', $user->id)
+            ->first();
+
+        expect($grant)->not->toBeNull()
+            ->and((int) $grant->days_used)->toBe(11);
     });
 
     it('atualiza status ao reprovar workflow', function () {
