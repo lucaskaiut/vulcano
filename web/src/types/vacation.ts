@@ -39,3 +39,31 @@ export type VacationBalance = {
   created_at: string
   updated_at: string
 }
+
+export type VacationRequestStatus = 'pending' | 'approved' | 'rejected' | 'cancelled'
+
+export type VacationRequestWorkflowInstance = {
+  id: number
+  status: string
+  status_label: string
+  current_step: {
+    id: number
+    name: string
+    order: number
+  } | null
+}
+
+export type VacationRequest = {
+  id: number
+  start_date: string
+  end_date: string
+  requested_days: number
+  justification: string | null
+  status: VacationRequestStatus
+  status_label: string
+  user: VacationUserSummary
+  workflow_instance_id: number | null
+  workflow_instance: VacationRequestWorkflowInstance | null
+  created_at: string
+  updated_at: string
+}

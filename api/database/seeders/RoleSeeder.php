@@ -32,6 +32,9 @@ class RoleSeeder extends Seeder
                     PermissionEnum::VacationPeriodsView->value,
                     PermissionEnum::VacationPeriodsCreate->value,
                     PermissionEnum::VacationPeriodsClose->value,
+                    PermissionEnum::VacationRequestsView->value,
+                    PermissionEnum::VacationRequestsCreate->value,
+                    PermissionEnum::VacationRequestsCancel->value,
                     PermissionEnum::WorkflowStepsView->value,
                     PermissionEnum::WorkflowStepsCreate->value,
                     PermissionEnum::WorkflowStepsUpdate->value,
@@ -51,6 +54,7 @@ class RoleSeeder extends Seeder
                     PermissionEnum::WorkflowInstancesView->value,
                     PermissionEnum::WorkflowInstancesApprove->value,
                     PermissionEnum::WorkflowInstancesReject->value,
+                    PermissionEnum::VacationRequestsView->value,
                 ],
             ],
             [
@@ -60,6 +64,11 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'Colaborador',
                 'description' => 'Colaborador PJ',
+                'permission_slugs' => [
+                    PermissionEnum::VacationRequestsView->value,
+                    PermissionEnum::VacationRequestsCreate->value,
+                    PermissionEnum::VacationRequestsCancel->value,
+                ],
             ],
         ];
     }

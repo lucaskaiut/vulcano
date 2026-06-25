@@ -3,6 +3,8 @@
 namespace App\Modules\Workflow\Domain\Models;
 
 use App\Modules\User\Domain\Models\User;
+use App\Modules\Vacation\Domain\Enums\VacationRequestStatus;
+use App\Modules\Vacation\Domain\Models\VacationRequest;
 use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
 use Database\Factories\WorkflowInstanceFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -56,5 +58,29 @@ class WorkflowInstance extends Model
     protected static function newFactory(): WorkflowInstanceFactory
     {
         return WorkflowInstanceFactory::new();
+    }
+
+    protected static function booted(): void
+    {
+        static::updated(function (WorkflowInstance $instance) {
+            if (! $instance->wasChanged('status')) {
+                return;
+            }
+
+            if ($instance->subject_type === VacationRequest::class && $instance->subject_id) {
+                $status = match ($instance->status) {
+                    WorkflowInstanceStatus::Approved => VacationRequestStatus::Approved,
+                    WorkflowInstanceStatus::Rejected => VacationRequestStatus::Rejected,
+                    WorkflowInstanceStatus::Cancelled => VacationRequestStatus::Cancelled,
+                    default => null,
+                };
+
+                if ($status) {
+                    VacationRequest::query()
+                        ->where('id', $instance->subject_id)
+                        ->update(['status' => $status]);
+                }
+            }
+        });
     }
 }

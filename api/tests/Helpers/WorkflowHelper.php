@@ -38,6 +38,9 @@ function createWorkflowInitiator(array $attributes = []): User
         PermissionEnum::WorkflowInstancesCreate->value,
         PermissionEnum::WorkflowInstancesView->value,
         PermissionEnum::WorkflowInstancesCancel->value,
+        PermissionEnum::VacationRequestsCreate->value,
+        PermissionEnum::VacationRequestsView->value,
+        PermissionEnum::VacationRequestsCancel->value,
     ]);
 
     $user = User::factory()->create($attributes);

@@ -30,6 +30,9 @@ enum Permission: string
     case VacationPeriodsView = 'vacation_periods.view';
     case VacationPeriodsCreate = 'vacation_periods.create';
     case VacationPeriodsClose = 'vacation_periods.close';
+    case VacationRequestsView = 'vacation_requests.view';
+    case VacationRequestsCreate = 'vacation_requests.create';
+    case VacationRequestsCancel = 'vacation_requests.cancel';
 
     public function label(): string
     {
@@ -60,6 +63,9 @@ enum Permission: string
             self::VacationPeriodsView => 'Visualizar Períodos Aquisitivos',
             self::VacationPeriodsCreate => 'Criar Períodos Aquisitivos',
             self::VacationPeriodsClose => 'Encerrar Períodos Aquisitivos',
+            self::VacationRequestsView => 'Visualizar Solicitações de Férias',
+            self::VacationRequestsCreate => 'Criar Solicitações de Férias',
+            self::VacationRequestsCancel => 'Cancelar Solicitações de Férias',
         };
     }
 

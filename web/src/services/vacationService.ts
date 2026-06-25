@@ -1,7 +1,7 @@
 import { apiFetch } from './api'
 import type { ItemResponse, PaginatedResponse } from '../types/acl'
 import type { AllowedPerPage, TableSort } from '../types/preferences'
-import type { VacationBalance, VacationGrant, VacationPeriod } from '../types/vacation'
+import type { VacationBalance, VacationGrant, VacationPeriod, VacationRequest } from '../types/vacation'
 
 type ListQueryParams = {
   sorts?: TableSort[]
@@ -137,5 +137,33 @@ export async function createVacationGrant(payload: {
     body: JSON.stringify(payload),
   })
 
+  return response.data
+}
+
+export async function listVacationRequests(): Promise<VacationRequest[]> {
+  const response = await apiFetch<{ data: VacationRequest[] }>('/vacation-requests')
+  return response.data
+}
+
+export async function createVacationRequest(payload: {
+  start_date: string
+  end_date: string
+  justification?: string | null
+}): Promise<VacationRequest> {
+  const response = await apiFetch<{ data: VacationRequest; message: string }>(
+    '/vacation-requests',
+    {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    },
+  )
+  return response.data
+}
+
+export async function cancelVacationRequest(id: number): Promise<VacationRequest> {
+  const response = await apiFetch<{ data: VacationRequest; message: string }>(
+    `/vacation-requests/${id}/cancel`,
+    { method: 'POST' },
+  )
   return response.data
 }

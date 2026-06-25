@@ -16,8 +16,10 @@ use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
 use App\Modules\Vacation\Http\Controllers\VacationGrantController;
 use App\Modules\Vacation\Http\Controllers\VacationPeriodController;
+use App\Modules\Vacation\Http\Controllers\VacationRequestController;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
 use App\Modules\Vacation\Domain\Models\VacationPeriod;
+use App\Modules\Vacation\Domain\Models\VacationRequest;
 use Illuminate\Support\Facades\Route;
 
 Route::bind('user', fn (string $value) => User::query()->findOrFail($value));
@@ -26,6 +28,7 @@ Route::bind('workflow_step', fn (string $value) => WorkflowStep::query()->findOr
 Route::bind('workflow_instance', fn (string $value) => WorkflowInstance::query()->findOrFail($value));
 Route::bind('vacation_balance', fn (string $value) => VacationBalance::query()->findOrFail($value));
 Route::bind('vacation_period', fn (string $value) => VacationPeriod::query()->findOrFail($value));
+Route::bind('vacation_request', fn (string $value) => VacationRequest::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -115,4 +118,11 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:vacation_grants.view');
     Route::post('vacation-grants', [VacationGrantController::class, 'store'])
         ->middleware('permission:vacation_grants.create');
+
+    Route::get('vacation-requests', [VacationRequestController::class, 'index'])
+        ->middleware('permission:vacation_requests.view');
+    Route::post('vacation-requests', [VacationRequestController::class, 'store'])
+        ->middleware('permission:vacation_requests.create');
+    Route::post('vacation-requests/{vacation_request}/cancel', [VacationRequestController::class, 'cancel'])
+        ->middleware('permission:vacation_requests.cancel');
 });
