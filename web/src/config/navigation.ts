@@ -1,4 +1,4 @@
-import { CalendarDays, GitBranch, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
+import { CalendarDays, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
 
 export type NavigationItem = {
   label: string
@@ -12,7 +12,6 @@ export const navigationItems: NavigationItem[] = [
   { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users },
   { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree },
   { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarDays },
-  { label: 'Fluxos', href: '/workflows', title: 'Fluxos de aprovação', icon: GitBranch },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield },
 ]
 
@@ -31,8 +30,6 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/roles/novo') return 'Novo perfil'
   if (/^\/roles\/\d+\/editar$/.test(pathname)) return 'Editar perfil'
   if (pathname === '/vacation-requests/novo') return 'Nova solicitação de férias'
-  if (pathname === '/workflows/novo') return 'Novo fluxo'
-  if (/^\/workflows\/\d+\/editar$/.test(pathname)) return 'Editar fluxo'
 
   const exactMatch = navigationItems.find((item) => item.href === pathname)
   if (exactMatch) {
