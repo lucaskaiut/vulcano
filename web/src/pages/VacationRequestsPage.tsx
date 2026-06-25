@@ -15,6 +15,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal'
 import { DatePicker } from '../components/ui/DatePicker'
 import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
+import { formatDate } from '../lib/format'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
 import { WORKFLOW_TYPE_LABELS } from '../services/workflowService'
 import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
@@ -92,7 +93,7 @@ export function VacationRequestsPage() {
     .map((r) => ({
       id: r.workflow_instance!.id,
       workflow_type: 'vacation_request' as WorkflowType,
-      title: `${r.user.name} — ${r.start_date} a ${r.end_date}`,
+      title: `${r.user.name} — ${formatDate(r.start_date)} a ${formatDate(r.end_date)}`,
       status: r.workflow_instance!.status as WorkflowInstanceStatus,
       status_label: r.workflow_instance!.status_label,
       current_step: r.workflow_instance!.current_step
