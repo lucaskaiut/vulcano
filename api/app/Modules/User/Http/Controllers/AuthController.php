@@ -45,7 +45,7 @@ class AuthController extends Controller
     public function me(Request $request): JsonResponse
     {
         $user = $request->user()->load([
-            'roles.permissions' => fn ($query) => $query->system(),
+            'roles',
             'preference',
         ]);
 

@@ -183,7 +183,7 @@ export async function getRole(id: number): Promise<Role> {
 export async function createRole(payload: {
   name: string
   description?: string
-  permission_ids?: number[]
+  permission_slugs?: string[]
 }): Promise<Role> {
   const response = await apiFetch<ItemResponse<Role>>('/roles', {
     method: 'POST',
@@ -198,7 +198,7 @@ export async function updateRole(
   payload: {
     name?: string
     description?: string
-    permission_ids?: number[]
+    permission_slugs?: string[]
   },
 ): Promise<Role> {
   const response = await apiFetch<ItemResponse<Role>>(`/roles/${id}`, {

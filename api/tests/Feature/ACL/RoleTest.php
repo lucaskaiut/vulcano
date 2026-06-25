@@ -1,6 +1,5 @@
 <?php
 
-use App\Modules\User\Domain\Models\Permission;
 use App\Modules\User\Domain\Models\Role;
 
 describe('roles index', function () {
@@ -12,7 +11,7 @@ describe('roles index', function () {
         $response
             ->assertOk()
             ->assertJsonStructure([
-                'data' => [['id', 'name', 'permissions']],
+                'data' => [['id', 'name', 'permission_slugs']],
                 'meta' => ['total'],
             ])
             ->assertJsonPath('meta.total', 6);
@@ -28,45 +27,57 @@ describe('roles index', function () {
 });
 
 describe('roles store', function () {
-    it('creates a role with permissions', function () {
+    it('creates a role with permission slugs', function () {
         $admin = createUserWithRole();
-        $permission = Permission::query()->first();
 
         $response = $this->actingAs($admin)->postJson('/api/roles', [
             'name' => 'Auditor',
             'description' => 'Perfil de auditoria',
-            'permission_ids' => [$permission->id],
+            'permission_slugs' => ['users.view'],
         ]);
 
         $response
             ->assertCreated()
-            ->assertJsonPath('data.name', 'Auditor');
+            ->assertJsonPath('data.name', 'Auditor')
+            ->assertJsonPath('data.permission_slugs', ['users.view']);
 
         $role = Role::query()->where('name', 'Auditor')->first();
 
         expect($role)->not->toBeNull()
-            ->and($role->permissions)->toHaveCount(1);
+            ->and($role->permissions)->toBe(['users.view']);
+    });
+
+    it('validates permission slugs are from enum', function () {
+        $admin = createUserWithRole();
+
+        $this->actingAs($admin)
+            ->postJson('/api/roles', [
+                'name' => 'Auditor',
+                'permission_slugs' => ['invalid.permission'],
+            ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['permission_slugs.0']);
     });
 });
 
 describe('roles update', function () {
-    it('updates role and permissions', function () {
+    it('updates role and permission slugs', function () {
         $admin = createUserWithRole();
         $role = Role::query()->where('name', 'Colaborador')->firstOrFail();
-        $permissions = Permission::query()->limit(2)->pluck('id')->all();
 
         $response = $this->actingAs($admin)->putJson("/api/roles/{$role->id}", [
             'name' => 'Colaborador Atualizado',
-            'permission_ids' => $permissions,
+            'permission_slugs' => ['users.view', 'users.create'],
         ]);
 
         $response
             ->assertOk()
-            ->assertJsonPath('data.name', 'Colaborador Atualizado');
+            ->assertJsonPath('data.name', 'Colaborador Atualizado')
+            ->assertJsonPath('data.permission_slugs', ['users.view', 'users.create']);
 
         $role->refresh();
 
-        expect($role->permissions)->toHaveCount(2);
+        expect($role->permissions)->toBe(['users.view', 'users.create']);
     });
 });
 

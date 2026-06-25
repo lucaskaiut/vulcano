@@ -3,10 +3,10 @@
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 
 describe('permissions index', function () {
-    it('lists fixed permissions for authorized user', function () {
+    it('lists permissions from enum for authorized user', function () {
         $admin = createUserWithRole();
 
-        $response = $this->actingAs($admin)->getJson('/api/permissions?per_page=50');
+        $response = $this->actingAs($admin)->getJson('/api/permissions');
 
         $response
             ->assertOk()
@@ -19,10 +19,6 @@ describe('permissions index', function () {
         $slugs = collect($response->json('data'))->pluck('slug')->sort()->values()->all();
 
         expect($slugs)->toEqual(collect(PermissionEnum::values())->sort()->values()->all());
-        expect($slugs)->not->toContain('permissions.view');
-        expect($slugs)->not->toContain('permissions.create');
-        expect($slugs)->not->toContain('permissions.update');
-        expect($slugs)->not->toContain('permissions.delete');
     });
 
     it('denies access without permission', function () {

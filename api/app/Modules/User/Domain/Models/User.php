@@ -62,7 +62,7 @@ class User extends Authenticatable
     public function hasPermission(string $slug): bool
     {
         return $this->roles()
-            ->whereHas('permissions', fn ($query) => $query->where('slug', $slug))
+            ->whereJsonContains('permissions', $slug)
             ->exists();
     }
 
@@ -78,15 +78,16 @@ class User extends Authenticatable
         return false;
     }
 
-    /** @return Collection<int, Permission> */
-    public function getAllPermissions(): Collection
+    /** @return Collection<int, array{name: string, slug: string}> */
+    public function getAllPermissionSlugs(): Collection
     {
-        $this->loadMissing('roles.permissions');
+        $this->loadMissing('roles');
 
         return $this->roles
+            ->filter(fn (Role $role) => is_array($role->permissions))
             ->flatMap(fn (Role $role) => $role->permissions)
-            ->filter(fn (Permission $permission) => in_array($permission->slug, PermissionEnum::values(), true))
-            ->unique('id')
+            ->filter(fn (string $slug) => in_array($slug, PermissionEnum::values(), true))
+            ->unique()
             ->values();
     }
 

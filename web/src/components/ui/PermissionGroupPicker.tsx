@@ -1,20 +1,31 @@
-import { Fragment, useMemo } from 'react'
+import { useMemo } from 'react'
 import type { Permission } from '../../types/acl'
 import { ToggleSwitch } from './Toggle'
 
 const CONTEXT_LABELS: Record<string, string> = {
   users: 'Colaboradores',
   roles: 'Perfis',
+  workflows: 'Fluxos',
+  workflow_steps: 'Etapas',
+  workflow_instances: 'Processos',
+  vacation_balances: 'Saldos de Férias',
+  vacation_grants: 'Concessões',
+  vacation_periods: 'Períodos',
 }
 
 const ACTION_LABELS: Record<string, string> = {
   view: 'Visualizar',
+  view_all: 'Visualizar Todos',
   create: 'Criar',
   update: 'Atualizar',
   delete: 'Excluir',
+  approve: 'Aprovar',
+  reject: 'Reprovar',
+  cancel: 'Cancelar',
+  close: 'Encerrar',
 }
 
-const ACTION_ORDER = ['view', 'create', 'update', 'delete']
+const ACTION_ORDER = ['view', 'view_all', 'create', 'update', 'delete', 'approve', 'reject', 'cancel', 'close']
 
 type PermissionGroup = {
   context: string
@@ -27,11 +38,15 @@ function getContext(slug: string): string {
 }
 
 function getAction(slug: string): string {
-  return slug.split('.')[1] ?? slug
+  const parts = slug.split('.')
+  parts.shift()
+
+  return parts.join('.')
 }
 
 function permissionLabel(permission: Permission): string {
   const action = getAction(permission.slug)
+
   return ACTION_LABELS[action] ?? permission.name
 }
 
@@ -40,11 +55,6 @@ function groupPermissions(permissions: Permission[]): PermissionGroup[] {
 
   for (const permission of permissions) {
     const context = getContext(permission.slug)
-
-    if (context === 'permissions') {
-      continue
-    }
-
     const items = groups.get(context) ?? []
     items.push(permission)
     groups.set(context, items)
@@ -65,8 +75,8 @@ function groupPermissions(permissions: Permission[]): PermissionGroup[] {
 type PermissionGroupPickerProps = {
   label?: string
   permissions: Permission[]
-  value: number[]
-  onChange: (value: number[]) => void
+  value: string[]
+  onChange: (value: string[]) => void
   error?: string
 }
 
@@ -79,13 +89,13 @@ export function PermissionGroupPicker({
 }: PermissionGroupPickerProps) {
   const groups = useMemo(() => groupPermissions(permissions), [permissions])
 
-  function togglePermission(permissionId: number, checked: boolean) {
+  function togglePermission(slug: string, checked: boolean) {
     if (checked) {
-      onChange([...value, permissionId])
+      onChange([...value, slug])
       return
     }
 
-    onChange(value.filter((id) => id !== permissionId))
+    onChange(value.filter((s) => s !== slug))
   }
 
   return (
@@ -98,20 +108,20 @@ export function PermissionGroupPicker({
             <div className="inline-grid w-fit grid-cols-[max-content_2.75rem] items-center gap-x-4 gap-y-3">
               {group.permissions.map((permission) => {
                 const label = permissionLabel(permission)
-                const inputId = `permission-${permission.id}`
+                const inputId = `permission-${permission.slug.replace(/\./g, '-')}`
 
                 return (
-                  <Fragment key={permission.id}>
+                  <span key={permission.slug}>
                     <label htmlFor={inputId} className="cursor-pointer text-sm text-foreground">
                       {label}
                     </label>
                     <ToggleSwitch
                       id={inputId}
-                      checked={value.includes(permission.id)}
-                      onChange={(checked) => togglePermission(permission.id, checked)}
+                      checked={value.includes(permission.slug)}
+                      onChange={(checked) => togglePermission(permission.slug, checked)}
                       ariaLabel={label}
                     />
-                  </Fragment>
+                  </span>
                 )
               })}
             </div>

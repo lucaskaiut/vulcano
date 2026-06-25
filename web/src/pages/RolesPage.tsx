@@ -104,7 +104,7 @@ export function RolesPage() {
           </TableHead>
           <TableBody>
             {roles.map((role) => {
-              const permissionsCount = role.permissions?.length ?? 0
+              const permissionsCount = role.permission_slugs?.length ?? 0
 
               return (
                 <ExpandableTableRow

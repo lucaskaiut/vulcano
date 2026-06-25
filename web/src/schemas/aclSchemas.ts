@@ -25,7 +25,7 @@ export type UserEditFormValues = z.infer<typeof userEditSchema>
 export const roleSchema = z.object({
   name: z.string().min(1, 'Informe o nome do perfil.'),
   description: z.string().optional(),
-  permission_ids: z.array(z.number()),
+  permission_slugs: z.array(z.string()),
 })
 
 export type RoleFormValues = z.infer<typeof roleSchema>

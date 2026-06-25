@@ -49,7 +49,7 @@ export function RoleFormPage() {
     defaultValues: {
       name: '',
       description: '',
-      permission_ids: [],
+      permission_slugs: [],
     },
   })
 
@@ -61,7 +61,7 @@ export function RoleFormPage() {
     reset({
       name: roleQuery.data.name,
       description: roleQuery.data.description ?? '',
-      permission_ids: roleQuery.data.permissions?.map((permission) => permission.id) ?? [],
+      permission_slugs: roleQuery.data.permission_slugs ?? [],
     })
   }, [isEditing, roleQuery.data, reset])
 
@@ -70,7 +70,7 @@ export function RoleFormPage() {
       const payload = {
         name: values.name,
         description: values.description || undefined,
-        permission_ids: values.permission_ids,
+        permission_slugs: values.permission_slugs,
       }
 
       if (isEditing && roleId) {
@@ -144,14 +144,14 @@ export function RoleFormPage() {
           </div>
 
           <Controller
-            name="permission_ids"
+            name="permission_slugs"
             control={control}
             render={({ field }) => (
               <PermissionGroupPicker
                 permissions={permissionsQuery.data?.data ?? []}
                 value={field.value}
                 onChange={field.onChange}
-                error={errors.permission_ids?.message}
+                error={errors.permission_slugs?.message}
               />
             )}
           />

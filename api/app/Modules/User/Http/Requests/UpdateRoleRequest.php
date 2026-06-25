@@ -20,13 +20,8 @@ class UpdateRoleRequest extends FormRequest
         return [
             'name' => ['sometimes', 'string', 'max:255', Rule::unique('roles', 'name')->ignore($roleId)],
             'description' => ['sometimes', 'nullable', 'string', 'max:255'],
-            'permission_ids' => ['sometimes', 'array'],
-            'permission_ids.*' => [
-                'integer',
-                Rule::exists('permissions', 'id')->where(
-                    fn ($query) => $query->whereIn('slug', PermissionEnum::values()),
-                ),
-            ],
+            'permission_slugs' => ['sometimes', 'array'],
+            'permission_slugs.*' => ['string', Rule::in(PermissionEnum::values())],
         ];
     }
 

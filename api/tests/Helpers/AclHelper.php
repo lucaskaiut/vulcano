@@ -19,5 +19,5 @@ function createUserWithRole(string $roleName = 'Administrador', array $attribute
     $role = Role::query()->where('name', $roleName)->firstOrFail();
     $user->roles()->attach($role);
 
-    return $user->fresh(['roles.permissions']);
+    return $user->fresh(['roles']);
 }

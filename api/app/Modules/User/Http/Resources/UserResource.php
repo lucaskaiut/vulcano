@@ -22,11 +22,9 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),
             'roles' => RoleResource::collection($this->whenLoaded('roles')),
-            'permissions' => PermissionResource::collection(
-                $this->when(
-                    $this->relationLoaded('roles'),
-                    fn () => $this->resource->getAllPermissions(),
-                ),
+            'permission_slugs' => $this->when(
+                $this->relationLoaded('roles'),
+                fn () => $this->resource->getAllPermissionSlugs()->values()->all(),
             ),
             'preferences' => $this->when(
                 $this->relationLoaded('preference'),

@@ -9,7 +9,7 @@ export type Role = {
   id: number
   name: string
   description: string | null
-  permissions?: Permission[]
+  permission_slugs: string[]
 }
 
 export type UserManager = {

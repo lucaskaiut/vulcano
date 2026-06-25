@@ -1,7 +1,6 @@
 <?php
 
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
-use App\Modules\User\Domain\Models\Permission;
 use App\Modules\User\Domain\Models\Role;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
@@ -10,11 +9,10 @@ use App\Modules\Workflow\Domain\Models\WorkflowStep;
 function grantWorkflowPermissionsToRole(string $roleName, array $permissionSlugs): void
 {
     $role = Role::query()->where('name', $roleName)->firstOrFail();
-    $permissionIds = Permission::query()
-        ->whereIn('slug', $permissionSlugs)
-        ->pluck('id');
+    $current = $role->permissions ?? [];
 
-    $role->permissions()->syncWithoutDetaching($permissionIds);
+    $merged = array_values(array_unique(array_merge($current, $permissionSlugs)));
+    $role->update(['permissions' => $merged]);
 }
 
 function createWorkflowActor(string $roleName, array $attributes = []): User
@@ -29,7 +27,7 @@ function createWorkflowActor(string $roleName, array $attributes = []): User
     $role = Role::query()->where('name', $roleName)->firstOrFail();
     $user->roles()->attach($role);
 
-    return $user->fresh(['roles.permissions']);
+    return $user->fresh(['roles']);
 }
 
 function createWorkflowInitiator(array $attributes = []): User
@@ -46,7 +44,7 @@ function createWorkflowInitiator(array $attributes = []): User
     $role = Role::query()->where('name', 'Colaborador')->firstOrFail();
     $user->roles()->attach($role);
 
-    return $user->fresh(['roles.permissions']);
+    return $user->fresh(['roles']);
 }
 
 function createWorkflowStepsForType(WorkflowType $type): void
