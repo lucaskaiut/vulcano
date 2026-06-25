@@ -22,6 +22,16 @@ class VacationBalanceService
 
         if ($userId !== null) {
             $query->where('user_id', $userId);
+
+            if (! VacationBalance::query()->where('user_id', $userId)->exists()) {
+                VacationBalance::query()->create([
+                    'user_id' => $userId,
+                    'available_days' => 0,
+                    'accrued_days' => 0,
+                    'used_days' => 0,
+                    'additional_days' => 0,
+                ]);
+            }
         }
 
         $sort->apply($query);
@@ -46,7 +56,15 @@ class VacationBalanceService
         return VacationBalance::query()
             ->with(['grants', 'periods'])
             ->where('user_id', $user->id)
-            ->firstOrFail();
+            ->firstOrCreate(
+                ['user_id' => $user->id],
+                [
+                    'available_days' => 0,
+                    'accrued_days' => 0,
+                    'used_days' => 0,
+                    'additional_days' => 0,
+                ],
+            );
     }
 
     /** @param  array{user_id: int, additional_days?: int}  $data */
