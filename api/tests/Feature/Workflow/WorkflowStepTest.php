@@ -20,7 +20,7 @@ describe('workflow steps list', function () {
     });
 
     it('nega acesso sem permissão', function () {
-        $user = createUserWithRole('Colaborador');
+        $user = createUserWithRole('Financeiro');
 
         $this->actingAs($user)
             ->getJson('/api/workflow-types/vacation_request/steps')

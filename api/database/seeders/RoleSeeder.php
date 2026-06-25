@@ -41,6 +41,8 @@ class RoleSeeder extends Seeder
                     PermissionEnum::WorkflowStepsDelete->value,
                     PermissionEnum::WorkflowInstancesView->value,
                     PermissionEnum::WorkflowInstancesViewAll->value,
+                    PermissionEnum::WorkflowInstancesApprove->value,
+                    PermissionEnum::WorkflowInstancesReject->value,
                 ],
             ],
             [
@@ -51,6 +53,7 @@ class RoleSeeder extends Seeder
                 'name' => 'Gestor',
                 'description' => 'Gestão de equipe',
                 'permission_slugs' => [
+                    PermissionEnum::WorkflowStepsView->value,
                     PermissionEnum::WorkflowInstancesView->value,
                     PermissionEnum::WorkflowInstancesApprove->value,
                     PermissionEnum::WorkflowInstancesReject->value,
@@ -65,6 +68,7 @@ class RoleSeeder extends Seeder
                 'name' => 'Colaborador',
                 'description' => 'Colaborador PJ',
                 'permission_slugs' => [
+                    PermissionEnum::WorkflowStepsView->value,
                     PermissionEnum::VacationRequestsView->value,
                     PermissionEnum::VacationRequestsCreate->value,
                     PermissionEnum::VacationRequestsCancel->value,
