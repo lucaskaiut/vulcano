@@ -17,7 +17,6 @@ import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { formatDate } from '../lib/format'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
-import { WORKFLOW_TYPE_LABELS } from '../services/workflowService'
 import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
 
 export function VacationRequestsPage() {
