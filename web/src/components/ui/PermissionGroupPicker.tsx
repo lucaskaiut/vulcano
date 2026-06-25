@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { Fragment, useMemo } from 'react'
 import type { Permission } from '../../types/acl'
 import { ToggleSwitch } from './Toggle'
 
@@ -111,7 +111,7 @@ export function PermissionGroupPicker({
                 const inputId = `permission-${permission.slug.replace(/\./g, '-')}`
 
                 return (
-                  <span key={permission.slug}>
+                  <Fragment key={permission.slug}>
                     <label htmlFor={inputId} className="cursor-pointer text-sm text-foreground">
                       {label}
                     </label>
@@ -121,7 +121,7 @@ export function PermissionGroupPicker({
                       onChange={(checked) => togglePermission(permission.slug, checked)}
                       ariaLabel={label}
                     />
-                  </span>
+                  </Fragment>
                 )
               })}
             </div>
