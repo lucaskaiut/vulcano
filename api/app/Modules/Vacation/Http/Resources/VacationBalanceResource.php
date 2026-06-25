@@ -13,14 +13,14 @@ class VacationBalanceResource extends JsonResource
     public function toArray(Request $request): array
     {
         $accruedDays = $this->user
-            ? round(VacationEntitlementCalculator::calculateAccruedDays($this->user->hired_at), 1)
+            ? (float) round(VacationEntitlementCalculator::calculateAccruedDays($this->user->hired_at), 1)
             : $this->accrued_days;
 
         return [
             'id' => $this->id,
             'user_id' => $this->user_id,
             'user' => new UserSummaryResource($this->whenLoaded('user')),
-            'available_days' => max(0, $accruedDays + $this->additional_days - $this->used_days),
+            'available_days' => max(0, (float) ($accruedDays + $this->additional_days - $this->used_days)),
             'accrued_days' => $accruedDays,
             'used_days' => $this->used_days,
             'additional_days' => $this->additional_days,

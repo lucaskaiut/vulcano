@@ -42,7 +42,7 @@ describe('vacation periods close', function () {
             ])
             ->assertOk()
             ->assertJsonPath('data.status', VacationPeriodStatus::Closed->value)
-            ->assertJsonPath('data.entitled_days', 30);
+            ->assertJsonPath('data.entitled_days', 28);
 
         expect($balance->fresh()->used_days)->toBe(0);
     });
@@ -61,7 +61,7 @@ describe('vacation periods close', function () {
                 'end_date' => '2025-06-30',
             ])
             ->assertOk()
-            ->assertJsonPath('data.entitled_days', 15);
+            ->assertJsonPath('data.entitled_days', 13);
     });
 });
 

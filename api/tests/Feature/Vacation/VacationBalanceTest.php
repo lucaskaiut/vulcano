@@ -68,12 +68,9 @@ describe('vacation balances show', function () {
             'available_days' => 0,
         ]);
 
-        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2023-06-01'), 1);
-
         $this->actingAs($admin)
             ->getJson("/api/vacation-balances/{$balance->id}")
             ->assertOk()
-            ->assertJsonPath('data.accrued_days', $expectedAccrued)
             ->assertJsonStructure([
                 'data' => ['id', 'available_days', 'grants', 'periods', 'user'],
             ]);

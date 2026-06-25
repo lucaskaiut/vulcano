@@ -8,12 +8,11 @@ it('calcula dias adquiridos positivos para contratacao no passado', function () 
     expect($days)->toBeGreaterThan(1.0);
 });
 
-it('calcula aproximadamente 2.5 dias para 30 dias trabalhados', function () {
-    $hireDate = \Carbon\Carbon::now()->subDays(30)->toDateString();
+it('calcula 2.5 dias para um mes completo', function () {
+    $hireDate = \Carbon\Carbon::now()->subMonth()->toDateString();
     $days = VacationEntitlementCalculator::calculateAccruedDays($hireDate);
 
-    expect($days)->toBeGreaterThan(2.4)
-        ->and($days)->toBeLessThan(2.6);
+    expect($days)->toEqual(2.5);
 });
 
 it('retorna zero para contratacao futura', function () {

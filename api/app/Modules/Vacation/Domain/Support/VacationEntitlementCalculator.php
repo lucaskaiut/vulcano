@@ -9,9 +9,8 @@ class VacationEntitlementCalculator
     public const DAYS_PER_MONTH = 2.5;
 
     /**
-     * Calcula dias adquiridos: 2,5 por mês completo + proporcional do mês atual.
-     * Cada período de 1 mês começa no dia da contratação e vai até o dia anterior
-     * do mesmo número no mês seguinte. Ex: contratado dia 10 → mês 1: 10/01 a 09/02.
+     * Calcula dias adquiridos: 2,5 por mês completo.
+     * Apenas meses fechados contam. Ex: contratado dia 10 → mês 1: 10/01 a 09/02.
      */
     public static function calculateAccruedDays(string $hireDate): float
     {
@@ -25,7 +24,6 @@ class VacationEntitlementCalculator
         $fullMonths = 0;
         $cursor = $hire->copy();
 
-        // Avança meses completos até ultrapassar hoje
         while (true) {
             $next = $cursor->copy()->addMonth();
 
@@ -37,14 +35,7 @@ class VacationEntitlementCalculator
             $cursor = $next;
         }
 
-        // Fração do período atual: dias decorridos / total de dias do período
-        $endOfCurrentPeriod = $cursor->copy()->addMonth();
-        $totalDays = $cursor->diffInDays($endOfCurrentPeriod);
-        $elapsedDays = $cursor->diffInDays($today);
-
-        $partialFraction = $elapsedDays / $totalDays;
-
-        return ($fullMonths + $partialFraction) * self::DAYS_PER_MONTH;
+        return $fullMonths * self::DAYS_PER_MONTH;
     }
 
     /** @deprecated Use calculateAccruedDays instead */
@@ -64,12 +55,6 @@ class VacationEntitlementCalculator
             $cursor = $next;
         }
 
-        $endOfPeriod = $cursor->copy()->addMonth();
-        $totalDays = $cursor->diffInDays($endOfPeriod);
-        $elapsedDays = $cursor->diffInDays($endDate);
-
-        $partialFraction = $elapsedDays / $totalDays;
-
-        return (int) round(($fullMonths + $partialFraction) * self::DAYS_PER_MONTH);
+        return (int) round($fullMonths * self::DAYS_PER_MONTH);
     }
 }
