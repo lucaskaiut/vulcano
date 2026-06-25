@@ -7,6 +7,7 @@ use App\Modules\User\Domain\Support\FilterQuery;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
 use App\Modules\User\Domain\Support\UserFilterRegistry;
+use App\Modules\Vacation\Domain\Models\VacationBalance;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
 
@@ -60,6 +61,16 @@ class UserService
             'new_salary' => $data['salary'],
             'effective_date' => $data['hired_at'],
         ]);
+
+        VacationBalance::query()->firstOrCreate(
+            ['user_id' => $user->id],
+            [
+                'available_days' => 0,
+                'accrued_days' => 0,
+                'used_days' => 0,
+                'additional_days' => 0,
+            ],
+        );
 
         return $user->load(['roles', 'manager']);
     }

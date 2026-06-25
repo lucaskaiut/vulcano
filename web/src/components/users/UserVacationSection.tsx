@@ -137,6 +137,10 @@ export function UserVacationSection({ userId, hireDate, readonly = false }: User
 
       {balance ? (
         <BalanceSummary balance={balance} />
+      ) : hireDate ? (
+        <p className="rounded-lg border border-dashed border-surface-sunken px-4 py-6 text-center text-sm text-foreground-muted">
+          Os dados de férias estão sendo processados. Atualize a página.
+        </p>
       ) : (
         <p className="rounded-lg border border-dashed border-surface-sunken px-4 py-6 text-center text-sm text-foreground-muted">
           Nenhum saldo de férias cadastrado para este colaborador.
