@@ -13,7 +13,7 @@ class VacationBalanceResource extends JsonResource
     public function toArray(Request $request): array
     {
         $accruedDays = $this->user
-            ? round(VacationEntitlementCalculator::calculateAccruedDays($this->user->hired_at), 4)
+            ? round(VacationEntitlementCalculator::calculateAccruedDays($this->user->hired_at), 1)
             : $this->accrued_days;
 
         return [

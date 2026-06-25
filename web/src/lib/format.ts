@@ -67,5 +67,8 @@ export function formatDays(value: number | null | undefined): string {
     return '—'
   }
 
-  return `${value} ${value === 1 ? 'dia' : 'dias'}`
+  const rounded = Math.round(value * 10) / 10
+  const formatted = rounded.toFixed(1).replace('.', ',')
+
+  return `${formatted} ${value === 1 ? 'dia' : 'dias'}`
 }

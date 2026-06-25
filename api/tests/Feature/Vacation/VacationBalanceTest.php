@@ -14,7 +14,7 @@ describe('vacation balances store', function () {
             'additional_days' => 5,
         ]);
 
-        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2024-01-15'), 4);
+        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2024-01-15'), 1);
 
         $response
             ->assertCreated()
@@ -47,7 +47,7 @@ describe('vacation balances update', function () {
             'available_days' => 0,
         ]);
 
-        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2024-01-01'), 4);
+        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2024-01-01'), 1);
         $expectedAvailable = max(0, $expectedAccrued + 3 - 5);
 
         $this->actingAs($admin)
@@ -68,7 +68,7 @@ describe('vacation balances show', function () {
             'available_days' => 0,
         ]);
 
-        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2023-06-01'), 4);
+        $expectedAccrued = round(VacationEntitlementCalculator::calculateAccruedDays('2023-06-01'), 1);
 
         $this->actingAs($admin)
             ->getJson("/api/vacation-balances/{$balance->id}")
