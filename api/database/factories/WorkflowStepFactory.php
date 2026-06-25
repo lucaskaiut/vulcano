@@ -2,7 +2,7 @@
 
 namespace Database\Factories;
 
-use App\Modules\Workflow\Domain\Models\Workflow;
+use App\Modules\Workflow\Domain\Enums\WorkflowType;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -14,11 +14,16 @@ class WorkflowStepFactory extends Factory
     public function definition(): array
     {
         return [
-            'workflow_id' => Workflow::factory(),
+            'workflow_type' => WorkflowType::VacationRequest->value,
             'name' => fake()->jobTitle(),
             'order' => 1,
             'responsible_role_id' => null,
             'responsible_user_id' => null,
         ];
+    }
+
+    public function forType(WorkflowType $type): static
+    {
+        return $this->state(fn () => ['workflow_type' => $type->value]);
     }
 }

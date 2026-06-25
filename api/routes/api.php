@@ -9,10 +9,8 @@ use App\Modules\User\Http\Controllers\UserPreferenceController;
 use App\Modules\User\Domain\Models\Role;
 use App\Modules\User\Domain\Models\SalaryHistory;
 use App\Modules\User\Domain\Models\User;
-use App\Modules\Workflow\Http\Controllers\WorkflowController;
 use App\Modules\Workflow\Http\Controllers\WorkflowInstanceController;
 use App\Modules\Workflow\Http\Controllers\WorkflowStepController;
-use App\Modules\Workflow\Domain\Models\Workflow;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -24,7 +22,6 @@ use Illuminate\Support\Facades\Route;
 
 Route::bind('user', fn (string $value) => User::query()->findOrFail($value));
 Route::bind('role', fn (string $value) => Role::query()->findOrFail($value));
-Route::bind('workflow', fn (string $value) => Workflow::query()->findOrFail($value));
 Route::bind('workflow_step', fn (string $value) => WorkflowStep::query()->findOrFail($value));
 Route::bind('workflow_instance', fn (string $value) => WorkflowInstance::query()->findOrFail($value));
 Route::bind('vacation_balance', fn (string $value) => VacationBalance::query()->findOrFail($value));
@@ -74,20 +71,19 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('permissions', [PermissionController::class, 'index'])
         ->middleware('permission:roles.view');
 
-    Route::get('workflows', [WorkflowController::class, 'index'])
-        ->middleware('permission:workflows.view');
-    Route::post('workflows', [WorkflowController::class, 'store'])
-        ->middleware('permission:workflows.create');
-    Route::put('workflows/{workflow}', [WorkflowController::class, 'update'])
-        ->middleware('permission:workflows.update');
-
-    Route::post('workflows/{workflow}/steps', [WorkflowStepController::class, 'store'])
-        ->middleware('permission:workflows.update');
+    Route::get('workflow-types/{type}/steps', [WorkflowStepController::class, 'index'])
+        ->middleware('permission:workflow_steps.view');
+    Route::post('workflow-types/{type}/steps', [WorkflowStepController::class, 'store'])
+        ->middleware('permission:workflow_steps.create');
     Route::put('workflow-steps/{workflow_step}', [WorkflowStepController::class, 'update'])
-        ->middleware('permission:workflows.update');
+        ->middleware('permission:workflow_steps.update');
     Route::delete('workflow-steps/{workflow_step}', [WorkflowStepController::class, 'destroy'])
-        ->middleware('permission:workflows.update');
+        ->middleware('permission:workflow_steps.delete');
+    Route::put('workflow-steps/{workflow_step}/reorder', [WorkflowStepController::class, 'reorder'])
+        ->middleware('permission:workflow_steps.update');
 
+    Route::get('workflow-instances', [WorkflowInstanceController::class, 'index'])
+        ->middleware('permission:workflow_instances.view');
     Route::post('workflow-instances', [WorkflowInstanceController::class, 'store'])
         ->middleware('permission:workflow_instances.create');
     Route::get('workflow-instances/{workflow_instance}', [WorkflowInstanceController::class, 'show'])

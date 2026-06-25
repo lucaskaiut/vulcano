@@ -2,40 +2,77 @@
 
 namespace App\Modules\Workflow\Domain\Services;
 
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Domain\Enums\WorkflowHistoryAction;
 use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
-use App\Modules\Workflow\Domain\Models\Workflow;
+use App\Modules\Workflow\Domain\Enums\WorkflowType;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowInstanceHistory;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class WorkflowInstanceService
 {
-    /** @param  array{workflow_id: int, title: string, subject_type?: string|null, subject_id?: int|null}  $data */
+    /** @return Collection<int, WorkflowInstance> */
+    public function list(User $user): Collection
+    {
+        $query = WorkflowInstance::query()
+            ->with(['currentStep.responsibleRole', 'initiatedBy', 'histories.user']);
+
+        if ($user->hasPermission(PermissionEnum::WorkflowInstancesViewAll->value)) {
+            return $query->orderByDesc('created_at')->get();
+        }
+
+        $query->where(function ($q) use ($user) {
+            $q->where('initiated_by_user_id', $user->id);
+
+            $subordinateIds = User::query()
+                ->where('manager_id', $user->id)
+                ->pluck('id');
+
+            if ($subordinateIds->isNotEmpty()) {
+                $q->orWhereIn('initiated_by_user_id', $subordinateIds);
+            }
+
+            $q->orWhere(function ($subQuery) use ($user) {
+                $subQuery->whereHas('currentStep', function ($stepQuery) use ($user) {
+                    $stepQuery->where('responsible_user_id', $user->id);
+
+                    $roleIds = $user->roles()->pluck('roles.id');
+                    if ($roleIds->isNotEmpty()) {
+                        $stepQuery->orWhereIn('responsible_role_id', $roleIds);
+                    }
+                });
+            });
+        });
+
+        return $query->orderByDesc('created_at')->get();
+    }
+
+    /** @param  array{workflow_type: string, title: string, subject_type?: string|null, subject_id?: int|null}  $data */
     public function start(User $initiator, array $data): WorkflowInstance
     {
-        $workflow = Workflow::query()->with('steps')->findOrFail($data['workflow_id']);
+        $type = WorkflowType::from($data['workflow_type']);
 
-        if (! $workflow->is_active) {
+        $steps = WorkflowStep::query()
+            ->where('workflow_type', $type->value)
+            ->orderBy('order')
+            ->get();
+
+        if ($steps->isEmpty()) {
             throw ValidationException::withMessages([
-                'workflow_id' => 'Este fluxo está inativo e não pode iniciar novos processos.',
+                'workflow_type' => 'O fluxo não possui etapas configuradas.',
             ]);
         }
 
-        $firstStep = $workflow->steps->sortBy('order')->first();
+        $firstStep = $steps->first();
 
-        if (! $firstStep) {
-            throw ValidationException::withMessages([
-                'workflow_id' => 'O fluxo não possui etapas configuradas.',
-            ]);
-        }
-
-        return DB::transaction(function () use ($workflow, $initiator, $data, $firstStep) {
+        return DB::transaction(function () use ($type, $initiator, $data, $firstStep) {
             $instance = WorkflowInstance::query()->create([
-                'workflow_id' => $workflow->id,
+                'workflow_type' => $type->value,
                 'title' => $data['title'],
                 'status' => WorkflowInstanceStatus::InProgress,
                 'current_step_id' => $firstStep->id,
@@ -59,7 +96,6 @@ class WorkflowInstanceService
     {
         return WorkflowInstance::query()
             ->with([
-                'workflow.steps.responsibleRole',
                 'currentStep.responsibleRole',
                 'initiatedBy',
                 'histories.user',
@@ -84,7 +120,7 @@ class WorkflowInstanceService
             );
 
             $nextStep = WorkflowStep::query()
-                ->where('workflow_id', $instance->workflow_id)
+                ->where('workflow_type', $instance->workflow_type)
                 ->where('order', '>', $currentStep->order)
                 ->orderBy('order')
                 ->first();

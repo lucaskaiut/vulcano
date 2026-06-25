@@ -1,4 +1,4 @@
-import { LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
+import { GitBranch, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
 
 export type NavigationItem = {
   label: string
@@ -12,6 +12,7 @@ export const navigationItems: NavigationItem[] = [
   { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users },
   { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield },
+  { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch },
 ]
 
 export function isNavItemActive(href: string, pathname: string): boolean {
@@ -28,6 +29,8 @@ export function getNavigationTitle(pathname: string): string {
   if (/^\/users\/\d+$/.test(pathname)) return 'Detalhes do colaborador'
   if (pathname === '/roles/novo') return 'Novo perfil'
   if (/^\/roles\/\d+\/editar$/.test(pathname)) return 'Editar perfil'
+  if (pathname === '/workflow-instances') return 'Processos'
+  if (/^\/workflow-instances\/\d+$/.test(pathname)) return 'Detalhes do processo'
 
   const exactMatch = navigationItems.find((item) => item.href === pathname)
   if (exactMatch) {

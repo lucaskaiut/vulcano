@@ -12,12 +12,13 @@ class WorkflowStepResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'workflow_type' => $this->workflow_type,
             'name' => $this->name,
             'order' => $this->order,
-            'responsible_role' => $this->whenLoaded('responsibleRole', fn () => [
-                'id' => $this->responsibleRole?->id,
-                'name' => $this->responsibleRole?->name,
-            ]),
+            'responsible_role' => $this->whenLoaded('responsibleRole', fn () => $this->responsibleRole ? [
+                'id' => $this->responsibleRole->id,
+                'name' => $this->responsibleRole->name,
+            ] : null),
             'responsible_user' => $this->whenLoaded('responsibleUser', fn () => $this->responsibleUser ? [
                 'id' => $this->responsibleUser->id,
                 'name' => $this->responsibleUser->name,

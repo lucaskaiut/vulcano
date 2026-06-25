@@ -2,8 +2,7 @@
 
 use App\Modules\User\Domain\Models\Role;
 use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
-use App\Modules\Workflow\Domain\Models\Workflow;
-use App\Modules\Workflow\Domain\Models\WorkflowStep;
+use App\Modules\Workflow\Domain\Enums\WorkflowType;
 
 it('executa cenário completo de aprovação de férias', function () {
     $admin = createUserWithRole();
@@ -16,27 +15,19 @@ it('executa cenário completo de aprovação de férias', function () {
     $controladorRole = Role::query()->where('name', 'Controlador')->firstOrFail();
     $rhRole = Role::query()->where('name', 'RH')->firstOrFail();
 
-    $workflowId = $this->actingAs($admin)
-        ->postJson('/api/workflows', [
-            'name' => 'Aprovação de Férias',
-            'description' => 'Fluxo de aprovação de solicitações de férias',
-        ])
-        ->assertCreated()
-        ->json('data.id');
-
     foreach ([
         ['name' => 'Gestora', 'order' => 1, 'responsible_role_id' => $gestorRole->id],
         ['name' => 'Controlador', 'order' => 2, 'responsible_role_id' => $controladorRole->id],
         ['name' => 'RH', 'order' => 3, 'responsible_role_id' => $rhRole->id],
     ] as $step) {
         $this->actingAs($admin)
-            ->postJson("/api/workflows/{$workflowId}/steps", $step)
+            ->postJson('/api/workflow-types/vacation_request/steps', $step)
             ->assertCreated();
     }
 
     $instanceId = $this->actingAs($initiator)
         ->postJson('/api/workflow-instances', [
-            'workflow_id' => $workflowId,
+            'workflow_type' => WorkflowType::VacationRequest->value,
             'title' => 'Solicitação de férias #123',
         ])
         ->assertCreated()
@@ -73,5 +64,6 @@ it('executa cenário completo de aprovação de férias', function () {
     $this->assertDatabaseHas('workflow_instances', [
         'id' => $instanceId,
         'status' => WorkflowInstanceStatus::Approved->value,
+        'workflow_type' => WorkflowType::VacationRequest->value,
     ]);
 });

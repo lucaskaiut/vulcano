@@ -1,16 +1,39 @@
 <?php
 
 use App\Modules\User\Domain\Models\Role;
-use App\Modules\Workflow\Domain\Models\Workflow;
+use App\Modules\Workflow\Domain\Enums\WorkflowType;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
+
+describe('workflow steps list', function () {
+    it('lista etapas de um tipo de fluxo', function () {
+        $admin = createUserWithRole();
+        WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
+            'name' => 'Gestora',
+            'order' => 1,
+        ]);
+
+        $this->actingAs($admin)
+            ->getJson('/api/workflow-types/vacation_request/steps')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('data.0.name', 'Gestora');
+    });
+
+    it('nega acesso sem permissão', function () {
+        $user = createUserWithRole('Colaborador');
+
+        $this->actingAs($user)
+            ->getJson('/api/workflow-types/vacation_request/steps')
+            ->assertForbidden();
+    });
+});
 
 describe('workflow steps store', function () {
     it('adiciona etapa ao fluxo', function () {
         $admin = createUserWithRole();
-        $workflow = Workflow::factory()->create();
         $role = Role::query()->where('name', 'Gestor')->firstOrFail();
 
-        $response = $this->actingAs($admin)->postJson("/api/workflows/{$workflow->id}/steps", [
+        $response = $this->actingAs($admin)->postJson('/api/workflow-types/vacation_request/steps', [
             'name' => 'Gestora',
             'responsible_role_id' => $role->id,
         ]);
@@ -18,33 +41,39 @@ describe('workflow steps store', function () {
         $response
             ->assertCreated()
             ->assertJsonPath('data.name', 'Gestora')
-            ->assertJsonPath('data.order', 1);
+            ->assertJsonPath('data.order', 1)
+            ->assertJsonPath('data.workflow_type', 'vacation_request');
 
         $this->assertDatabaseHas('workflow_steps', [
-            'workflow_id' => $workflow->id,
+            'workflow_type' => 'vacation_request',
             'name' => 'Gestora',
             'order' => 1,
         ]);
+    });
+
+    it('valida nome obrigatório', function () {
+        $admin = createUserWithRole();
+
+        $this->actingAs($admin)
+            ->postJson('/api/workflow-types/vacation_request/steps', [])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['name']);
     });
 });
 
 describe('workflow steps update', function () {
     it('reordena etapas do fluxo', function () {
         $admin = createUserWithRole();
-        $workflow = Workflow::factory()->create();
 
-        $step1 = WorkflowStep::factory()->create([
-            'workflow_id' => $workflow->id,
+        $step1 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
             'name' => 'Etapa 1',
             'order' => 1,
         ]);
-        $step2 = WorkflowStep::factory()->create([
-            'workflow_id' => $workflow->id,
+        $step2 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
             'name' => 'Etapa 2',
             'order' => 2,
         ]);
-        $step3 = WorkflowStep::factory()->create([
-            'workflow_id' => $workflow->id,
+        $step3 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
             'name' => 'Etapa 3',
             'order' => 3,
         ]);
@@ -61,9 +90,7 @@ describe('workflow steps update', function () {
 
     it('atualiza dados da etapa', function () {
         $admin = createUserWithRole();
-        $workflow = Workflow::factory()->create();
-        $step = WorkflowStep::factory()->create([
-            'workflow_id' => $workflow->id,
+        $step = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
             'name' => 'Antiga',
         ]);
 
@@ -77,14 +104,11 @@ describe('workflow steps update', function () {
 describe('workflow steps destroy', function () {
     it('remove etapa do fluxo e renumera as demais', function () {
         $admin = createUserWithRole();
-        $workflow = Workflow::factory()->create();
 
-        $step1 = WorkflowStep::factory()->create([
-            'workflow_id' => $workflow->id,
+        $step1 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
             'order' => 1,
         ]);
-        $step2 = WorkflowStep::factory()->create([
-            'workflow_id' => $workflow->id,
+        $step2 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
             'order' => 2,
         ]);
 
@@ -94,5 +118,28 @@ describe('workflow steps destroy', function () {
 
         $this->assertDatabaseMissing('workflow_steps', ['id' => $step1->id]);
         expect($step2->fresh()->order)->toBe(1);
+    });
+});
+
+describe('workflow steps reorder', function () {
+    it('reordena via endpoint dedicado', function () {
+        $admin = createUserWithRole();
+
+        $step1 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
+            'name' => 'Etapa 1',
+            'order' => 1,
+        ]);
+        $step2 = WorkflowStep::factory()->forType(WorkflowType::VacationRequest)->create([
+            'name' => 'Etapa 2',
+            'order' => 2,
+        ]);
+
+        $this->actingAs($admin)
+            ->putJson("/api/workflow-steps/{$step1->id}/reorder", ['order' => 2])
+            ->assertOk()
+            ->assertJsonPath('data.order', 2);
+
+        expect($step1->fresh()->order)->toBe(2)
+            ->and($step2->fresh()->order)->toBe(1);
     });
 });

@@ -13,13 +13,10 @@ class WorkflowInstanceResource extends JsonResource
     {
         return [
             'id' => $this->id,
+            'workflow_type' => $this->workflow_type,
             'title' => $this->title,
             'status' => $this->status->value,
             'status_label' => $this->status->label(),
-            'workflow' => $this->whenLoaded('workflow', fn () => [
-                'id' => $this->workflow->id,
-                'name' => $this->workflow->name,
-            ]),
             'current_step' => $this->when(
                 $this->relationLoaded('currentStep') && $this->currentStep,
                 fn () => new WorkflowStepResource($this->currentStep),

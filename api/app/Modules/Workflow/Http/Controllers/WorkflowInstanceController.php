@@ -14,6 +14,15 @@ class WorkflowInstanceController extends Controller
 {
     public function __construct(private readonly WorkflowInstanceService $workflowInstanceService) {}
 
+    public function index(): JsonResponse
+    {
+        return response()->json([
+            'data' => WorkflowInstanceResource::collection(
+                $this->workflowInstanceService->list(request()->user()),
+            ),
+        ]);
+    }
+
     public function store(StoreWorkflowInstanceRequest $request): JsonResponse
     {
         $instance = $this->workflowInstanceService->start(

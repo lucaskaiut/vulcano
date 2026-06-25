@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 #[Fillable([
-    'workflow_id',
+    'workflow_type',
     'title',
     'status',
     'current_step_id',
@@ -33,11 +33,6 @@ class WorkflowInstance extends Model
         ];
     }
 
-    public function workflow(): BelongsTo
-    {
-        return $this->belongsTo(Workflow::class);
-    }
-
     public function currentStep(): BelongsTo
     {
         return $this->belongsTo(WorkflowStep::class, 'current_step_id');
@@ -50,7 +45,7 @@ class WorkflowInstance extends Model
 
     public function histories(): HasMany
     {
-        return $this->hasMany(WorkflowInstanceHistory::class)->orderBy('created_at');
+        return $this->hasMany(WorkflowInstanceHistory::class, 'workflow_instance_id')->orderBy('created_at');
     }
 
     public function subject(): MorphTo

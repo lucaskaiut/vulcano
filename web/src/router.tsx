@@ -15,6 +15,9 @@ import { UserDetailPage } from './pages/UserDetailPage'
 import { UserFormPage } from './pages/UserFormPage'
 import { VacationBalancesPage } from './pages/VacationBalancesPage'
 import { UsersPage } from './pages/UsersPage'
+import { WorkflowStepsPage } from './pages/WorkflowStepsPage'
+import { WorkflowInstancesPage } from './pages/WorkflowInstancesPage'
+import { WorkflowInstanceDetailPage } from './pages/WorkflowInstanceDetailPage'
 
 // ---------------------------------------------------------------
 // Root route
@@ -110,6 +113,24 @@ const roleEditRoute = createRoute({
   component: RoleFormPage,
 })
 
+const workflowStepsRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'workflows',
+  component: WorkflowStepsPage,
+})
+
+const workflowInstancesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'workflow-instances',
+  component: WorkflowInstancesPage,
+})
+
+const workflowInstanceDetailRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'workflow-instances/$id',
+  component: WorkflowInstanceDetailPage,
+})
+
 // ---------------------------------------------------------------
 // Route tree
 // ---------------------------------------------------------------
@@ -127,6 +148,9 @@ const routeTree = rootRoute.addChildren([
     rolesRoute,
     roleNewRoute,
     roleEditRoute,
+    workflowStepsRoute,
+    workflowInstancesRoute,
+    workflowInstanceDetailRoute,
   ]),
 ])
 

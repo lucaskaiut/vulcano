@@ -14,7 +14,7 @@ class StoreWorkflowStepRequest extends FormRequest
 
     public function rules(): array
     {
-        $workflowId = $this->route('workflow')?->id;
+        $workflowType = $this->route('type');
 
         return [
             'name' => ['required', 'string', 'max:255'],
@@ -22,7 +22,7 @@ class StoreWorkflowStepRequest extends FormRequest
                 'sometimes',
                 'integer',
                 'min:1',
-                Rule::unique('workflow_steps', 'order')->where('workflow_id', $workflowId),
+                Rule::unique('workflow_steps', 'order')->where('workflow_type', $workflowType),
             ],
             'responsible_role_id' => ['sometimes', 'nullable', 'integer', 'exists:roles,id'],
             'responsible_user_id' => ['sometimes', 'nullable', 'integer', 'exists:users,id'],

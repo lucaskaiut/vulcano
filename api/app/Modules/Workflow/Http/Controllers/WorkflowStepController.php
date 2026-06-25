@@ -3,9 +3,10 @@
 namespace App\Modules\Workflow\Http\Controllers;
 
 use App\Http\Controllers\Controller;
-use App\Modules\Workflow\Domain\Models\Workflow;
+use App\Modules\Workflow\Domain\Enums\WorkflowType;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Workflow\Domain\Services\WorkflowStepService;
+use App\Modules\Workflow\Http\Requests\ReorderWorkflowStepRequest;
 use App\Modules\Workflow\Http\Requests\StoreWorkflowStepRequest;
 use App\Modules\Workflow\Http\Requests\UpdateWorkflowStepRequest;
 use App\Modules\Workflow\Http\Resources\WorkflowStepResource;
@@ -15,9 +16,21 @@ class WorkflowStepController extends Controller
 {
     public function __construct(private readonly WorkflowStepService $workflowStepService) {}
 
-    public function store(StoreWorkflowStepRequest $request, Workflow $workflow): JsonResponse
+    public function index(string $type): JsonResponse
     {
-        $step = $this->workflowStepService->create($workflow, $request->validated());
+        return response()->json([
+            'data' => WorkflowStepResource::collection(
+                $this->workflowStepService->listByType(WorkflowType::from($type)),
+            ),
+        ]);
+    }
+
+    public function store(StoreWorkflowStepRequest $request, string $type): JsonResponse
+    {
+        $step = $this->workflowStepService->create(
+            WorkflowType::from($type),
+            $request->validated(),
+        );
 
         return response()->json([
             'data' => new WorkflowStepResource($step),
@@ -41,6 +54,19 @@ class WorkflowStepController extends Controller
 
         return response()->json([
             'message' => 'Etapa removida com sucesso.',
+        ]);
+    }
+
+    public function reorder(ReorderWorkflowStepRequest $request, WorkflowStep $workflowStep): JsonResponse
+    {
+        $step = $this->workflowStepService->reorder(
+            $workflowStep,
+            $request->validated('order'),
+        );
+
+        return response()->json([
+            'data' => new WorkflowStepResource($workflowStep->fresh(['responsibleRole', 'responsibleUser'])),
+            'message' => 'Etapa reordenada com sucesso.',
         ]);
     }
 }

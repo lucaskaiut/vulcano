@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
-    'workflow_id',
+    'workflow_type',
     'name',
     'order',
     'responsible_role_id',
@@ -21,11 +21,6 @@ class WorkflowStep extends Model
 {
     /** @use HasFactory<WorkflowStepFactory> */
     use HasFactory;
-
-    public function workflow(): BelongsTo
-    {
-        return $this->belongsTo(Workflow::class);
-    }
 
     public function responsibleRole(): BelongsTo
     {

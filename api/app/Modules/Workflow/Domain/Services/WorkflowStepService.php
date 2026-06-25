@@ -2,20 +2,31 @@
 
 namespace App\Modules\Workflow\Domain\Services;
 
-use App\Modules\Workflow\Domain\Models\Workflow;
+use App\Modules\Workflow\Domain\Enums\WorkflowType;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class WorkflowStepService
 {
-    /** @param  array{name: string, order?: int, responsible_role_id?: int|null, responsible_user_id?: int|null}  $data */
-    public function create(Workflow $workflow, array $data): WorkflowStep
+    /** @return Collection<int, WorkflowStep> */
+    public function listByType(WorkflowType $type): Collection
     {
-        $order = $data['order'] ?? (($workflow->steps()->max('order') ?? 0) + 1);
+        return WorkflowStep::query()
+            ->where('workflow_type', $type->value)
+            ->orderBy('order')
+            ->with(['responsibleRole', 'responsibleUser'])
+            ->get();
+    }
+
+    /** @param  array{name: string, order?: int, responsible_role_id?: int|null, responsible_user_id?: int|null}  $data */
+    public function create(WorkflowType $type, array $data): WorkflowStep
+    {
+        $order = $data['order'] ?? ($this->maxOrder($type) + 1);
 
         return WorkflowStep::query()->create([
-            'workflow_id' => $workflow->id,
+            'workflow_type' => $type->value,
             'name' => $data['name'],
             'order' => $order,
             'responsible_role_id' => $data['responsible_role_id'] ?? null,
@@ -27,7 +38,7 @@ class WorkflowStepService
     public function update(WorkflowStep $step, array $data): WorkflowStep
     {
         return DB::transaction(function () use ($step, $data) {
-            if (array_key_exists('order', $data) && $data['order'] !== $step->order) {
+            if (array_key_exists('order', $data) && (int) $data['order'] !== $step->order) {
                 $this->reorder($step, (int) $data['order']);
             }
 
@@ -50,13 +61,13 @@ class WorkflowStepService
     public function delete(WorkflowStep $step): void
     {
         DB::transaction(function () use ($step) {
-            $workflowId = $step->workflow_id;
+            $type = $step->workflow_type;
             $deletedOrder = $step->order;
 
             $step->delete();
 
             WorkflowStep::query()
-                ->where('workflow_id', $workflowId)
+                ->where('workflow_type', $type)
                 ->where('order', '>', $deletedOrder)
                 ->decrement('order');
         });
@@ -70,9 +81,7 @@ class WorkflowStepService
             ]);
         }
 
-        $maxOrder = WorkflowStep::query()
-            ->where('workflow_id', $step->workflow_id)
-            ->count();
+        $maxOrder = $this->maxOrder(WorkflowType::from($step->workflow_type));
 
         if ($newOrder > $maxOrder) {
             $newOrder = $maxOrder;
@@ -84,15 +93,13 @@ class WorkflowStepService
             return;
         }
 
-        $tempOrder = WorkflowStep::query()
-            ->where('workflow_id', $step->workflow_id)
-            ->max('order') + 1;
+        $tempOrder = $maxOrder + 1;
 
         $step->update(['order' => $tempOrder]);
 
         if ($newOrder < $currentOrder) {
             WorkflowStep::query()
-                ->where('workflow_id', $step->workflow_id)
+                ->where('workflow_type', $step->workflow_type)
                 ->whereBetween('order', [$newOrder, $currentOrder - 1])
                 ->orderByDesc('order')
                 ->get()
@@ -101,7 +108,7 @@ class WorkflowStepService
                 ]));
         } else {
             WorkflowStep::query()
-                ->where('workflow_id', $step->workflow_id)
+                ->where('workflow_type', $step->workflow_type)
                 ->whereBetween('order', [$currentOrder + 1, $newOrder])
                 ->orderBy('order')
                 ->get()
@@ -111,5 +118,12 @@ class WorkflowStepService
         }
 
         $step->update(['order' => $newOrder]);
+    }
+
+    private function maxOrder(WorkflowType $type): int
+    {
+        return (int) (WorkflowStep::query()
+            ->where('workflow_type', $type->value)
+            ->max('order') ?? 0);
     }
 }

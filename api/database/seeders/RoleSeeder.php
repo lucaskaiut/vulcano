@@ -33,6 +33,12 @@ class RoleSeeder extends Seeder
                     PermissionEnum::VacationPeriodsView->value,
                     PermissionEnum::VacationPeriodsCreate->value,
                     PermissionEnum::VacationPeriodsClose->value,
+                    PermissionEnum::WorkflowStepsView->value,
+                    PermissionEnum::WorkflowStepsCreate->value,
+                    PermissionEnum::WorkflowStepsUpdate->value,
+                    PermissionEnum::WorkflowStepsDelete->value,
+                    PermissionEnum::WorkflowInstancesView->value,
+                    PermissionEnum::WorkflowInstancesViewAll->value,
                 ],
             ],
             [
@@ -42,6 +48,11 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'Gestor',
                 'description' => 'Gestão de equipe',
+                'permission_slugs' => [
+                    PermissionEnum::WorkflowInstancesView->value,
+                    PermissionEnum::WorkflowInstancesApprove->value,
+                    PermissionEnum::WorkflowInstancesReject->value,
+                ],
             ],
             [
                 'name' => 'Controlador',
