@@ -3,13 +3,30 @@ export function formatDate(value: string | null | undefined): string {
     return '—'
   }
 
-  const [year, month, day] = value.split('-').map(Number)
+  const date = new Date(value)
 
-  if (!year || !month || !day) {
+  if (Number.isNaN(date.getTime())) {
     return '—'
   }
 
-  return new Intl.DateTimeFormat('pt-BR').format(new Date(year, month - 1, day))
+  return new Intl.DateTimeFormat('pt-BR').format(date)
+}
+
+export function formatDateTime(value: string | null | undefined): string {
+  if (!value) {
+    return '—'
+  }
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) {
+    return '—'
+  }
+
+  return new Intl.DateTimeFormat('pt-BR', {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  }).format(date)
 }
 
 export function formatSalary(value: string | number | null | undefined): string {

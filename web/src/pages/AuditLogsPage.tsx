@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { useState } from 'react'
 import { listAuditLogs } from '../services/auditService'
-import { formatDate } from '../lib/format'
+import { formatDateTime } from '../lib/format'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Select } from '../components/ui/Select'
 import { Button } from '../components/ui/Button'
@@ -98,7 +98,7 @@ export function AuditLogsPage() {
                     <TableCell className="font-medium text-foreground">{entityName(log.entity)}</TableCell>
                     <TableCell className="text-foreground-muted">{log.entity_id}</TableCell>
                     <TableCell className="text-foreground-muted">{log.user?.name ?? 'Sistema'}</TableCell>
-                    <TableCell className="text-sm text-foreground-muted">{formatDate(log.created_at)}</TableCell>
+                    <TableCell className="text-sm text-foreground-muted">{formatDateTime(log.created_at)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>
