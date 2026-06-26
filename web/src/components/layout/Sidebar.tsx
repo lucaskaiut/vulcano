@@ -19,7 +19,7 @@ export function Sidebar() {
   )
 
   return (
-    <aside className="hidden h-full w-64 shrink-0 flex-col bg-sidebar md:flex">
+    <aside className="hidden h-screen sticky top-0 w-64 shrink-0 flex-col bg-sidebar md:flex">
       {/* Logo */}
       <div className="flex items-center justify-between px-6 py-5 border-b border-sidebar-hover">
         <p className="text-lg font-semibold tracking-tight text-white">Vulcano</p>
