@@ -64,7 +64,7 @@
   /* Sidebar — dark theme */
   --color-sidebar: #1e293b;
   --color-sidebar-hover: #334155;
-  --color-sidebar-active: #3b82f6;
+  --color-sidebar-active: var(--color-primary);
 }
 
 @layer base {
