@@ -1,5 +1,4 @@
 import { apiFetch } from './api'
-import type { ItemResponse } from './acl'
 import type { Sale } from '../types/commission'
 
 export async function listSales(): Promise<Sale[]> {

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState } from 'react'
-import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
+import { Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -18,9 +18,9 @@ import { ApiError } from '../services/api'
 import { applyApiErrors } from '../lib/applyApiErrors'
 
 const schema = z.object({
-  user_id: z.number({ required_error: 'Selecione o colaborador.' }).min(1),
-  cost_category_id: z.number({ required_error: 'Selecione a categoria.' }).min(1),
-  amount: z.number({ required_error: 'Informe o valor.' }).min(0.01),
+  user_id: z.number().min(1, 'Selecione o colaborador.'),
+  cost_category_id: z.number().min(1, 'Selecione a categoria.'),
+  amount: z.number().min(0.01, 'Informe o valor.'),
   recurring: z.boolean(),
 })
 

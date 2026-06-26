@@ -10,7 +10,6 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { Textarea } from '../components/ui/Textarea'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
 import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
-import { formatDate } from '../lib/format'
 
 export function SalesPage() {
   const queryClient = useQueryClient()

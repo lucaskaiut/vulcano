@@ -7,7 +7,6 @@ import { Button } from '../components/ui/Button'
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../components/ui/Table'
 import { TablePagination } from '../components/ui/TablePagination'
 import { useTablePagination } from '../hooks/useTablePagination'
-import { useAuth } from '../contexts/AuthContext'
 import { usePermissions } from '../hooks/usePermissions'
 
 export function CostCategoriesPage() {
@@ -44,7 +43,7 @@ export function CostCategoriesPage() {
               <TableHeaderCell>Nome</TableHeaderCell>
               <TableHeaderCell>Tipo</TableHeaderCell>
               <TableHeaderCell>Ativo</TableHeaderCell>
-              <TableHeaderCell />
+              <TableHeaderCell> </TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>

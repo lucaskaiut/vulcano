@@ -1,6 +1,10 @@
 import { apiFetch } from './api'
-import type { PaginatedResponse } from './acl'
 import type { CollaboratorCost, CostCategory, MonthlyCostReport } from '../types/cost'
+
+export type PaginatedResponse<T> = {
+  data: T[]
+  meta: { current_page: number; last_page: number; per_page: number; total: number }
+}
 
 export async function listCategories(): Promise<CostCategory[]> {
   const response = await apiFetch<{ data: CostCategory[] }>('/cost-categories/list')
