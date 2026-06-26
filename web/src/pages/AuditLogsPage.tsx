@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import { useState } from 'react'
+import { Fragment, useState } from 'react'
 import { listAuditLogs } from '../services/auditService'
 import { formatDateTime } from '../lib/format'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -113,7 +113,7 @@ export function AuditLogsPage() {
                   }
 
                   return (
-                    <React.Fragment key={log.id}>
+                    <Fragment key={log.id}>
                       <TableRow
                         className="cursor-pointer hover:bg-surface-sunken/50"
                         onClick={() => setExpandedId(isExpanded ? null : log.id)}
@@ -151,7 +151,7 @@ export function AuditLogsPage() {
                           </TableCell>
                         </TableRow>
                       )}
-                    </React.Fragment>
+                    </Fragment>
                   )
                 })}
               </TableBody>
