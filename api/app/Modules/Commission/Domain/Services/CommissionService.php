@@ -8,7 +8,9 @@ use App\Modules\Commission\Domain\Models\Sale;
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
+use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
+use App\Modules\Notification\Domain\Services\NotificationService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -17,6 +19,7 @@ class CommissionService
 {
     public function __construct(
         private readonly WorkflowInstanceService $workflowInstanceService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     /** @return Collection<int, Sale> */
@@ -66,8 +69,9 @@ class CommissionService
         $saleAmount = (float) $data['sale_amount'];
         $percentage = (float) $data['percentage'];
         $commissionAmount = round($saleAmount * $percentage / 100, 2);
+        $title = "Comissão de {$user->name} — R\$ " . number_format($commissionAmount, 2, ',', '.');
 
-        return DB::transaction(function () use ($user, $data, $saleAmount, $percentage, $commissionAmount) {
+        $sale = DB::transaction(function () use ($user, $data, $saleAmount, $percentage, $commissionAmount, $title) {
             $sale = Sale::query()->create([
                 'user_id' => $user->id,
                 'development_name' => $data['development_name'],
@@ -88,7 +92,7 @@ class CommissionService
 
             $instance = $this->workflowInstanceService->start($user, [
                 'workflow_type' => WorkflowType::Commission->value,
-                'title' => "Comissão de {$user->name} — " . number_format($commissionAmount, 2, ',', '.') . ' (R$ ' . number_format($saleAmount, 2, ',', '.') . ')',
+                'title' => $title,
                 'subject_type' => Commission::class,
                 'subject_id' => $commission->id,
             ]);
@@ -97,6 +101,45 @@ class CommissionService
 
             return $sale->load(['user', 'commission.workflowInstance.currentStep']);
         });
+
+        $this->notificationService->dispatch(
+            'commission_submitted',
+            $user,
+            "Venda registrada: {$data['development_name']}",
+            "Sua venda {$data['development_name']}/{$data['unit']} foi registrada e a comissão está aguardando aprovação.",
+        );
+
+        if ($sale->commission?->workflowInstance?->currentStep) {
+            $this->notifyApprovers($sale->commission->workflowInstance->currentStep, $sale);
+        }
+
+        return $sale;
+    }
+
+    private function notifyApprovers(WorkflowStep $step, Sale $sale): void
+    {
+        $approvers = collect();
+
+        if ($step->responsible_user_id) {
+            $approvers->push(User::find($step->responsible_user_id));
+        }
+
+        if ($step->responsible_role_id) {
+            $roleUsers = User::query()
+                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
+                ->where('id', '!=', $sale->user_id)
+                ->get();
+            $approvers = $approvers->concat($roleUsers);
+        }
+
+        foreach ($approvers->unique('id') as $approver) {
+            $this->notificationService->dispatch(
+                'commission_pending_approval',
+                $approver,
+                "Nova comissão para aprovar: {$sale->user->name}",
+                "{$sale->user->name} registrou a venda {$sale->development_name}/{$sale->unit} e a comissão está aguardando sua aprovação.",
+            );
+        }
     }
 
     public function markAsPaid(Commission $commission, User $payer): Commission

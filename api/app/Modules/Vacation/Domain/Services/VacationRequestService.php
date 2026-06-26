@@ -9,7 +9,9 @@ use App\Modules\Vacation\Domain\Enums\VacationRequestStatus as RequestStatus;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
 use App\Modules\Vacation\Domain\Models\VacationRequest;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
+use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
+use App\Modules\Notification\Domain\Services\NotificationService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -18,6 +20,7 @@ class VacationRequestService
 {
     public function __construct(
         private readonly WorkflowInstanceService $workflowInstanceService,
+        private readonly NotificationService $notificationService,
     ) {}
 
     /** @return Collection<int, VacationRequest> */
@@ -75,8 +78,9 @@ class VacationRequestService
         }
 
         $requestedDays = $startDate->diffInDays($endDate) + 1;
+        $title = "Férias de {$user->name} — " . $startDate->format('d/m') . ' a ' . $endDate->format('d/m/Y');
 
-        return DB::transaction(function () use ($user, $data, $requestedDays, $startDate, $endDate) {
+        $request = DB::transaction(function () use ($user, $data, $requestedDays, $startDate, $endDate, $title) {
             $request = VacationRequest::query()->create([
                 'user_id' => $user->id,
                 'start_date' => $data['start_date'],
@@ -88,7 +92,7 @@ class VacationRequestService
 
             $instance = $this->workflowInstanceService->start($user, [
                 'workflow_type' => WorkflowType::VacationRequest->value,
-                'title' => "Férias de {$user->name} — " . $startDate->format('d/m') . ' a ' . $endDate->format('d/m/Y'),
+                'title' => $title,
                 'subject_type' => VacationRequest::class,
                 'subject_id' => $request->id,
             ]);
@@ -97,6 +101,43 @@ class VacationRequestService
 
             return $request->load(['user', 'workflowInstance.currentStep']);
         });
+
+        $this->notificationService->dispatch(
+            'vacation_request_submitted',
+            $user,
+            "Solicitação de férias enviada: {$title}",
+            "Sua solicitação de férias ({$startDate->format('d/m/Y')} a {$endDate->format('d/m/Y')}) foi enviada e está aguardando aprovação.",
+        );
+
+        $this->notifyApprovers($request->workflowInstance->currentStep, $request);
+
+        return $request;
+    }
+
+    private function notifyApprovers(WorkflowStep $step, VacationRequest $request): void
+    {
+        $approvers = collect();
+
+        if ($step->responsible_user_id) {
+            $approvers->push(User::find($step->responsible_user_id));
+        }
+
+        if ($step->responsible_role_id) {
+            $roleUsers = User::query()
+                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
+                ->where('id', '!=', $request->user_id)
+                ->get();
+            $approvers = $approvers->concat($roleUsers);
+        }
+
+        foreach ($approvers->unique('id') as $approver) {
+            $this->notificationService->dispatch(
+                'vacation_request_pending_approval',
+                $approver,
+                "Nova solicitação de férias para aprovar: {$request->user->name}",
+                "{$request->user->name} solicitou férias de {$request->start_date->format('d/m/Y')} a {$request->end_date->format('d/m/Y')} e está aguardando sua aprovação.",
+            );
+        }
     }
 
     public function cancel(VacationRequest $request, User $user): VacationRequest
