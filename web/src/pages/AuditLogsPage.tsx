@@ -1,13 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { Clock, User, Search } from 'lucide-react'
 import { useState } from 'react'
 import { listAuditLogs } from '../services/auditService'
 import { formatDate } from '../lib/format'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Select } from '../components/ui/Select'
+import { Button } from '../components/ui/Button'
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../components/ui/Table'
-import { TablePagination } from '../components/ui/TablePagination'
-import { useTablePagination } from '../hooks/useTablePagination'
 
 function entityName(entity: string): string {
   return entity.replace(/^.*\\/, '')
@@ -34,10 +32,11 @@ function actionColor(action: string): string {
 export function AuditLogsPage() {
   const [entity, setEntity] = useState('')
   const [action, setAction] = useState('')
-  const { page, perPage, setPage, setPerPage, allowedPerPageOptions } = useTablePagination()
+  const [page, setPage] = useState(1)
+  const perPage = 20
 
   const { data, isLoading } = useQuery({
-    queryKey: ['audit-logs', page, perPage, entity, action],
+    queryKey: ['audit-logs', page, entity, action],
     queryFn: () => listAuditLogs({
       page,
       per_page: perPage,
@@ -106,17 +105,20 @@ export function AuditLogsPage() {
             </Table>
           </div>
 
-          {meta && (
-            <div className="mt-4">
-              <TablePagination
-                page={page}
-                perPage={perPage}
-                total={meta.total}
-                lastPage={meta.last_page}
-                onPageChange={setPage}
-                onPerPageChange={setPerPage}
-                allowedPerPageOptions={allowedPerPageOptions}
-              />
+          {meta && meta.last_page > 1 && (
+            <div className="mt-4 flex items-center justify-between">
+              <p className="text-sm text-foreground-muted">
+                {meta.total} registro{meta.total !== 1 ? 's' : ''}
+              </p>
+              <div className="flex items-center gap-2">
+                <Button type="button" variant="ghost" size="sm" disabled={page <= 1} onClick={() => setPage(p => p - 1)}>
+                  Anterior
+                </Button>
+                <span className="text-sm text-foreground-muted">{page} de {meta.last_page}</span>
+                <Button type="button" variant="ghost" size="sm" disabled={page >= meta.last_page} onClick={() => setPage(p => p + 1)}>
+                  Próximo
+                </Button>
+              </div>
             </div>
           )}
         </>
