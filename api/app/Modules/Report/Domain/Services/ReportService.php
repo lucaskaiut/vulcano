@@ -96,13 +96,14 @@ class ReportService
     }
 
     /** @param  array<string, mixed>  $rows */
-    public function generateXlsx(string $title, array $headers, array $rows): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function generateXlsx(string $filePrefix, array $headers, array $rows): \Symfony\Component\HttpFoundation\StreamedResponse
     {
-        return response()->streamDownload(function () use ($headers, $title, $rows) {
+        $filename = $filePrefix . '_' . now()->format('Y-m-d') . '.xlsx';
+
+        return response()->streamDownload(function () use ($headers, $rows) {
             $writer = new Writer;
             $writer->openToBrowser('php://output');
 
-            // Header row
             $writer->addRow(Row::fromValues($headers));
 
             foreach ($rows as $row) {
@@ -110,14 +111,17 @@ class ReportService
             }
 
             $writer->close();
-        }, "{$title}.xlsx", ['Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet']);
+        }, $filename, [
+            'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
     }
 
     /** @param  array<string, mixed>  $data */
-    public function generatePdf(string $view, string $title, array $data): \Illuminate\Http\Response
+    public function generatePdf(string $view, string $filePrefix, array $data): \Illuminate\Http\Response
     {
+        $filename = $filePrefix . '_' . now()->format('Y-m-d') . '.pdf';
         $pdf = Pdf::loadView($view, $data);
 
-        return $pdf->download("{$title}.pdf");
+        return $pdf->download($filename);
     }
 }
