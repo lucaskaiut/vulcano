@@ -9,12 +9,14 @@ export const WORKFLOW_TYPE_LABELS: Record<WorkflowType, string> = {
   vacation_request: 'Aprovação de Férias',
   commission: 'Aprovação de Comissão',
   document: 'Aprovação de Documentos',
+  invoice: 'Aprovação de Nota Fiscal',
 }
 
 export const WORKFLOW_TYPES: WorkflowType[] = [
   'vacation_request',
   'commission',
   'document',
+  'invoice',
 ]
 
 export async function listSteps(type: WorkflowType): Promise<WorkflowStep[]> {

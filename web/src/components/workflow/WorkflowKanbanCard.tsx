@@ -1,3 +1,4 @@
+import { Download } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import type { WorkflowInstance } from '../../types/workflow'
 import { Button } from '../ui/Button'
@@ -6,6 +7,7 @@ type WorkflowKanbanCardProps = {
   instance: WorkflowInstance
   onApprove: (id: number) => void
   onReject: (id: number) => void
+  downloadUrl?: string | null
 }
 
 export function WorkflowKanbanCard({
@@ -54,6 +56,19 @@ export function WorkflowKanbanCard({
           >
             Reprovar
           </Button>
+        </div>
+      )}
+
+      {downloadUrl && (
+        <div className="mt-2">
+          <a
+            href={downloadUrl}
+            download
+            className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-foreground-muted transition-colors hover:bg-surface-sunken hover:text-foreground"
+          >
+            <Download className="size-3" aria-hidden />
+            Download
+          </a>
         </div>
       )}
     </div>

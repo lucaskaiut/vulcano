@@ -19,6 +19,8 @@ use App\Modules\Cost\Domain\Models\CostCategory;
 use App\Modules\Document\Http\Controllers\DocumentController;
 use App\Modules\Document\Domain\Models\Document;
 use App\Modules\Document\Domain\Models\DocumentType;
+use App\Modules\Invoice\Http\Controllers\InvoiceController;
+use App\Modules\Invoice\Domain\Models\Invoice;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -42,6 +44,7 @@ Route::bind('cost_category', fn (string $value) => CostCategory::query()->findOr
 Route::bind('collaborator_cost', fn (string $value) => CollaboratorCost::query()->findOrFail($value));
 Route::bind('document', fn (string $value) => Document::query()->findOrFail($value));
 Route::bind('document_type', fn (string $value) => DocumentType::query()->findOrFail($value));
+Route::bind('invoice', fn (string $value) => Invoice::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -188,4 +191,13 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:documents.view');
     Route::get('documents/{document}/preview', [DocumentController::class, 'preview'])
         ->middleware('permission:documents.view');
+
+    Route::get('invoices', [InvoiceController::class, 'indexAll'])
+        ->middleware('permission:invoices.view');
+    Route::post('invoices', [InvoiceController::class, 'store'])
+        ->middleware('permission:invoices.create');
+    Route::get('users/{user}/invoices', [InvoiceController::class, 'indexByUser'])
+        ->middleware('permission:invoices.view');
+    Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])
+        ->middleware('permission:invoices.view');
 });

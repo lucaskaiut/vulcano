@@ -1,4 +1,4 @@
-export type WorkflowType = 'vacation_request' | 'commission' | 'document'
+export type WorkflowType = 'vacation_request' | 'commission' | 'document' | 'invoice'
 
 export type WorkflowInstanceStatus = 'in_progress' | 'approved' | 'rejected' | 'cancelled'
 

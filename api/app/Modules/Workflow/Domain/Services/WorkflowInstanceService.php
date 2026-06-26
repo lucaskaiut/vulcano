@@ -175,6 +175,8 @@ class WorkflowInstanceService
                 'current_step_id' => null,
             ]);
 
+            $this->handleSubjectRejection($instance);
+
             return $this->find($instance->id);
         });
     }
@@ -262,31 +264,50 @@ class WorkflowInstanceService
 
     private function handleSubjectApproval(WorkflowInstance $instance): void
     {
-        if ($instance->subject_type !== VacationRequest::class || ! $instance->subject_id) {
+        if ($instance->subject_type === VacationRequest::class && $instance->subject_id) {
+            $request = VacationRequest::query()->find($instance->subject_id);
+
+            if (! $request) {
+                return;
+            }
+
+            $request->update(['status' => \App\Modules\Vacation\Domain\Enums\VacationRequestStatus::Approved]);
+
+            $balance = VacationBalance::query()
+                ->where('user_id', $request->user_id)
+                ->first();
+
+            if (! $balance) {
+                return;
+            }
+
+            app(VacationGrantService::class)->create([
+                'user_id' => $request->user_id,
+                'start_date' => $request->start_date->toDateString(),
+                'end_date' => $request->end_date->toDateString(),
+                'days_used' => $request->requested_days,
+            ]);
+
             return;
         }
 
-        $request = VacationRequest::query()->find($instance->subject_id);
+        if ($instance->subject_type === \App\Modules\Invoice\Domain\Models\Invoice::class && $instance->subject_id) {
+            $invoice = \App\Modules\Invoice\Domain\Models\Invoice::query()->find($instance->subject_id);
 
-        if (! $request) {
-            return;
+            if ($invoice) {
+                $invoice->update(['status' => 'approved']);
+            }
         }
+    }
 
-        $request->update(['status' => \App\Modules\Vacation\Domain\Enums\VacationRequestStatus::Approved]);
+    private function handleSubjectRejection(WorkflowInstance $instance): void
+    {
+        if ($instance->subject_type === \App\Modules\Invoice\Domain\Models\Invoice::class && $instance->subject_id) {
+            $invoice = \App\Modules\Invoice\Domain\Models\Invoice::query()->find($instance->subject_id);
 
-        $balance = VacationBalance::query()
-            ->where('user_id', $request->user_id)
-            ->first();
-
-        if (! $balance) {
-            return;
+            if ($invoice) {
+                $invoice->update(['status' => 'rejected']);
+            }
         }
-
-        app(VacationGrantService::class)->create([
-            'user_id' => $request->user_id,
-            'start_date' => $request->start_date->toDateString(),
-            'end_date' => $request->end_date->toDateString(),
-            'days_used' => $request->requested_days,
-        ]);
     }
 }

@@ -20,6 +20,7 @@ import { SearchSelect } from "../components/ui/SearchSelect";
 import { formatSalary } from "../lib/format";
 import { UserVacationSection } from "../components/users/UserVacationSection";
 import { UserDocumentsSection } from "../components/users/UserDocumentsSection";
+import { UserInvoicesSection } from "../components/users/UserInvoicesSection";
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Informe o nome."),
@@ -395,6 +396,12 @@ export function UserFormPage() {
       {isEditing && userId && (
         <Card className="mt-4 p-6">
           <UserDocumentsSection userId={userId} />
+        </Card>
+      )}
+
+      {isEditing && userId && (
+        <Card className="mt-4 p-6">
+          <UserInvoicesSection userId={userId} />
         </Card>
       )}
     </div>

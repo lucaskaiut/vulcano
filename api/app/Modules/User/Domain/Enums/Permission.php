@@ -43,6 +43,8 @@ enum Permission: string
     case DocumentsView = 'documents.view';
     case DocumentsCreate = 'documents.create';
     case DocumentsDelete = 'documents.delete';
+    case InvoicesView = 'invoices.view';
+    case InvoicesCreate = 'invoices.create';
 
     public function label(): string
     {
@@ -86,6 +88,8 @@ enum Permission: string
             self::DocumentsView => 'Visualizar Documentos',
             self::DocumentsCreate => 'Criar Documentos',
             self::DocumentsDelete => 'Excluir Documentos',
+            self::InvoicesView => 'Visualizar Notas Fiscais',
+            self::InvoicesCreate => 'Criar Notas Fiscais',
         };
     }
 

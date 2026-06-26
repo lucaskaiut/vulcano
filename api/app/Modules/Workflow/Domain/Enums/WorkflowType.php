@@ -7,6 +7,7 @@ enum WorkflowType: string
     case VacationRequest = 'vacation_request';
     case Commission = 'commission';
     case Document = 'document';
+    case Invoice = 'invoice';
 
     public function label(): string
     {
@@ -14,6 +15,7 @@ enum WorkflowType: string
             self::VacationRequest => 'Aprovação de Férias',
             self::Commission => 'Aprovação de Comissão',
             self::Document => 'Aprovação de Documentos',
+            self::Invoice => 'Aprovação de Nota Fiscal',
         };
     }
 
