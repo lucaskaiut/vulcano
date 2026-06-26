@@ -20,7 +20,6 @@ import { SearchSelect } from "../components/ui/SearchSelect";
 import { formatSalary } from "../lib/format";
 import { UserVacationSection } from "../components/users/UserVacationSection";
 import { UserDocumentsSection } from "../components/users/UserDocumentsSection";
-import { usePermissions } from '../hooks/usePermissions';
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Informe o nome."),

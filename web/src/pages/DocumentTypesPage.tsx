@@ -42,9 +42,7 @@ export function DocumentTypesPage() {
           <TableBody>
             {types.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="py-8 text-center text-sm text-foreground-muted">
-                  Nenhum tipo de documento encontrado.
-                </TableCell>
+                <TableCell className="text-center text-foreground-muted">Nenhum tipo de documento encontrado.</TableCell>
               </TableRow>
             ) : (
               types.map((type) => (

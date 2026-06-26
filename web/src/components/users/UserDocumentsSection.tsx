@@ -3,7 +3,6 @@ import { ArrowUpFromLine, Download, ExternalLink, File, FileImage, FileSpreadshe
 import { type DragEvent, useRef, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import * as documentService from '../../services/documentService'
-import { formatDate } from '../../lib/format'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { Select } from '../ui/Select'
