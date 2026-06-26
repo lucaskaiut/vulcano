@@ -6,7 +6,6 @@ use App\Modules\Invoice\Domain\Models\Invoice;
 use App\Modules\Notification\Domain\Services\NotificationService;
 use App\Modules\User\Domain\Enums\Permission;
 use App\Modules\User\Domain\Models\User;
-use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
@@ -109,39 +108,7 @@ class InvoiceService
             "Sua nota fiscal nº {$data['invoice_number']} (competência {$data['competence']}) foi enviada e está aguardando aprovação.",
         );
 
-        // Notify first step approvers
-        $firstStep = $invoice->workflowInstance->currentStep;
-        if ($firstStep) {
-            $this->notifyApprovers($firstStep, $invoice);
-        }
-
         return $invoice;
-    }
-
-    private function notifyApprovers(WorkflowStep $step, Invoice $invoice): void
-    {
-        $approvers = collect();
-
-        if ($step->responsible_user_id) {
-            $approvers->push(User::find($step->responsible_user_id));
-        }
-
-        if ($step->responsible_role_id) {
-            $roleUsers = User::query()
-                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
-                ->where('id', '!=', $invoice->user_id)
-                ->get();
-            $approvers = $approvers->concat($roleUsers);
-        }
-
-        foreach ($approvers->unique('id') as $approver) {
-            $this->notificationService->dispatch(
-                'invoice_pending_approval',
-                $approver,
-                "Nova nota fiscal para aprovar: NF {$invoice->invoice_number}",
-                "{$invoice->user->name} enviou a nota fiscal nº {$invoice->invoice_number} ({$invoice->competence}) e ela está aguardando sua aprovação.",
-            );
-        }
     }
 
     public function delete(Invoice $invoice): void

@@ -8,7 +8,6 @@ use App\Modules\Commission\Domain\Models\Sale;
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
-use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
 use App\Modules\Notification\Domain\Services\NotificationService;
 use Illuminate\Database\Eloquent\Collection;
@@ -109,37 +108,7 @@ class CommissionService
             "Sua venda {$data['development_name']}/{$data['unit']} foi registrada e a comissão está aguardando aprovação.",
         );
 
-        if ($sale->commission?->workflowInstance?->currentStep) {
-            $this->notifyApprovers($sale->commission->workflowInstance->currentStep, $sale);
-        }
-
         return $sale;
-    }
-
-    private function notifyApprovers(WorkflowStep $step, Sale $sale): void
-    {
-        $approvers = collect();
-
-        if ($step->responsible_user_id) {
-            $approvers->push(User::find($step->responsible_user_id));
-        }
-
-        if ($step->responsible_role_id) {
-            $roleUsers = User::query()
-                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
-                ->where('id', '!=', $sale->user_id)
-                ->get();
-            $approvers = $approvers->concat($roleUsers);
-        }
-
-        foreach ($approvers->unique('id') as $approver) {
-            $this->notificationService->dispatch(
-                'commission_pending_approval',
-                $approver,
-                "Nova comissão para aprovar: {$sale->user->name}",
-                "{$sale->user->name} registrou a venda {$sale->development_name}/{$sale->unit} e a comissão está aguardando sua aprovação.",
-            );
-        }
     }
 
     public function markAsPaid(Commission $commission, User $payer): Commission

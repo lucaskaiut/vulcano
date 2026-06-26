@@ -9,7 +9,6 @@ use App\Modules\Vacation\Domain\Enums\VacationRequestStatus as RequestStatus;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
 use App\Modules\Vacation\Domain\Models\VacationRequest;
 use App\Modules\Workflow\Domain\Enums\WorkflowType;
-use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
 use App\Modules\Notification\Domain\Services\NotificationService;
 use Illuminate\Database\Eloquent\Collection;
@@ -109,35 +108,7 @@ class VacationRequestService
             "Sua solicitação de férias ({$startDate->format('d/m/Y')} a {$endDate->format('d/m/Y')}) foi enviada e está aguardando aprovação.",
         );
 
-        $this->notifyApprovers($request->workflowInstance->currentStep, $request);
-
         return $request;
-    }
-
-    private function notifyApprovers(WorkflowStep $step, VacationRequest $request): void
-    {
-        $approvers = collect();
-
-        if ($step->responsible_user_id) {
-            $approvers->push(User::find($step->responsible_user_id));
-        }
-
-        if ($step->responsible_role_id) {
-            $roleUsers = User::query()
-                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
-                ->where('id', '!=', $request->user_id)
-                ->get();
-            $approvers = $approvers->concat($roleUsers);
-        }
-
-        foreach ($approvers->unique('id') as $approver) {
-            $this->notificationService->dispatch(
-                'vacation_request_pending_approval',
-                $approver,
-                "Nova solicitação de férias para aprovar: {$request->user->name}",
-                "{$request->user->name} solicitou férias de {$request->start_date->format('d/m/Y')} a {$request->end_date->format('d/m/Y')} e está aguardando sua aprovação.",
-            );
-        }
     }
 
     public function cancel(VacationRequest $request, User $user): VacationRequest

@@ -79,7 +79,7 @@ class WorkflowInstanceService
 
         $firstStep = $steps->first();
 
-        return DB::transaction(function () use ($type, $initiator, $data, $firstStep) {
+        $instance = DB::transaction(function () use ($type, $initiator, $data, $firstStep) {
             $instance = WorkflowInstance::query()->create([
                 'workflow_type' => $type->value,
                 'title' => $data['title'],
@@ -99,6 +99,10 @@ class WorkflowInstanceService
 
             return $this->find($instance->id);
         });
+
+        $this->notifyStepApprovers($firstStep, $instance);
+
+        return $instance;
     }
 
     public function find(int $id): WorkflowInstance
@@ -119,7 +123,9 @@ class WorkflowInstanceService
         $currentStep = $this->resolveCurrentStep($instance);
         $this->assertCanActOnStep($approver, $currentStep);
 
-        $result = DB::transaction(function () use ($instance, $approver, $currentStep, $notes) {
+        $nextStep = null;
+
+        $result = DB::transaction(function () use ($instance, $approver, $currentStep, $notes, &$nextStep) {
             $this->recordHistory(
                 $instance,
                 $approver,
@@ -151,6 +157,8 @@ class WorkflowInstanceService
         if ($result === true) {
             $this->handleSubjectApproval($instance);
             $this->notifyApproval($instance);
+        } elseif ($nextStep) {
+            $this->notifyStepApprovers($nextStep, $instance);
         }
 
         return $this->find($instance->id);
@@ -339,5 +347,34 @@ class WorkflowInstanceService
 
         app(\App\Modules\Notification\Domain\Services\NotificationService::class)
             ->dispatch('workflow_rejected', $initiator, $title, $body);
+    }
+
+    private function notifyStepApprovers(WorkflowStep $step, WorkflowInstance $instance): void
+    {
+        $initiatorId = $instance->initiated_by_user_id;
+        $notificationService = app(\App\Modules\Notification\Domain\Services\NotificationService::class);
+
+        $approvers = collect();
+
+        if ($step->responsible_user_id && $step->responsible_user_id !== $initiatorId) {
+            $approvers->push(\App\Modules\User\Domain\Models\User::find($step->responsible_user_id));
+        }
+
+        if ($step->responsible_role_id) {
+            $roleUsers = \App\Modules\User\Domain\Models\User::query()
+                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
+                ->where('id', '!=', $initiatorId)
+                ->get();
+            $approvers = $approvers->concat($roleUsers);
+        }
+
+        foreach ($approvers->unique('id') as $approver) {
+            $notificationService->dispatch(
+                'step_pending_approval',
+                $approver,
+                "Nova etapa para aprovar: {$instance->title}",
+                "O processo \"{$instance->title}\" chegou na etapa \"{$step->name}\" e está aguardando sua aprovação.",
+            );
+        }
     }
 }
