@@ -31,56 +31,6 @@ function InlineList({ children }: { children: React.ReactNode }) {
   return <ul className="list-disc space-y-1 pl-5">{children}</ul>
 }
 
-function PermTable() {
-  const rows = [
-    ['Dashboard', '✅', '✅', '✅', '✅', '✅'],
-    ['Gerenciar colaboradores', '✅', '✅', '—', '—', '—'],
-    ['Visualizar colaboradores', '✅', '✅', '✅', '✅', '—'],
-    ['Gerenciar férias', '✅', '✅', '—', '—', '—'],
-    ['Solicitar férias', '✅', '✅', '—', '—', '✅'],
-    ['Aprovar férias', '✅', '✅', '—', '✅', '—'],
-    ['Gerenciar comissões', '✅', '—', '✅', '—', '—'],
-    ['Aprovar comissões', '✅', '—', '✅', '—', '—'],
-    ['Gerenciar custos', '✅', '✅', '✅', '—', '—'],
-    ['Gerenciar documentos', '✅', '✅', '—', '—', '—'],
-    ['Gerenciar NFs', '✅', '✅', '—', '—', '—'],
-    ['Enviar NFs', '✅', '✅', '—', '—', '✅'],
-    ['Aprovar NFs', '✅', '✅', '—', '—', '—'],
-    ['Gerenciar exames', '✅', '✅', '—', '—', '—'],
-    ['Gerenciar perfis', '✅', '—', '—', '—', '—'],
-    ['Gerenciar workflows', '✅', '✅', '—', '—', '—'],
-    ['Relatórios', '✅', '✅', '✅', '✅', '—'],
-    ['Auditoria', '✅', '✅', '—', '—', '—'],
-  ]
-
-  return (
-    <div className="overflow-x-auto rounded-lg border border-surface-sunken">
-      <table className="w-full text-left text-sm">
-        <thead className="border-b border-surface-sunken bg-surface-sunken/50">
-          <tr>
-            <th className="px-4 py-2.5 font-semibold text-foreground">Funcionalidade</th>
-            <th className="px-4 py-2.5 font-semibold text-foreground">Admin</th>
-            <th className="px-4 py-2.5 font-semibold text-foreground">RH</th>
-            <th className="px-4 py-2.5 font-semibold text-foreground">Financeiro</th>
-            <th className="px-4 py-2.5 font-semibold text-foreground">Gestor</th>
-            <th className="px-4 py-2.5 font-semibold text-foreground">Colab.</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-surface-sunken">
-          {rows.map((row, i) => (
-            <tr key={i}>
-              <td className="px-4 py-2.5 font-medium text-foreground">{row[0]}</td>
-              {row.slice(1).map((cell, j) => (
-                <td key={j} className="px-4 py-2.5 text-center text-foreground-muted">{cell}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
 export function UserGuidePage() {
   return (
     <div className="max-w-3xl">
@@ -305,11 +255,6 @@ export function UserGuidePage() {
           <li>Lembrete diário de exames próximos do vencimento</li>
         </InlineList>
         <p>No ambiente de desenvolvimento, os e-mails são capturados pelo MailHog em <Code>http://localhost:8025</Code>. Em produção, configure as credenciais SMTP no arquivo <Code>.env</Code>.</p>
-      </Section>
-
-      {/* 15. Tabela de permissões */}
-      <Section title="15. Tabela de Permissões">
-        <PermTable />
       </Section>
     </div>
   )
