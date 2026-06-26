@@ -18,6 +18,7 @@ class StoreMedicalExamRequest extends FormRequest
             'execution_date' => ['required', 'date'],
             'expiration_date' => ['required', 'date', 'after_or_equal:execution_date'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:1000'],
+            'file' => ['sometimes', 'nullable', 'file', 'max:10240'],
         ];
     }
 

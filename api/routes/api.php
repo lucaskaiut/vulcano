@@ -212,4 +212,6 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:medical_exams.update');
     Route::delete('medical-exams/{medical_exam}', [MedicalExamController::class, 'destroy'])
         ->middleware('permission:medical_exams.delete');
+    Route::get('medical-exams/{medical_exam}/download', [MedicalExamController::class, 'download'])
+        ->middleware('permission:medical_exams.view');
 });

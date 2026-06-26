@@ -1,6 +1,6 @@
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Pencil, Plus, Stethoscope, Trash2 } from 'lucide-react'
+import { Pencil, Plus, Stethoscope, Trash2, Download } from 'lucide-react'
 import { useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { z } from 'zod'
@@ -8,6 +8,7 @@ import { applyApiErrors } from '../../lib/applyApiErrors'
 import { formatDate } from '../../lib/format'
 import { ApiError } from '../../services/api'
 import * as medicalExamService from '../../services/medicalExamService'
+import { getMedicalExamDownloadUrl } from '../../services/medicalExamService'
 import type { MedicalExam } from '../../types/medicalExam'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
@@ -47,6 +48,7 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
   const [formOpen, setFormOpen] = useState(false)
   const [editingId, setEditingId] = useState<number | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const canManage = can('medical_exams.create')
 
   const { data: exams = [], isLoading } = useQuery({
@@ -65,11 +67,13 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
         return medicalExamService.updateMedicalExam(editingId, {
           ...values,
           notes: values.notes?.trim() || null,
+          file: selectedFile,
         })
       }
       return medicalExamService.createMedicalExam(userId, {
         ...values,
         notes: values.notes?.trim() || undefined,
+        file: selectedFile,
       })
     },
     onSuccess: () => {
@@ -94,6 +98,7 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
   function openCreateForm() {
     setEditingId(null)
     setFormError(null)
+    setSelectedFile(null)
     reset({ exam_type: '', execution_date: '', expiration_date: '', notes: '' })
     setFormOpen(true)
   }
@@ -101,6 +106,7 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
   function openEditForm(exam: MedicalExam) {
     setEditingId(exam.id)
     setFormError(null)
+    setSelectedFile(null)
     reset({
       exam_type: exam.exam_type,
       execution_date: exam.execution_date,
@@ -114,6 +120,7 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
     setFormOpen(false)
     setEditingId(null)
     setFormError(null)
+    setSelectedFile(null)
   }
 
   const canUpdate = can('medical_exams.update')
@@ -180,6 +187,28 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
               label="Observações (opcional)"
               {...register('notes')}
             />
+
+            <div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">Arquivo (opcional)</label>
+              {selectedFile ? (
+                <div className="flex items-center gap-3 rounded-lg border border-surface-sunken bg-surface p-3">
+                  <span className="text-sm font-medium text-foreground">{selectedFile.name}</span>
+                  <Button type="button" variant="ghost" size="sm" onClick={() => setSelectedFile(null)}>
+                    Remover
+                  </Button>
+                </div>
+              ) : (
+                <div className="relative rounded-lg border-2 border-dashed border-surface-sunken p-4 text-center hover:border-foreground-subtle">
+                  <input
+                    type="file"
+                    className="absolute inset-0 cursor-pointer opacity-0"
+                    onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+                    accept=".pdf,.jpg,.jpeg,.png"
+                  />
+                  <p className="text-sm text-foreground-muted">Clique para selecionar um arquivo</p>
+                </div>
+              )}
+            </div>
             {formError && <Alert variant="danger">{formError}</Alert>}
             <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
               <Button type="button" variant="ghost" onClick={closeForm}>Cancelar</Button>
@@ -225,6 +254,16 @@ export function UserMedicalExamsSection({ userId }: UserMedicalExamsSectionProps
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
+                  {exam.original_name && (
+                    <a
+                      href={getMedicalExamDownloadUrl(exam.id)}
+                      download
+                      className="inline-flex size-8 items-center justify-center rounded-md text-foreground-muted transition-colors hover:bg-surface-sunken hover:text-foreground"
+                      title="Download"
+                    >
+                      <Download className="size-4" aria-hidden />
+                    </a>
+                  )}
                   {canUpdate && (
                     <Button type="button" variant="ghost" size="sm" className="size-8 p-0" onClick={() => openEditForm(exam)} aria-label="Editar">
                       <Pencil className="size-4" aria-hidden />

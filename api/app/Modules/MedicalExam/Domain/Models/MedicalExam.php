@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'exam_type', 'execution_date', 'expiration_date', 'notes'])]
+#[Fillable(['user_id', 'exam_type', 'execution_date', 'expiration_date', 'notes', 'original_name', 'stored_name', 'mime_type', 'size'])]
 class MedicalExam extends Model
 {
     public function user(): BelongsTo

@@ -17,6 +17,9 @@ class MedicalExamResource extends JsonResource
             'execution_date' => $this->execution_date->format('Y-m-d'),
             'expiration_date' => $this->expiration_date->format('Y-m-d'),
             'notes' => $this->notes,
+            'original_name' => $this->original_name,
+            'mime_type' => $this->mime_type,
+            'size' => $this->size,
             'created_at' => $this->created_at?->toIso8601String(),
         ];
     }

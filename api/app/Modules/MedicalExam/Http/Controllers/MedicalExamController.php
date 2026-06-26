@@ -10,6 +10,7 @@ use App\Modules\MedicalExam\Http\Requests\UpdateMedicalExamRequest;
 use App\Modules\MedicalExam\Http\Resources\MedicalExamResource;
 use App\Modules\User\Domain\Models\User;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MedicalExamController extends Controller
 {
@@ -24,7 +25,7 @@ class MedicalExamController extends Controller
 
     public function store(StoreMedicalExamRequest $request, User $user): JsonResponse
     {
-        $exam = $this->medicalExamService->create($user->id, $request->validated());
+        $exam = $this->medicalExamService->create($user->id, $request->validated(), $request->file('file'));
 
         return response()->json([
             'data' => new MedicalExamResource($exam),
@@ -34,7 +35,7 @@ class MedicalExamController extends Controller
 
     public function update(UpdateMedicalExamRequest $request, MedicalExam $medicalExam): JsonResponse
     {
-        $exam = $this->medicalExamService->update($medicalExam, $request->validated());
+        $exam = $this->medicalExamService->update($medicalExam, $request->validated(), $request->file('file'));
 
         return response()->json([
             'data' => new MedicalExamResource($exam),
@@ -47,5 +48,13 @@ class MedicalExamController extends Controller
         $this->medicalExamService->delete($medicalExam);
 
         return response()->json(['message' => 'Exame removido com sucesso.']);
+    }
+
+    public function download(MedicalExam $medicalExam): BinaryFileResponse
+    {
+        return response()->download(
+            $this->medicalExamService->getDownloadPath($medicalExam),
+            $medicalExam->original_name,
+        );
     }
 }
