@@ -20,6 +20,7 @@ import { CostsFormPage } from './pages/CostsFormPage'
 import { DocumentTypesPage } from './pages/DocumentTypesPage'
 import { DocumentTypeFormPage } from './pages/DocumentTypeFormPage'
 import { InvoicesPage } from './pages/InvoicesPage'
+import { ReportsPage } from './pages/ReportsPage'
 import { SalesPage } from './pages/SalesPage'
 import { VacationBalancesPage } from './pages/VacationBalancesPage'
 import { VacationRequestsPage } from './pages/VacationRequestsPage'
@@ -158,6 +159,12 @@ const invoicesRoute = createRoute({
   component: InvoicesPage,
 })
 
+const reportsRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'reports',
+  component: ReportsPage,
+})
+
 const salesRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: 'sales',
@@ -235,6 +242,7 @@ const routeTree = rootRoute.addChildren([
     documentTypesNewRoute,
     documentTypesEditRoute,
     invoicesRoute,
+    reportsRoute,
     salesRoute,
     vacationBalancesRoute,
     vacationRequestsRoute,
