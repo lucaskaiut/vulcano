@@ -7,6 +7,7 @@ use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 
 class InvoiceService
@@ -24,12 +25,41 @@ class InvoiceService
     }
 
     /** @return Collection<int, Invoice> */
-    public function listAll(): Collection
+    public function listAllForUser(User $user): Collection
     {
-        return Invoice::query()
-            ->with(['user', 'workflowInstance.currentStep'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $query = Invoice::query()
+            ->with(['user', 'workflowInstance.currentStep']);
+
+        if ($user->hasPermission(\App\Modules\User\Domain\Enums\Permission::WorkflowInstancesViewAll->value)) {
+            return $query->orderBy('created_at', 'desc')->get();
+        }
+
+        $roleIds = $user->roles()->pluck('roles.id');
+
+        $query->where(function ($q) use ($user, $roleIds) {
+            // Own invoices
+            $q->where('user_id', $user->id);
+
+            // Subordinates' invoices
+            $subordinateIds = User::query()
+                ->where('manager_id', $user->id)
+                ->pluck('id');
+
+            if ($subordinateIds->isNotEmpty()) {
+                $q->orWhereIn('user_id', $subordinateIds);
+            }
+
+            // Invoices where user is responsible for a workflow step
+            $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($user, $roleIds) {
+                $stepQuery->where('responsible_user_id', $user->id);
+
+                if ($roleIds->isNotEmpty()) {
+                    $stepQuery->orWhereIn('responsible_role_id', $roleIds);
+                }
+            });
+        });
+
+        return $query->orderBy('created_at', 'desc')->get();
     }
 
     /** @param  array{competence: string, invoice_number: string, amount: float|string, issue_date: string}  $data */
@@ -37,7 +67,7 @@ class InvoiceService
     {
         $storedName = $file->store('invoices', 'local');
 
-        return \DB::transaction(function () use ($user, $file, $data, $storedName) {
+        return DB::transaction(function () use ($user, $file, $data, $storedName) {
             $invoice = Invoice::query()->create([
                 'user_id' => $user->id,
                 'competence' => $data['competence'],

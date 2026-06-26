@@ -17,7 +17,7 @@ class InvoiceController extends Controller
     public function indexAll(): JsonResponse
     {
         return response()->json([
-            'data' => InvoiceResource::collection($this->invoiceService->listAll()),
+            'data' => InvoiceResource::collection($this->invoiceService->listAllForUser(request()->user())),
         ]);
     }
 
