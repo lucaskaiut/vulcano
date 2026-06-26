@@ -33,9 +33,15 @@ enum Permission: string
     case VacationRequestsView = 'vacation_requests.view';
     case VacationRequestsCreate = 'vacation_requests.create';
     case VacationRequestsCancel = 'vacation_requests.cancel';
+    case VacationRequestsViewAll = 'vacation_requests.view_all';
+    case VacationRequestsApprove = 'vacation_requests.approve';
+    case VacationRequestsReject = 'vacation_requests.reject';
     case CommissionsView = 'commissions.view';
     case CommissionsCreate = 'commissions.create';
     case CommissionsPay = 'commissions.pay';
+    case CommissionsViewAll = 'commissions.view_all';
+    case CommissionsApprove = 'commissions.approve';
+    case CommissionsReject = 'commissions.reject';
     case CostsView = 'costs.view';
     case CostsCreate = 'costs.create';
     case CostsUpdate = 'costs.update';
@@ -46,6 +52,8 @@ enum Permission: string
     case InvoicesView = 'invoices.view';
     case InvoicesCreate = 'invoices.create';
     case InvoicesViewAll = 'invoices.view_all';
+    case InvoicesApprove = 'invoices.approve';
+    case InvoicesReject = 'invoices.reject';
 
     public function label(): string
     {
@@ -79,9 +87,15 @@ enum Permission: string
             self::VacationRequestsView => 'Visualizar Solicitações de Férias',
             self::VacationRequestsCreate => 'Criar Solicitações de Férias',
             self::VacationRequestsCancel => 'Cancelar Solicitações de Férias',
+            self::VacationRequestsViewAll => 'Visualizar Todas as Solicitações de Férias',
+            self::VacationRequestsApprove => 'Aprovar Solicitações de Férias',
+            self::VacationRequestsReject => 'Reprovar Solicitações de Férias',
             self::CommissionsView => 'Visualizar Comissões',
             self::CommissionsCreate => 'Criar Comissões',
             self::CommissionsPay => 'Pagar Comissões',
+            self::CommissionsViewAll => 'Visualizar Todas as Comissões',
+            self::CommissionsApprove => 'Aprovar Comissões',
+            self::CommissionsReject => 'Reprovar Comissões',
             self::CostsView => 'Visualizar Custos',
             self::CostsCreate => 'Criar Custos',
             self::CostsUpdate => 'Atualizar Custos',
@@ -92,6 +106,8 @@ enum Permission: string
             self::InvoicesView => 'Visualizar Notas Fiscais',
             self::InvoicesCreate => 'Criar Notas Fiscais',
             self::InvoicesViewAll => 'Visualizar Todas as Notas Fiscais',
+            self::InvoicesApprove => 'Aprovar Notas Fiscais',
+            self::InvoicesReject => 'Reprovar Notas Fiscais',
         };
     }
 

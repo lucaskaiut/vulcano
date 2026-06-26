@@ -25,7 +25,7 @@ class CommissionService
         $query = Sale::query()
             ->with(['user', 'commission.workflowInstance.currentStep.responsibleRole']);
 
-        if ($user->hasPermission(PermissionEnum::WorkflowInstancesViewAll->value)) {
+        if ($user->hasPermission(PermissionEnum::CommissionsViewAll->value)) {
             return $query->orderByDesc('created_at')->get();
         }
 

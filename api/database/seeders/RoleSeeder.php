@@ -35,6 +35,9 @@ class RoleSeeder extends Seeder
                     PermissionEnum::VacationRequestsView->value,
                     PermissionEnum::VacationRequestsCreate->value,
                     PermissionEnum::VacationRequestsCancel->value,
+                    PermissionEnum::VacationRequestsViewAll->value,
+                    PermissionEnum::VacationRequestsApprove->value,
+                    PermissionEnum::VacationRequestsReject->value,
                     PermissionEnum::WorkflowStepsView->value,
                     PermissionEnum::WorkflowStepsCreate->value,
                     PermissionEnum::WorkflowStepsUpdate->value,
@@ -53,6 +56,8 @@ class RoleSeeder extends Seeder
                     PermissionEnum::InvoicesView->value,
                     PermissionEnum::InvoicesCreate->value,
                     PermissionEnum::InvoicesViewAll->value,
+                    PermissionEnum::InvoicesApprove->value,
+                    PermissionEnum::InvoicesReject->value,
                 ],
             ],
             [
@@ -61,9 +66,10 @@ class RoleSeeder extends Seeder
                 'permission_slugs' => [
                     PermissionEnum::CommissionsView->value,
                     PermissionEnum::CommissionsPay->value,
+                    PermissionEnum::CommissionsViewAll->value,
+                    PermissionEnum::CommissionsApprove->value,
+                    PermissionEnum::CommissionsReject->value,
                     PermissionEnum::WorkflowInstancesView->value,
-                    PermissionEnum::WorkflowInstancesApprove->value,
-                    PermissionEnum::WorkflowInstancesReject->value,
                     PermissionEnum::CostsView->value,
                     PermissionEnum::CostsCreate->value,
                     PermissionEnum::CostsUpdate->value,
@@ -76,9 +82,9 @@ class RoleSeeder extends Seeder
                 'permission_slugs' => [
                     PermissionEnum::WorkflowStepsView->value,
                     PermissionEnum::WorkflowInstancesView->value,
-                    PermissionEnum::WorkflowInstancesApprove->value,
-                    PermissionEnum::WorkflowInstancesReject->value,
                     PermissionEnum::VacationRequestsView->value,
+                    PermissionEnum::VacationRequestsApprove->value,
+                    PermissionEnum::VacationRequestsReject->value,
                 ],
             ],
             [
