@@ -16,6 +16,7 @@ use App\Modules\Commission\Domain\Models\Commission;
 use App\Modules\Cost\Http\Controllers\CostController;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Document\Http\Controllers\DocumentController;
 use App\Modules\Document\Domain\Models\Document;
 use App\Modules\Document\Domain\Models\DocumentType;
@@ -218,4 +219,6 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('notifications', [NotificationController::class, 'index'])
         ->middleware('permission:notifications.view');
+
+    Route::get('dashboard', [DashboardController::class, 'summary']);
 });
