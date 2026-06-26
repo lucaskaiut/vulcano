@@ -7,10 +7,12 @@ use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable(['user_id', 'competence', 'invoice_number', 'amount', 'issue_date', 'status', 'original_name', 'stored_name', 'mime_type', 'size', 'workflow_instance_id'])]
 class Invoice extends Model
 {
+    use Auditable;
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

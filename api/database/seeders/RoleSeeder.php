@@ -63,6 +63,7 @@ class RoleSeeder extends Seeder
                     PermissionEnum::MedicalExamsUpdate->value,
                     PermissionEnum::MedicalExamsDelete->value,
                     PermissionEnum::NotificationsView->value,
+                    PermissionEnum::AuditView->value,
                 ],
             ],
             [

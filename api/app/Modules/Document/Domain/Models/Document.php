@@ -6,10 +6,12 @@ use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable(['user_id', 'document_type_id', 'original_name', 'stored_name', 'mime_type', 'size', 'expiration_date'])]
 class Document extends Model
 {
+    use Auditable;
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);

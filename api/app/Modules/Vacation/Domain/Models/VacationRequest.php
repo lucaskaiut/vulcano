@@ -8,6 +8,7 @@ use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable([
     'user_id',
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class VacationRequest extends Model
 {
+    use Auditable;
     protected function casts(): array
     {
         return [

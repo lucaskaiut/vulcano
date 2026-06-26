@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable([
     'user_id',
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 ])]
 class Sale extends Model
 {
+    use Auditable;
     protected function casts(): array
     {
         return [

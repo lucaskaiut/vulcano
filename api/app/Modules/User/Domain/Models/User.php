@@ -4,6 +4,7 @@ namespace App\Modules\User\Domain\Models;
 
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Notifications\ResetPasswordNotification;
+use App\Modules\Audit\Domain\Traits\Auditable;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
@@ -21,7 +22,7 @@ use Illuminate\Support\Collection;
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, Auditable;
 
     protected function casts(): array
     {

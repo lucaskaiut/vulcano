@@ -16,6 +16,7 @@ use App\Modules\Commission\Domain\Models\Commission;
 use App\Modules\Cost\Http\Controllers\CostController;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\Audit\Http\Controllers\AuditController;
 use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Report\Http\Controllers\ReportController;
 use App\Modules\Document\Http\Controllers\DocumentController;
@@ -231,4 +232,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:invoices.view');
     Route::get('reports/medical-exams', [ReportController::class, 'medicalExams'])
         ->middleware('permission:medical_exams.view');
+
+    Route::get('audit-logs', [AuditController::class, 'index'])
+        ->middleware('permission:audit.view');
 });

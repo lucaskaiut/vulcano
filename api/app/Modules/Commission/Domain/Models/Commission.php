@@ -8,6 +8,7 @@ use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable([
     'sale_id',
@@ -20,6 +21,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Commission extends Model
 {
+    use Auditable;
     protected function casts(): array
     {
         return [

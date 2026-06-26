@@ -1,17 +1,15 @@
 <?php
 
-namespace App\Modules\MedicalExam\Domain\Models;
+namespace App\Modules\Audit\Domain\Models;
 
 use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use App\Modules\Audit\Domain\Traits\Auditable;
 
-#[Fillable(['user_id', 'exam_type', 'execution_date', 'expiration_date', 'notes', 'original_name', 'stored_name', 'mime_type', 'size'])]
-class MedicalExam extends Model
+#[Fillable(['user_id', 'action', 'entity', 'entity_id', 'old_data', 'new_data'])]
+class AuditLog extends Model
 {
-    use Auditable;
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
@@ -20,8 +18,8 @@ class MedicalExam extends Model
     protected function casts(): array
     {
         return [
-            'execution_date' => 'date',
-            'expiration_date' => 'date',
+            'old_data' => 'array',
+            'new_data' => 'array',
         ];
     }
 }

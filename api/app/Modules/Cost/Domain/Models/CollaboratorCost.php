@@ -6,6 +6,7 @@ use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable([
     'user_id',
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class CollaboratorCost extends Model
 {
+    use Auditable;
     protected function casts(): array
     {
         return [
