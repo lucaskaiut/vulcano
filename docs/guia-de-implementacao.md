@@ -2,7 +2,7 @@
 
 ## Sistema de Gestão de Colaboradores PJ
 
-### Progresso: 10/18 etapas concluídas (56%)
+### Progresso: 18/18 etapas concluídas (100%)
 
 | Etapa | Status |
 |---|---|
@@ -16,21 +16,21 @@
 | 8 — Solicitação de Férias | ✅ |
 | 9 — Gestão de Comissões | ✅ |
 | 10 — Gestão de Custos | ✅ |
-| 11 — Gestão de Documentos | ❌ |
-| 12 — Notas Fiscais Mensais | ❌ |
-| 13 — Exames Periódicos | ❌ |
-| 14 — Notificações | ❌ |
-| 15 — Dashboard Executivo | ⚠️ placeholder |
-| 16 — Relatórios | ❌ |
-| 17 — Auditoria | ❌ |
-| 18 — Homologação Final | ❌ |
+| 11 — Gestão de Documentos | ✅ |
+| 12 — Notas Fiscais Mensais | ✅ |
+| 13 — Exames Periódicos | ✅ |
+| 14 — Notificações | ✅ |
+| 15 — Dashboard Executivo | ✅ |
+| 16 — Relatórios | ✅ |
+| 17 — Auditoria | ✅ |
+| 18 — Homologação Final | ✅ |
 
 ### Stack real (pode divergir do planejado)
 
 * Backend: Laravel 13, PHP 8.4, MySQL 8.4, SQLite (testes)
 * Frontend: React 19, Vite, Tailwind CSS 4, TanStack Query, TanStack Router
-* Permissões: enum-based (sem tabela), 34 permissões
-* Testes: 114 passando, SQLite in-memory
+* Permissões: enum-based (sem tabela), 45 permissões
+* Testes: 141 passando, SQLite in-memory
 
 ---
 
