@@ -154,6 +154,7 @@ export function AuditLogsPage() {
                     </React.Fragment>
                   )
                 })}
+              </TableBody>
             </Table>
           </div>
 
