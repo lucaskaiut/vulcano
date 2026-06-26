@@ -1,4 +1,4 @@
-import { CalendarPlus, Coins, DollarSign, FolderOpen, GitBranch, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Coins, DollarSign, FileText, FolderOpen, GitBranch, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -18,6 +18,7 @@ const allNavigationItems: NavigationItem[] = [
   { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
   { label: 'Categorias de custo', href: '/cost-categories', title: 'Categorias de custo', icon: FolderOpen, permission: 'costs.view' },
   { label: 'Custos', href: '/costs', title: 'Custos', icon: Coins, permission: 'costs.view' },
+  { label: 'Tipos de documento', href: '/document-types', title: 'Tipos de documento', icon: FileText, permission: 'documents.view' },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield, permission: 'roles.view' },
   { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.update' },
 ]
@@ -30,6 +31,8 @@ const routePermissionMap: Record<string, string> = {
   '/costs/novo': 'costs.create',
   '/cost-categories': 'costs.view',
   '/cost-categories/novo': 'costs.create',
+  '/document-types': 'documents.view',
+  '/document-types/novo': 'documents.create',
   '/vacation-balances': 'vacation_balances.view',
   '/vacation-requests': 'vacation_requests.view',
   '/roles': 'roles.view',
@@ -96,6 +99,9 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/cost-categories') return 'Categorias de custo'
   if (pathname === '/cost-categories/novo') return 'Nova categoria'
   if (/^\/cost-categories\/\d+\/editar$/.test(pathname)) return 'Editar categoria'
+  if (pathname === '/document-types') return 'Tipos de documento'
+  if (pathname === '/document-types/novo') return 'Novo tipo'
+  if (/^\/document-types\/\d+\/editar$/.test(pathname)) return 'Editar tipo'
   if (pathname === '/vacation-requests') return 'Solicitações de férias'
   if (pathname === '/workflow-instances') return 'Processos'
   if (/^\/workflow-instances\/\d+$/.test(pathname)) return 'Detalhes do processo'

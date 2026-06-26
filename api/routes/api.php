@@ -16,6 +16,9 @@ use App\Modules\Commission\Domain\Models\Commission;
 use App\Modules\Cost\Http\Controllers\CostController;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\Document\Http\Controllers\DocumentController;
+use App\Modules\Document\Domain\Models\Document;
+use App\Modules\Document\Domain\Models\DocumentType;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -37,6 +40,8 @@ Route::bind('vacation_request', fn (string $value) => VacationRequest::query()->
 Route::bind('commission', fn (string $value) => Commission::query()->findOrFail($value));
 Route::bind('cost_category', fn (string $value) => CostCategory::query()->findOrFail($value));
 Route::bind('collaborator_cost', fn (string $value) => CollaboratorCost::query()->findOrFail($value));
+Route::bind('document', fn (string $value) => Document::query()->findOrFail($value));
+Route::bind('document_type', fn (string $value) => DocumentType::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -165,4 +170,22 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('costs-report', [CostController::class, 'report'])
         ->middleware('permission:costs.view');
+
+    Route::get('document-types', [DocumentController::class, 'listTypes'])
+        ->middleware('permission:documents.view');
+    Route::post('document-types', [DocumentController::class, 'storeType'])
+        ->middleware('permission:documents.create');
+    Route::put('document-types/{document_type}', [DocumentController::class, 'updateType'])
+        ->middleware('permission:documents.create');
+
+    Route::get('users/{user}/documents', [DocumentController::class, 'index'])
+        ->middleware('permission:documents.view');
+    Route::post('users/{user}/documents', [DocumentController::class, 'store'])
+        ->middleware('permission:documents.create');
+    Route::delete('documents/{document}', [DocumentController::class, 'destroy'])
+        ->middleware('permission:documents.delete');
+    Route::get('documents/{document}/download', [DocumentController::class, 'download'])
+        ->middleware('permission:documents.view');
+    Route::get('documents/{document}/preview', [DocumentController::class, 'preview'])
+        ->middleware('permission:documents.view');
 });

@@ -19,6 +19,8 @@ import { UserSalaryHistorySection } from "../components/users/UserSalaryHistoryS
 import { SearchSelect } from "../components/ui/SearchSelect";
 import { formatSalary } from "../lib/format";
 import { UserVacationSection } from "../components/users/UserVacationSection";
+import { UserDocumentsSection } from "../components/users/UserDocumentsSection";
+import { usePermissions } from '../hooks/usePermissions';
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Informe o nome."),
@@ -388,6 +390,12 @@ export function UserFormPage() {
       {isEditing && userId && userQuery.data && (
         <Card className="mt-4 p-6">
           <UserVacationSection userId={userId} hireDate={userQuery.data?.hired_at} />
+        </Card>
+      )}
+
+      {isEditing && userId && (
+        <Card className="mt-4 p-6">
+          <UserDocumentsSection userId={userId} />
         </Card>
       )}
     </div>

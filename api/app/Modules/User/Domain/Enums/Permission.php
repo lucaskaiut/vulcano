@@ -40,6 +40,9 @@ enum Permission: string
     case CostsCreate = 'costs.create';
     case CostsUpdate = 'costs.update';
     case CostsDelete = 'costs.delete';
+    case DocumentsView = 'documents.view';
+    case DocumentsCreate = 'documents.create';
+    case DocumentsDelete = 'documents.delete';
 
     public function label(): string
     {
@@ -80,6 +83,9 @@ enum Permission: string
             self::CostsCreate => 'Criar Custos',
             self::CostsUpdate => 'Atualizar Custos',
             self::CostsDelete => 'Excluir Custos',
+            self::DocumentsView => 'Visualizar Documentos',
+            self::DocumentsCreate => 'Criar Documentos',
+            self::DocumentsDelete => 'Excluir Documentos',
         };
     }
 

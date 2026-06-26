@@ -17,6 +17,8 @@ import { CostCategoriesPage } from './pages/CostCategoriesPage'
 import { CostCategoryFormPage } from './pages/CostCategoryFormPage'
 import { CostsListPage } from './pages/CostsListPage'
 import { CostsFormPage } from './pages/CostsFormPage'
+import { DocumentTypesPage } from './pages/DocumentTypesPage'
+import { DocumentTypeFormPage } from './pages/DocumentTypeFormPage'
 import { SalesPage } from './pages/SalesPage'
 import { VacationBalancesPage } from './pages/VacationBalancesPage'
 import { VacationRequestsPage } from './pages/VacationRequestsPage'
@@ -131,6 +133,24 @@ const costCategoriesEditRoute = createRoute({
   component: CostCategoryFormPage,
 })
 
+const documentTypesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'document-types',
+  component: DocumentTypesPage,
+})
+
+const documentTypesNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'document-types/novo',
+  component: DocumentTypeFormPage,
+})
+
+const documentTypesEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'document-types/$id/editar',
+  component: DocumentTypeFormPage,
+})
+
 const salesRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: 'sales',
@@ -204,6 +224,9 @@ const routeTree = rootRoute.addChildren([
     costCategoriesRoute,
     costCategoriesNewRoute,
     costCategoriesEditRoute,
+    documentTypesRoute,
+    documentTypesNewRoute,
+    documentTypesEditRoute,
     salesRoute,
     vacationBalancesRoute,
     vacationRequestsRoute,

@@ -47,6 +47,9 @@ class RoleSeeder extends Seeder
                     PermissionEnum::CostsCreate->value,
                     PermissionEnum::CostsUpdate->value,
                     PermissionEnum::CostsDelete->value,
+                    PermissionEnum::DocumentsView->value,
+                    PermissionEnum::DocumentsCreate->value,
+                    PermissionEnum::DocumentsDelete->value,
                 ],
             ],
             [
@@ -87,6 +90,7 @@ class RoleSeeder extends Seeder
                     PermissionEnum::VacationRequestsView->value,
                     PermissionEnum::VacationRequestsCreate->value,
                     PermissionEnum::VacationRequestsCancel->value,
+                    PermissionEnum::DocumentsView->value,
                 ],
             ],
         ];
