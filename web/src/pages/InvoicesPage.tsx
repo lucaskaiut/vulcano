@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { Download } from 'lucide-react'
 import { useState } from 'react'
 import { approveInstance, rejectInstance } from '../services/workflowService'
 import { createInvoice, getInvoiceDownloadUrl, listInvoices } from '../services/invoiceService'
@@ -9,10 +8,8 @@ import { DatePicker } from '../components/ui/DatePicker'
 import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
-import { formatDate } from '../lib/format'
 import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
 import type { Invoice } from '../types/invoice'
-import { useAuth } from '../contexts/AuthContext'
 
 function mapToKanban(invoice: Invoice) {
   if (!invoice.workflow_instance) return null
@@ -41,14 +38,8 @@ function mapToKanban(invoice: Invoice) {
   }
 }
 
-function currency(value: number | string): string {
-  const v = typeof value === 'string' ? Number(value) : value
-  return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v)
-}
-
 export function InvoicesPage() {
   const queryClient = useQueryClient()
-  const { user } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [competence, setCompetence] = useState(new Date().toISOString().slice(0, 7))
   const [invoiceNumber, setInvoiceNumber] = useState('')

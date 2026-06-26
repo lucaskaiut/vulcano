@@ -14,6 +14,7 @@ export function WorkflowKanbanCard({
   instance,
   onApprove,
   onReject,
+  downloadUrl,
 }: WorkflowKanbanCardProps) {
   const { user } = useAuth()
   const currentStep = instance.current_step
