@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Filter } from 'lucide-react'
+import { Eye, Filter, Pencil, Trash2 } from 'lucide-react'
 import { useState } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
 import { ApiError } from '../services/api'
 import { getApiErrorMessage } from '../services/getApiErrorMessage'
 import * as aclService from '../services/aclService'
@@ -24,7 +24,6 @@ import {
   TableRow,
   TableRowDetails,
 } from '../components/ui/Table'
-import { TableRowActions } from '../components/ui/TableRowActions'
 import { TablePagination } from '../components/ui/TablePagination'
 import { UserFilterBadges } from '../components/users/UserFilterBadges'
 import { UserFiltersDrawer } from '../components/users/UserFiltersDrawer'
@@ -41,7 +40,6 @@ const USER_SORTABLE_COLUMNS = ['name', 'job_title', 'hired_at'] as const
 const USER_MOBILE_COL_SPAN = 3
 
 export function UsersPage() {
-  const navigate = useNavigate()
   const queryClient = useQueryClient()
   const [filtersOpen, setFiltersOpen] = useState(false)
   const { confirm, confirmState, resolveConfirm, rejectConfirm } = useConfirmDialog()
@@ -175,24 +173,28 @@ export function UsersPage() {
                   <TableCellCollapsible>{user.manager?.name ?? '—'}</TableCellCollapsible>
                   <TableCellCollapsible>{formatSalary(user.salary)}</TableCellCollapsible>
                   <TableCell className="text-right">
-                    <TableRowActions
-                      viewLabel={`Ver ${user.name}`}
-                      editLabel={`Editar ${user.name}`}
-                      deleteLabel={`Excluir ${user.name}`}
-                      onView={() => navigate({ to: `/users/${user.id}` })}
-                      onEdit={() => navigate({ to: `/users/${user.id}/editar` })}
-                      onDelete={async () => {
+                    <div className="flex gap-1 justify-end">
+                      <Link to="/users/$id" params={{ id: String(user.id) }}>
+                        <Button variant="ghost" size="sm" aria-label={`Ver ${user.name}`}>
+                          <Eye className="size-4" />
+                        </Button>
+                      </Link>
+                      <Link to="/users/$id/editar" params={{ id: String(user.id) }}>
+                        <Button variant="ghost" size="sm" aria-label={`Editar ${user.name}`}>
+                          <Pencil className="size-4" />
+                        </Button>
+                      </Link>
+                      <Button variant="ghost" size="sm" aria-label={`Excluir ${user.name}`} onClick={async () => {
                         const confirmed = await confirm({
                           title: 'Excluir colaborador',
                           description: `Tem certeza que deseja excluir ${user.name}? Esta ação não pode ser desfeita.`,
                           confirmLabel: 'Excluir',
                         })
-
-                        if (confirmed) {
-                          deleteMutation.mutate(user.id)
-                        }
-                      }}
-                    />
+                        if (confirmed) deleteMutation.mutate(user.id)
+                      }}>
+                        <Trash2 className="size-4 text-danger" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </ExpandableTableRow>
               )
