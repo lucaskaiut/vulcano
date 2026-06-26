@@ -37,11 +37,10 @@ export function AuditLogsPage() {
   const perPage = 20
 
   const { data, isLoading } = useQuery({
-    queryKey: ['audit-logs', page, entity, action],
+    queryKey: ['audit-logs', page, action],
     queryFn: () => listAuditLogs({
       page,
       per_page: perPage,
-      entity: entity || undefined,
       action: action || undefined,
     }),
   })
