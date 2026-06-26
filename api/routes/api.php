@@ -11,6 +11,8 @@ use App\Modules\User\Domain\Models\SalaryHistory;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Http\Controllers\WorkflowInstanceController;
 use App\Modules\Workflow\Http\Controllers\WorkflowStepController;
+use App\Modules\Commission\Http\Controllers\CommissionController;
+use App\Modules\Commission\Domain\Models\Commission;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -29,6 +31,7 @@ Route::bind('workflow_instance', fn (string $value) => WorkflowInstance::query()
 Route::bind('vacation_balance', fn (string $value) => VacationBalance::query()->findOrFail($value));
 Route::bind('vacation_period', fn (string $value) => VacationPeriod::query()->findOrFail($value));
 Route::bind('vacation_request', fn (string $value) => VacationRequest::query()->findOrFail($value));
+Route::bind('commission', fn (string $value) => Commission::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -125,4 +128,11 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:vacation_requests.create');
     Route::post('vacation-requests/{vacation_request}/cancel', [VacationRequestController::class, 'cancel'])
         ->middleware('permission:vacation_requests.cancel');
+
+    Route::get('sales', [CommissionController::class, 'index'])
+        ->middleware('permission:commissions.view');
+    Route::post('sales', [CommissionController::class, 'store'])
+        ->middleware('permission:commissions.create');
+    Route::post('commissions/{commission}/pay', [CommissionController::class, 'pay'])
+        ->middleware('permission:commissions.pay');
 });

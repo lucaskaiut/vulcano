@@ -114,6 +114,28 @@ class VacationFlowSeeder extends Seeder
             'responsible_user_id' => null,
         ]);
 
+        $this->command?->info('Configurando workflow de comissão...');
+
+        $financeiroRole = Role::where('name', 'Financeiro')->firstOrFail();
+
+        WorkflowStep::query()->where('workflow_type', 'commission')->delete();
+
+        WorkflowStep::query()->create([
+            'workflow_type' => 'commission',
+            'name' => 'Gestor',
+            'order' => 1,
+            'responsible_role_id' => $gestorRole->id,
+            'responsible_user_id' => null,
+        ]);
+
+        WorkflowStep::query()->create([
+            'workflow_type' => 'commission',
+            'name' => 'Financeiro',
+            'order' => 2,
+            'responsible_role_id' => $financeiroRole->id,
+            'responsible_user_id' => null,
+        ]);
+
         $this->command?->info('Seed de teste concluído!');
     }
 }

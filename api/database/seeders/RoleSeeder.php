@@ -48,6 +48,13 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'Financeiro',
                 'description' => 'Equipe financeira',
+                'permission_slugs' => [
+                    PermissionEnum::CommissionsView->value,
+                    PermissionEnum::CommissionsPay->value,
+                    PermissionEnum::WorkflowInstancesView->value,
+                    PermissionEnum::WorkflowInstancesApprove->value,
+                    PermissionEnum::WorkflowInstancesReject->value,
+                ],
             ],
             [
                 'name' => 'Gestor',

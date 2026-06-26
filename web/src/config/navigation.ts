@@ -1,4 +1,4 @@
-import { CalendarPlus, GitBranch, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, DollarSign, GitBranch, LayoutDashboard, Palmtree, Shield, Users, type LucideIcon } from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -15,6 +15,7 @@ const allNavigationItems: NavigationItem[] = [
   { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users, permission: 'users.view' },
   { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree, permission: 'vacation_balances.view' },
   { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarPlus, permission: 'vacation_requests.view' },
+  { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield, permission: 'roles.view' },
   { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.update' },
 ]
@@ -22,6 +23,7 @@ const allNavigationItems: NavigationItem[] = [
 const routePermissionMap: Record<string, string> = {
   '/users': 'users.view',
   '/users/novo': 'users.create',
+  '/sales': 'commissions.view',
   '/vacation-balances': 'vacation_balances.view',
   '/vacation-requests': 'vacation_requests.view',
   '/roles': 'roles.view',
@@ -81,6 +83,7 @@ export function getNavigationTitle(pathname: string): string {
   if (/^\/users\/\d+$/.test(pathname)) return 'Detalhes do colaborador'
   if (pathname === '/roles/novo') return 'Novo perfil'
   if (/^\/roles\/\d+\/editar$/.test(pathname)) return 'Editar perfil'
+  if (pathname === '/sales') return 'Comissões'
   if (pathname === '/vacation-requests') return 'Solicitações de férias'
   if (pathname === '/workflow-instances') return 'Processos'
   if (/^\/workflow-instances\/\d+$/.test(pathname)) return 'Detalhes do processo'

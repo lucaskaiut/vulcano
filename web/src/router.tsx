@@ -13,6 +13,7 @@ import { RoleFormPage } from './pages/RoleFormPage'
 import { RolesPage } from './pages/RolesPage'
 import { UserDetailPage } from './pages/UserDetailPage'
 import { UserFormPage } from './pages/UserFormPage'
+import { SalesPage } from './pages/SalesPage'
 import { VacationBalancesPage } from './pages/VacationBalancesPage'
 import { VacationRequestsPage } from './pages/VacationRequestsPage'
 import { UsersPage } from './pages/UsersPage'
@@ -90,6 +91,12 @@ const userDetailRoute = createRoute({
   component: UserDetailPage,
 })
 
+const salesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'sales',
+  component: SalesPage,
+})
+
 const vacationBalancesRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: 'vacation-balances',
@@ -151,6 +158,7 @@ const routeTree = rootRoute.addChildren([
     userNewRoute,
     userEditRoute,
     userDetailRoute,
+    salesRoute,
     vacationBalancesRoute,
     vacationRequestsRoute,
     rolesRoute,

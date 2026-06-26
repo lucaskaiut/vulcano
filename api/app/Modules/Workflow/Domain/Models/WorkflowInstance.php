@@ -3,6 +3,8 @@
 namespace App\Modules\Workflow\Domain\Models;
 
 use App\Modules\User\Domain\Models\User;
+use App\Modules\Commission\Domain\Enums\CommissionStatus;
+use App\Modules\Commission\Domain\Models\Commission;
 use App\Modules\Vacation\Domain\Enums\VacationRequestStatus;
 use App\Modules\Vacation\Domain\Models\VacationRequest;
 use App\Modules\Workflow\Domain\Enums\WorkflowInstanceStatus;
@@ -77,6 +79,20 @@ class WorkflowInstance extends Model
 
                 if ($status) {
                     VacationRequest::query()
+                        ->where('id', $instance->subject_id)
+                        ->update(['status' => $status]);
+                }
+            }
+
+            if ($instance->subject_type === Commission::class && $instance->subject_id) {
+                $status = match ($instance->status) {
+                    WorkflowInstanceStatus::Approved => CommissionStatus::Approved,
+                    WorkflowInstanceStatus::Rejected => CommissionStatus::Rejected,
+                    default => null,
+                };
+
+                if ($status) {
+                    Commission::query()
                         ->where('id', $instance->subject_id)
                         ->update(['status' => $status]);
                 }

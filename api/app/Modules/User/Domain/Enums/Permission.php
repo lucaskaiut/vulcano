@@ -33,6 +33,9 @@ enum Permission: string
     case VacationRequestsView = 'vacation_requests.view';
     case VacationRequestsCreate = 'vacation_requests.create';
     case VacationRequestsCancel = 'vacation_requests.cancel';
+    case CommissionsView = 'commissions.view';
+    case CommissionsCreate = 'commissions.create';
+    case CommissionsPay = 'commissions.pay';
 
     public function label(): string
     {
@@ -66,6 +69,9 @@ enum Permission: string
             self::VacationRequestsView => 'Visualizar Solicitações de Férias',
             self::VacationRequestsCreate => 'Criar Solicitações de Férias',
             self::VacationRequestsCancel => 'Cancelar Solicitações de Férias',
+            self::CommissionsView => 'Visualizar Comissões',
+            self::CommissionsCreate => 'Criar Comissões',
+            self::CommissionsPay => 'Pagar Comissões',
         };
     }
 
