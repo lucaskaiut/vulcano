@@ -31,7 +31,6 @@ function actionColor(action: string): string {
 }
 
 export function AuditLogsPage() {
-  const [entity, setEntity] = useState('')
   const [action, setAction] = useState('')
   const [page, setPage] = useState(1)
   const [expandedId, setExpandedId] = useState<number | null>(null)

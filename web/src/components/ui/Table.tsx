@@ -53,9 +53,9 @@ export function TableHeaderCellExpand() {
   return <th className="w-10 px-2 py-2.5 md:hidden" aria-hidden />
 }
 
-export function TableCell({ children, className = '' }: { children: ReactNode; className?: string }) {
+export function TableCell({ children, className = '', ...props }: { children: ReactNode; className?: string } & React.TdHTMLAttributes<HTMLTableDataCellElement>) {
   return (
-    <td className={`px-3 py-2.5 text-foreground md:px-4 md:py-3 ${className}`}>{children}</td>
+    <td className={`px-3 py-2.5 text-foreground md:px-4 md:py-3 ${className}`} {...props}>{children}</td>
   )
 }
 
