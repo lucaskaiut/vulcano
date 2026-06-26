@@ -21,6 +21,7 @@ import { formatSalary } from "../lib/format";
 import { UserVacationSection } from "../components/users/UserVacationSection";
 import { UserDocumentsSection } from "../components/users/UserDocumentsSection";
 import { UserInvoicesSection } from "../components/users/UserInvoicesSection";
+import { UserMedicalExamsSection } from "../components/users/UserMedicalExamsSection";
 
 const userFormSchema = z.object({
   name: z.string().min(1, "Informe o nome."),
@@ -402,6 +403,12 @@ export function UserFormPage() {
       {isEditing && userId && (
         <Card className="mt-4 p-6">
           <UserInvoicesSection userId={userId} />
+        </Card>
+      )}
+
+      {isEditing && userId && (
+        <Card className="mt-4 p-6">
+          <UserMedicalExamsSection userId={userId} />
         </Card>
       )}
     </div>

@@ -58,6 +58,10 @@ class RoleSeeder extends Seeder
                     PermissionEnum::InvoicesViewAll->value,
                     PermissionEnum::InvoicesApprove->value,
                     PermissionEnum::InvoicesReject->value,
+                    PermissionEnum::MedicalExamsView->value,
+                    PermissionEnum::MedicalExamsCreate->value,
+                    PermissionEnum::MedicalExamsUpdate->value,
+                    PermissionEnum::MedicalExamsDelete->value,
                 ],
             ],
             [
@@ -102,6 +106,7 @@ class RoleSeeder extends Seeder
                     PermissionEnum::DocumentsView->value,
                     PermissionEnum::InvoicesView->value,
                     PermissionEnum::InvoicesCreate->value,
+                    PermissionEnum::MedicalExamsView->value,
                 ],
             ],
         ];

@@ -54,6 +54,10 @@ enum Permission: string
     case InvoicesViewAll = 'invoices.view_all';
     case InvoicesApprove = 'invoices.approve';
     case InvoicesReject = 'invoices.reject';
+    case MedicalExamsView = 'medical_exams.view';
+    case MedicalExamsCreate = 'medical_exams.create';
+    case MedicalExamsUpdate = 'medical_exams.update';
+    case MedicalExamsDelete = 'medical_exams.delete';
 
     public function label(): string
     {
@@ -108,6 +112,10 @@ enum Permission: string
             self::InvoicesViewAll => 'Visualizar Todas as Notas Fiscais',
             self::InvoicesApprove => 'Aprovar Notas Fiscais',
             self::InvoicesReject => 'Reprovar Notas Fiscais',
+            self::MedicalExamsView => 'Visualizar Exames',
+            self::MedicalExamsCreate => 'Criar Exames',
+            self::MedicalExamsUpdate => 'Atualizar Exames',
+            self::MedicalExamsDelete => 'Excluir Exames',
         };
     }
 

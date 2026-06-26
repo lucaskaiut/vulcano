@@ -21,6 +21,8 @@ use App\Modules\Document\Domain\Models\Document;
 use App\Modules\Document\Domain\Models\DocumentType;
 use App\Modules\Invoice\Http\Controllers\InvoiceController;
 use App\Modules\Invoice\Domain\Models\Invoice;
+use App\Modules\MedicalExam\Http\Controllers\MedicalExamController;
+use App\Modules\MedicalExam\Domain\Models\MedicalExam;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -45,6 +47,7 @@ Route::bind('collaborator_cost', fn (string $value) => CollaboratorCost::query()
 Route::bind('document', fn (string $value) => Document::query()->findOrFail($value));
 Route::bind('document_type', fn (string $value) => DocumentType::query()->findOrFail($value));
 Route::bind('invoice', fn (string $value) => Invoice::query()->findOrFail($value));
+Route::bind('medical_exam', fn (string $value) => MedicalExam::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -200,4 +203,13 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:invoices.view');
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])
         ->middleware('permission:invoices.view');
+
+    Route::get('users/{user}/medical-exams', [MedicalExamController::class, 'index'])
+        ->middleware('permission:medical_exams.view');
+    Route::post('users/{user}/medical-exams', [MedicalExamController::class, 'store'])
+        ->middleware('permission:medical_exams.create');
+    Route::put('medical-exams/{medical_exam}', [MedicalExamController::class, 'update'])
+        ->middleware('permission:medical_exams.update');
+    Route::delete('medical-exams/{medical_exam}', [MedicalExamController::class, 'destroy'])
+        ->middleware('permission:medical_exams.delete');
 });
