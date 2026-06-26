@@ -43,6 +43,10 @@ class RoleSeeder extends Seeder
                     PermissionEnum::WorkflowInstancesViewAll->value,
                     PermissionEnum::WorkflowInstancesApprove->value,
                     PermissionEnum::WorkflowInstancesReject->value,
+                    PermissionEnum::CostsView->value,
+                    PermissionEnum::CostsCreate->value,
+                    PermissionEnum::CostsUpdate->value,
+                    PermissionEnum::CostsDelete->value,
                 ],
             ],
             [
@@ -54,6 +58,10 @@ class RoleSeeder extends Seeder
                     PermissionEnum::WorkflowInstancesView->value,
                     PermissionEnum::WorkflowInstancesApprove->value,
                     PermissionEnum::WorkflowInstancesReject->value,
+                    PermissionEnum::CostsView->value,
+                    PermissionEnum::CostsCreate->value,
+                    PermissionEnum::CostsUpdate->value,
+                    PermissionEnum::CostsDelete->value,
                 ],
             ],
             [

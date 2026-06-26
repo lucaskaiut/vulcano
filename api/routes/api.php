@@ -13,6 +13,9 @@ use App\Modules\Workflow\Http\Controllers\WorkflowInstanceController;
 use App\Modules\Workflow\Http\Controllers\WorkflowStepController;
 use App\Modules\Commission\Http\Controllers\CommissionController;
 use App\Modules\Commission\Domain\Models\Commission;
+use App\Modules\Cost\Http\Controllers\CostController;
+use App\Modules\Cost\Domain\Models\CollaboratorCost;
+use App\Modules\Cost\Domain\Models\CostCategory;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -32,6 +35,8 @@ Route::bind('vacation_balance', fn (string $value) => VacationBalance::query()->
 Route::bind('vacation_period', fn (string $value) => VacationPeriod::query()->findOrFail($value));
 Route::bind('vacation_request', fn (string $value) => VacationRequest::query()->findOrFail($value));
 Route::bind('commission', fn (string $value) => Commission::query()->findOrFail($value));
+Route::bind('cost_category', fn (string $value) => CostCategory::query()->findOrFail($value));
+Route::bind('collaborator_cost', fn (string $value) => CollaboratorCost::query()->findOrFail($value));
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -135,4 +140,23 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:commissions.create');
     Route::post('commissions/{commission}/pay', [CommissionController::class, 'pay'])
         ->middleware('permission:commissions.pay');
+
+    Route::get('cost-categories', [CostController::class, 'categories'])
+        ->middleware('permission:costs.view');
+    Route::post('cost-categories', [CostController::class, 'storeCategory'])
+        ->middleware('permission:costs.create');
+    Route::put('cost-categories/{cost_category}', [CostController::class, 'updateCategory'])
+        ->middleware('permission:costs.update');
+
+    Route::get('collaborator-costs', [CostController::class, 'index'])
+        ->middleware('permission:costs.view');
+    Route::post('collaborator-costs', [CostController::class, 'store'])
+        ->middleware('permission:costs.create');
+    Route::put('collaborator-costs/{collaborator_cost}', [CostController::class, 'update'])
+        ->middleware('permission:costs.update');
+    Route::delete('collaborator-costs/{collaborator_cost}', [CostController::class, 'destroy'])
+        ->middleware('permission:costs.delete');
+
+    Route::get('costs-report', [CostController::class, 'report'])
+        ->middleware('permission:costs.view');
 });

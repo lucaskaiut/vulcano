@@ -36,6 +36,10 @@ enum Permission: string
     case CommissionsView = 'commissions.view';
     case CommissionsCreate = 'commissions.create';
     case CommissionsPay = 'commissions.pay';
+    case CostsView = 'costs.view';
+    case CostsCreate = 'costs.create';
+    case CostsUpdate = 'costs.update';
+    case CostsDelete = 'costs.delete';
 
     public function label(): string
     {
@@ -72,6 +76,10 @@ enum Permission: string
             self::CommissionsView => 'Visualizar Comissões',
             self::CommissionsCreate => 'Criar Comissões',
             self::CommissionsPay => 'Pagar Comissões',
+            self::CostsView => 'Visualizar Custos',
+            self::CostsCreate => 'Criar Custos',
+            self::CostsUpdate => 'Atualizar Custos',
+            self::CostsDelete => 'Excluir Custos',
         };
     }
 
