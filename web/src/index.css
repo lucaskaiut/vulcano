@@ -61,6 +61,10 @@
   --radius-md: 0.5rem;
   --radius-lg: 0.75rem;
   --radius-xl: 1rem;
+  /* Sidebar — dark theme */
+  --color-sidebar: #1e293b;
+  --color-sidebar-hover: #334155;
+  --color-sidebar-active: #3b82f6;
 }
 
 @layer base {
