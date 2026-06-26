@@ -13,16 +13,24 @@ until php artisan db:monitor --databases=mysql > /dev/null 2>&1; do
   sleep 2
 done
 
-echo "Executando migrations..."
-php artisan migrate --force
+echo "Verificando migrations pendentes..."
+if php artisan migrate:status | grep -q "Pending"; then
+  echo "Executando migrations..."
+  php artisan migrate --force
+else
+  echo "Nenhuma migration pendente."
+fi
+
+echo "Sincronizando perfis e permissões..."
+php artisan db:seed --force --class=RoleSeeder
 
 SEED_MARKER="/var/www/html/storage/app/.seeded"
 
 if [ ! -f "$SEED_MARKER" ]; then
   echo "Primeira execução detectada — executando seeders..."
-  php artisan db:seed --force
   mkdir -p /var/www/html/storage/app
   touch "$SEED_MARKER"
+  php artisan db:seed --force
 else
   echo "Banco já inicializado, pulando seeders."
 fi
