@@ -4,6 +4,7 @@ namespace App\Modules\Cost\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
+use App\Modules\Cost\Domain\Models\CostCategory;
 use App\Modules\Cost\Domain\Services\CostService;
 use App\Modules\Cost\Http\Requests\StoreCostCategoryRequest;
 use App\Modules\Cost\Http\Requests\StoreCostRequest;
@@ -11,7 +12,9 @@ use App\Modules\Cost\Http\Requests\UpdateCostCategoryRequest;
 use App\Modules\Cost\Http\Requests\UpdateCostRequest;
 use App\Modules\Cost\Http\Resources\CollaboratorCostResource;
 use App\Modules\Cost\Http\Resources\CostCategoryResource;
-use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\User\Domain\Support\PaginationQuery;
+use App\Modules\User\Domain\Support\SortQuery;
+use App\Modules\User\Http\Support\PaginationMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -19,10 +22,29 @@ class CostController extends Controller
 {
     public function __construct(private readonly CostService $costService) {}
 
-    public function categories(): JsonResponse
+    public function categories(Request $request): JsonResponse
+    {
+        $sort = SortQuery::fromRequest($request, CostService::SORTABLE_COLUMNS);
+        $pagination = PaginationQuery::fromRequest($request);
+        $categories = $this->costService->paginateCategories($sort, $pagination);
+
+        return response()->json([
+            'data' => CostCategoryResource::collection($categories->items()),
+            'meta' => PaginationMeta::build($categories, $sort),
+        ]);
+    }
+
+    public function listCategories(): JsonResponse
     {
         return response()->json([
             'data' => CostCategoryResource::collection($this->costService->listCategories()),
+        ]);
+    }
+
+    public function showCategory(CostCategory $costCategory): JsonResponse
+    {
+        return response()->json([
+            'data' => new CostCategoryResource($costCategory),
         ]);
     }
 
@@ -48,12 +70,21 @@ class CostController extends Controller
 
     public function index(Request $request): JsonResponse
     {
+        $sort = SortQuery::fromRequest($request, CostService::COST_SORTABLE_COLUMNS);
+        $pagination = PaginationQuery::fromRequest($request);
         $userId = $request->query('user_id');
+        $costs = $this->costService->paginateCosts($sort, $pagination, $userId ? (int) $userId : null);
 
         return response()->json([
-            'data' => CollaboratorCostResource::collection(
-                $this->costService->listCosts($userId ? (int) $userId : null),
-            ),
+            'data' => CollaboratorCostResource::collection($costs->items()),
+            'meta' => PaginationMeta::build($costs, $sort),
+        ]);
+    }
+
+    public function show(CollaboratorCost $collaboratorCost): JsonResponse
+    {
+        return response()->json([
+            'data' => new CollaboratorCostResource($this->costService->findCost($collaboratorCost->id)),
         ]);
     }
 

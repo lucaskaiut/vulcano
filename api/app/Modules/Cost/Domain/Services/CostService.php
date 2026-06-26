@@ -4,11 +4,30 @@ namespace App\Modules\Cost\Domain\Services;
 
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\User\Domain\Support\PaginationQuery;
+use App\Modules\User\Domain\Support\SortQuery;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Collection;
 
 class CostService
 {
-    /** @return Collection<int, CostCategory> */
+    public const SORTABLE_COLUMNS = ['name', 'type', 'created_at'];
+    public const COST_SORTABLE_COLUMNS = ['amount', 'recurring', 'created_at'];
+
+    /** @return LengthAwarePaginator<int, CostCategory> */
+    public function paginateCategories(SortQuery $sort, PaginationQuery $pagination): LengthAwarePaginator
+    {
+        $query = CostCategory::query();
+        $sort->apply($query);
+
+        return $query->paginate($pagination->perPage, ['*'], 'page', $pagination->page);
+    }
+
+    public function findCategory(int $id): CostCategory
+    {
+        return CostCategory::query()->findOrFail($id);
+    }
+
     public function listCategories(): Collection
     {
         return CostCategory::query()->orderBy('name')->get();
@@ -32,7 +51,25 @@ class CostService
         return $category->fresh();
     }
 
-    /** @return Collection<int, CollaboratorCost> */
+    /** @return LengthAwarePaginator<int, CollaboratorCost> */
+    public function paginateCosts(SortQuery $sort, PaginationQuery $pagination, ?int $userId = null): LengthAwarePaginator
+    {
+        $query = CollaboratorCost::query()->with(['user', 'category']);
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        $sort->apply($query);
+
+        return $query->paginate($pagination->perPage, ['*'], 'page', $pagination->page);
+    }
+
+    public function findCost(int $id): CollaboratorCost
+    {
+        return CollaboratorCost::query()->with(['user', 'category'])->findOrFail($id);
+    }
+
     public function listCosts(?int $userId = null): Collection
     {
         $query = CollaboratorCost::query()

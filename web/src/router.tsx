@@ -13,7 +13,10 @@ import { RoleFormPage } from './pages/RoleFormPage'
 import { RolesPage } from './pages/RolesPage'
 import { UserDetailPage } from './pages/UserDetailPage'
 import { UserFormPage } from './pages/UserFormPage'
-import { CostsPage } from './pages/CostsPage'
+import { CostCategoriesPage } from './pages/CostCategoriesPage'
+import { CostCategoryFormPage } from './pages/CostCategoryFormPage'
+import { CostsListPage } from './pages/CostsListPage'
+import { CostsFormPage } from './pages/CostsFormPage'
 import { SalesPage } from './pages/SalesPage'
 import { VacationBalancesPage } from './pages/VacationBalancesPage'
 import { VacationRequestsPage } from './pages/VacationRequestsPage'
@@ -95,7 +98,37 @@ const userDetailRoute = createRoute({
 const costsRoute = createRoute({
   getParentRoute: () => layoutRoute,
   path: 'costs',
-  component: CostsPage,
+  component: CostsListPage,
+})
+
+const costsNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'costs/novo',
+  component: CostsFormPage,
+})
+
+const costsEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'costs/$id/editar',
+  component: CostsFormPage,
+})
+
+const costCategoriesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'cost-categories',
+  component: CostCategoriesPage,
+})
+
+const costCategoriesNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'cost-categories/novo',
+  component: CostCategoryFormPage,
+})
+
+const costCategoriesEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'cost-categories/$id/editar',
+  component: CostCategoryFormPage,
 })
 
 const salesRoute = createRoute({
@@ -166,6 +199,11 @@ const routeTree = rootRoute.addChildren([
     userEditRoute,
     userDetailRoute,
     costsRoute,
+    costsNewRoute,
+    costsEditRoute,
+    costCategoriesRoute,
+    costCategoriesNewRoute,
+    costCategoriesEditRoute,
     salesRoute,
     vacationBalancesRoute,
     vacationRequestsRoute,

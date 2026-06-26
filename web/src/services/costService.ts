@@ -1,9 +1,25 @@
 import { apiFetch } from './api'
+import type { PaginatedResponse } from './acl'
 import type { CollaboratorCost, CostCategory, MonthlyCostReport } from '../types/cost'
-import type { ItemResponse } from './acl'
 
 export async function listCategories(): Promise<CostCategory[]> {
-  const response = await apiFetch<{ data: CostCategory[] }>('/cost-categories')
+  const response = await apiFetch<{ data: CostCategory[] }>('/cost-categories/list')
+  return response.data
+}
+
+export async function paginateCategories(params: {
+  page?: number
+  per_page?: number
+} = {}): Promise<PaginatedResponse<CostCategory>> {
+  const query = new URLSearchParams()
+  if (params.page) query.set('page', String(params.page))
+  if (params.per_page) query.set('per_page', String(params.per_page))
+  const qs = query.toString()
+  return apiFetch<PaginatedResponse<CostCategory>>(`/cost-categories${qs ? `?${qs}` : ''}`)
+}
+
+export async function getCategory(id: number): Promise<CostCategory> {
+  const response = await apiFetch<{ data: CostCategory }>(`/cost-categories/${id}`)
   return response.data
 }
 
@@ -23,10 +39,22 @@ export async function updateCategory(id: number, payload: { name?: string; type?
   return response.data
 }
 
-export async function listCosts(userId?: number): Promise<CollaboratorCost[]> {
-  const query = userId ? `?user_id=${userId}` : ''
-  const response = await apiFetch<{ data: CollaboratorCost[] }>(`/collaborator-costs${query}`)
+export async function getCost(id: number): Promise<CollaboratorCost> {
+  const response = await apiFetch<{ data: CollaboratorCost }>(`/collaborator-costs/${id}`)
   return response.data
+}
+
+export async function paginateCosts(params: {
+  page?: number
+  per_page?: number
+  user_id?: number
+} = {}): Promise<PaginatedResponse<CollaboratorCost>> {
+  const query = new URLSearchParams()
+  if (params.page) query.set('page', String(params.page))
+  if (params.per_page) query.set('per_page', String(params.per_page))
+  if (params.user_id) query.set('user_id', String(params.user_id))
+  const qs = query.toString()
+  return apiFetch<PaginatedResponse<CollaboratorCost>>(`/collaborator-costs${qs ? `?${qs}` : ''}`)
 }
 
 export async function createCost(payload: {

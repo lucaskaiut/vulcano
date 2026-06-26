@@ -143,8 +143,12 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('cost-categories', [CostController::class, 'categories'])
         ->middleware('permission:costs.view');
+    Route::get('cost-categories/list', [CostController::class, 'listCategories'])
+        ->middleware('permission:costs.view');
     Route::post('cost-categories', [CostController::class, 'storeCategory'])
         ->middleware('permission:costs.create');
+    Route::get('cost-categories/{cost_category}', [CostController::class, 'showCategory'])
+        ->middleware('permission:costs.view');
     Route::put('cost-categories/{cost_category}', [CostController::class, 'updateCategory'])
         ->middleware('permission:costs.update');
 
@@ -152,6 +156,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:costs.view');
     Route::post('collaborator-costs', [CostController::class, 'store'])
         ->middleware('permission:costs.create');
+    Route::get('collaborator-costs/{collaborator_cost}', [CostController::class, 'show'])
+        ->middleware('permission:costs.view');
     Route::put('collaborator-costs/{collaborator_cost}', [CostController::class, 'update'])
         ->middleware('permission:costs.update');
     Route::delete('collaborator-costs/{collaborator_cost}', [CostController::class, 'destroy'])
