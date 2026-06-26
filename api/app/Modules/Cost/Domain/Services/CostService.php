@@ -4,6 +4,7 @@ namespace App\Modules\Cost\Domain\Services;
 
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\User\Domain\Models\User;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -12,7 +13,7 @@ use Illuminate\Database\Eloquent\Collection;
 class CostService
 {
     public const SORTABLE_COLUMNS = ['name', 'type', 'created_at'];
-    public const COST_SORTABLE_COLUMNS = ['amount', 'recurring', 'created_at'];
+    public const COST_SORTABLE_COLUMNS = ['amount', 'created_at'];
 
     /** @return LengthAwarePaginator<int, CostCategory> */
     public function paginateCategories(SortQuery $sort, PaginationQuery $pagination): LengthAwarePaginator
@@ -70,19 +71,6 @@ class CostService
         return CollaboratorCost::query()->with(['user', 'category'])->findOrFail($id);
     }
 
-    public function listCosts(?int $userId = null): Collection
-    {
-        $query = CollaboratorCost::query()
-            ->with(['user', 'category'])
-            ->orderBy('created_at', 'desc');
-
-        if ($userId) {
-            $query->where('user_id', $userId);
-        }
-
-        return $query->get();
-    }
-
     /** @param  array{user_id: int, cost_category_id: int, amount: float|string, recurring?: bool, reference_month?: string|null}  $data */
     public function createCost(array $data): CollaboratorCost
     {
@@ -108,44 +96,123 @@ class CostService
         $cost->delete();
     }
 
-    /** @return array<int, array{user_id: int, user_name: string, total: float, categories: array}> */
+    /**
+     * Relatório mensal consolidado.
+     * Inclui: salário base, provisões (13º e férias), benefícios manuais,
+     * comissões pagas no mês e férias concedidas no mês.
+     *
+     * @return array<int, array{user_id: int, user_name: string, total: float, categories: array<string, float>}>
+     */
     public function monthlyReport(?string $month = null): array
     {
         $month ??= now()->format('Y-m');
 
-        $costs = CollaboratorCost::query()
-            ->with(['user', 'category'])
-            ->where(function ($query) use ($month) {
-                $query->where('recurring', true)
-                    ->orWhere('reference_month', $month);
-            })
-            ->get();
-
         $report = [];
 
-        foreach ($costs as $cost) {
-            $userId = $cost->user_id;
+        // 1. Base salary + provisions for all active users
+        $users = User::query()->get();
 
-            if (! isset($report[$userId])) {
-                $report[$userId] = [
-                    'user_id' => $userId,
+        foreach ($users as $user) {
+            $salary = (float) $user->salary;
+            $thirteenth = $salary / 12;
+            $vacationProvision = $salary / 12; // férias (1 mês por ano)
+            $vacationBonus = ($salary / 12) / 3; // adicional de 1/3 sobre férias
+
+            $report[$user->id] = [
+                'user_id' => $user->id,
+                'user_name' => $user->name,
+                'total' => 0,
+                'categories' => [],
+            ];
+
+            $this->addToReport($report, $user->id, 'Salário', $salary);
+            $this->addToReport($report, $user->id, 'Provisão 13º', round($thirteenth, 2));
+            $this->addToReport($report, $user->id, 'Provisão Férias', round($vacationProvision, 2));
+            $this->addToReport($report, $user->id, 'Provisão 1/3 Férias', round($vacationBonus, 2));
+        }
+
+        // 2. Manual recurring costs (benefits)
+        $manualCosts = CollaboratorCost::query()
+            ->with('category')
+            ->where('recurring', true)
+            ->get();
+
+        foreach ($manualCosts as $cost) {
+            if (! isset($report[$cost->user_id])) {
+                $report[$cost->user_id] = [
+                    'user_id' => $cost->user_id,
                     'user_name' => $cost->user?->name ?? '—',
                     'total' => 0,
                     'categories' => [],
                 ];
             }
 
-            $catName = $cost->category?->name ?? '—';
+            $this->addToReport($report, $cost->user_id, $cost->category?->name ?? 'Benefício', (float) $cost->amount);
+        }
 
-            if (! isset($report[$userId]['categories'][$catName])) {
-                $report[$userId]['categories'][$catName] = 0;
+        // 3. Commissions paid this month
+        $paidCommissions = \App\Modules\Commission\Domain\Models\Commission::query()
+            ->with('sale.user')
+            ->whereNotNull('paid_at')
+            ->whereRaw("strftime('%Y-%m', paid_at) = ?", [$month])
+            ->get();
+
+        foreach ($paidCommissions as $commission) {
+            $userId = $commission->sale->user_id;
+
+            if (! isset($report[$userId])) {
+                $report[$userId] = [
+                    'user_id' => $userId,
+                    'user_name' => $commission->sale->user?->name ?? '—',
+                    'total' => 0,
+                    'categories' => [],
+                ];
             }
 
-            $amount = (float) $cost->amount;
-            $report[$userId]['categories'][$catName] += $amount;
-            $report[$userId]['total'] += $amount;
+            $this->addToReport($report, $userId, 'Comissão', (float) $commission->commission_amount);
+        }
+
+        // 4. Vacation grants this month (additional vacation cost: 1/3 of salary over vacation days)
+        $grants = \App\Modules\Vacation\Domain\Models\VacationGrant::query()
+            ->with('user')
+            ->whereRaw("strftime('%Y-%m', created_at) = ?", [$month])
+            ->get();
+
+        foreach ($grants as $grant) {
+            $userId = $grant->user_id;
+
+            if (! isset($report[$userId])) {
+                $report[$userId] = [
+                    'user_id' => $userId,
+                    'user_name' => $grant->user?->name ?? '—',
+                    'total' => 0,
+                    'categories' => [],
+                ];
+            }
+
+            $this->addToReport($report, $userId, 'Férias concedidas', (float) $grant->days_used);
+        }
+
+        // Round totals
+        foreach ($report as &$row) {
+            $row['total'] = round($row['total'], 2);
+
+            foreach ($row['categories'] as $cat => $val) {
+                $row['categories'][$cat] = round($val, 2);
+            }
         }
 
         return array_values($report);
+    }
+
+    /** @param  array<int, array<string, mixed>>  $report */
+    private function addToReport(array &$report, int $userId, string $category, float $amount): void
+    {
+        if (! isset($report[$userId]['categories'][$category])) {
+            $report[$userId]['categories'][$category] = 0;
+        }
+
+        $report[$userId]['categories'][$category] += $amount;
+        $report[$userId]['total'] += $amount;
     }
 }

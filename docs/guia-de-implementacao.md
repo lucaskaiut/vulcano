@@ -2,6 +2,36 @@
 
 ## Sistema de Gestão de Colaboradores PJ
 
+### Progresso: 10/18 etapas concluídas (56%)
+
+| Etapa | Status |
+|---|---|
+| 1 — Fundação | ✅ |
+| 2 — Autenticação | ✅ |
+| 3 — Usuários e Perfis (ACL) | ✅ |
+| 4 — Cadastro de Colaboradores | ✅ |
+| 5 — Histórico Salarial | ✅ |
+| 6 — Motor de Aprovações | ✅ |
+| 7 — Gestão de Férias | ✅ |
+| 8 — Solicitação de Férias | ✅ |
+| 9 — Gestão de Comissões | ✅ |
+| 10 — Gestão de Custos | ✅ |
+| 11 — Gestão de Documentos | ❌ |
+| 12 — Notas Fiscais Mensais | ❌ |
+| 13 — Exames Periódicos | ❌ |
+| 14 — Notificações | ❌ |
+| 15 — Dashboard Executivo | ⚠️ placeholder |
+| 16 — Relatórios | ❌ |
+| 17 — Auditoria | ❌ |
+| 18 — Homologação Final | ❌ |
+
+### Stack real (pode divergir do planejado)
+
+* Backend: Laravel 13, PHP 8.4, MySQL 8.4, SQLite (testes)
+* Frontend: React 19, Vite, Tailwind CSS 4, TanStack Query, TanStack Router
+* Permissões: enum-based (sem tabela), 34 permissões
+* Testes: 114 passando, SQLite in-memory
+
 ---
 
 # Diretrizes Gerais
@@ -346,231 +376,53 @@ Histórico salarial funcional.
 
 # Motor de Aprovações Configurável
 
-## Objetivo
+## Status: ✅ Implementada
 
-Implementar uma estrutura genérica que permita criar fluxos de aprovação sem necessidade de desenvolvimento específico para cada processo.
+## O que foi implementado
 
-Essa estrutura será utilizada posteriormente pelos módulos de:
+Workflows são definidos como **enum fixo** (`WorkflowType`), não como tabela. O admin configura apenas as **etapas** de cada tipo de workflow.
 
-* Solicitação de férias
-* Aprovação de comissões
-* Aprovação de documentos
-* Aprovação de pagamentos
-* Futuros processos da empresa
+### Entidades
 
----
+* **WorkflowType** (enum): `vacation_request`, `commission`, `document`
+* **WorkflowStep**: `workflow_type` (string), `name`, `order`, `responsible_role_id`, `responsible_user_id`
+* **WorkflowInstance**: `workflow_type`, `title`, `status`, `current_step_id`, `initiated_by_user_id`, `subject` (polymorphic)
+* **WorkflowInstanceHistory**: registro de cada ação no processo
 
-## Exemplo de uso
-
-### Fluxo de Férias
-
-```text
-Colaborador
-    ↓
-Gestora
-    ↓
-Controlador
-    ↓
-RH
-```
-
-### Fluxo de Comissão
-
-```text
-Vendedora
-    ↓
-Gestora
-    ↓
-Controlador
-    ↓
-Financeiro
-```
-
-O sistema não deve possuir esses fluxos fixos.
-
-Os fluxos deverão ser cadastrados e configurados pelo administrador.
-
----
-
-## TDD
-
-Criar testes para:
-
-### Fluxos
-
-* Criar fluxo
-* Editar fluxo
-* Inativar fluxo
-
-### Etapas
-
-* Adicionar etapa ao fluxo
-* Remover etapa
-* Reordenar etapas
-
-### Execução
-
-* Iniciar processo
-* Aprovar etapa
-* Reprovar etapa
-* Cancelar processo
-
-### Regras
-
-* Não avançar para próxima etapa sem aprovação
-* Encerrar processo ao reprovar
-* Encerrar processo ao concluir última etapa
-
----
-
-## Funcionalidades
-
-### Cadastro de Fluxos
-
-Campos:
-
-* Nome
-* Descrição
-* Ativo/Inativo
-
-Exemplos:
-
-* Aprovação de férias
-* Aprovação de comissão
-* Aprovação de documentos
-
----
-
-### Cadastro de Etapas
-
-Campos:
-
-* Nome da etapa
-* Ordem
-* Responsável
-
-Exemplo:
-
-```text
-Etapa 1
-Nome: Gestora
-
-Etapa 2
-Nome: Controlador
-
-Etapa 3
-Nome: RH
-```
-
----
-
-### Instância de Aprovação
-
-Quando um processo for iniciado:
-
-Exemplo:
-
-```text
-Solicitação de férias #123
-```
-
-O sistema deverá:
-
-* Criar uma instância do fluxo
-* Registrar status atual
-* Registrar aprovadores
-* Registrar histórico
-
----
-
-### Histórico
-
-Registrar:
-
-* Data
-* Hora
-* Usuário
-* Ação
-
-Exemplo:
-
-```text
-15/08/2026 09:10
-Gestora aprovou
-
-15/08/2026 11:45
-Controlador aprovou
-
-15/08/2026 14:00
-RH aprovou
-```
-
----
-
-## APIs esperadas
-
-### Fluxos
+### APIs
 
 ```http
-POST /workflows
+GET    /workflow-types/{type}/steps        — Listar etapas
+POST   /workflow-types/{type}/steps        — Adicionar etapa
+PUT    /workflow-steps/{id}                — Atualizar etapa
+DELETE /workflow-steps/{id}                — Remover etapa
+PUT    /workflow-steps/{id}/reorder        — Reordenar etapa
 
-GET /workflows
-
-PUT /workflows/{id}
+GET    /workflow-instances                 — Listar processos (com escopo)
+POST   /workflow-instances                 — Iniciar processo
+GET    /workflow-instances/{id}            — Ver processo
+POST   /workflow-instances/{id}/approve    — Aprovar etapa
+POST   /workflow-instances/{id}/reject     — Reprovar
+POST   /workflow-instances/{id}/cancel     — Cancelar
 ```
 
-### Etapas
+### Regras de visibilidade
 
-```http
-POST /workflows/{id}/steps
+* Colaborador vê apenas os próprios processos
+* Gestor vê os próprios + subordinados diretos
+* Aprovador vê processos onde é responsável por qualquer etapa do fluxo
+* Admin com `workflow_instances.view_all` vê tudo
 
-PUT /workflow-steps/{id}
-```
+### Frontend
 
-### Processos
+* **Workflows** (`/workflows`) — admin configura etapas por tipo de workflow
+* **Processos** (`/workflow-instances`) — listagem de instâncias
+* Kanban reutilizável (`WorkflowKanban`) usado nos módulos de férias e comissões
 
-```http
-POST /workflow-instances
+### Permissões
 
-POST /workflow-instances/{id}/approve
-
-POST /workflow-instances/{id}/reject
-```
-
----
-
-## Entregável
-
-Ao final da etapa deve ser possível:
-
-### Cenário de teste
-
-Criar um fluxo chamado:
-
-```text
-Aprovação de Férias
-```
-
-Com as etapas:
-
-```text
-1 - Gestora
-2 - Controlador
-3 - RH
-```
-
-Iniciar uma solicitação fictícia.
-
-Aprovar cada etapa.
-
-Resultado esperado:
-
-```text
-Status Final:
-Aprovado
-```
-
-Todo o histórico deve estar registrado e consultável.
+* `workflow_steps.view/create/update/delete` — Gerenciar etapas
+* `workflow_instances.view/view_all/create/approve/reject/cancel` — Processos
 
 ---
 
@@ -578,113 +430,43 @@ Todo o histórico deve estar registrado e consultável.
 
 # Gestão de Férias
 
-## Objetivo
+## Status: ✅ Implementada
 
-Implementar toda a estrutura responsável pelo controle de saldo de férias dos colaboradores, sem envolver solicitações ou aprovações.
+## O que foi implementado
 
-Esta etapa é responsável apenas pelo cálculo e armazenamento das informações de férias.
+Cálculo automático: **2,5 dias por mês completo**, baseado na data de contratação. Apenas meses fechados contam — sem proporcional.
 
----
+Fórmula: `meses_completos × 2,5`
 
-## Entidades
+### Entidades
 
-### VacationBalance
+* **VacationBalance**: `available_days` (calculado), `accrued_days` (calculado), `used_days`, `additional_days`, `additional_days_entries` (JSON)
+* **VacationPeriod**: mantido para histórico, não é mais usado para cálculo
+* **VacationGrant**: férias concedidas (debitam saldo)
+* **VacationRequest**: solicitação de férias com workflow (Etapa 8)
 
-Responsável por armazenar o saldo do colaborador.
-
-Campos:
-
-* collaborator_id
-* available_days
-* accrued_days
-* used_days
-* additional_days
-
-### VacationPeriod
-
-Representa um período aquisitivo.
-
-Campos:
-
-* collaborator_id
-* start_date
-* end_date
-* entitled_days
-
-### VacationGrant
-
-Representa férias concedidas.
-
-Campos:
-
-* collaborator_id
-* start_date
-* end_date
-* days_used
-
----
-
-## TDD
-
-Criar testes para:
-
-### Saldo
-
-* Criar saldo inicial
-* Atualizar saldo
-* Consultar saldo
-
-### Período aquisitivo
-
-* Criar período
-* Encerrar período
-* Calcular dias adquiridos
-
-### Concessão
-
-* Registrar férias concedidas
-* Debitar saldo
-* Impedir saldo negativo
-
----
-
-## APIs
+### APIs
 
 ```http
-GET /vacation-balances
+GET    /vacation-balances
+POST   /vacation-balances
+GET    /vacation-balances/{id}
+PUT    /vacation-balances/{id}
 
-GET /vacation-balances/{id}
+GET    /vacation-grants
+POST   /vacation-grants
 
-POST /vacation-grants
-
-GET /vacation-periods
+GET    /vacation-periods
+POST   /vacation-periods
+POST   /vacation-periods/{id}/close
 ```
 
----
+### Frontend
 
-## Frontend
-
-* Listagem de saldos
-* Detalhes do colaborador
-* Histórico de férias
-* Histórico de períodos aquisitivos
-
----
-
-## Critério de aceite
-
-Ao acessar um colaborador deve ser possível visualizar:
-
-* Saldo atual
-* Férias concedidas
-* Dias utilizados
-* Períodos aquisitivos
-
----
-
-## Entregável
-
-Módulo de controle de férias operacional.
+* **Saldos de férias** (`/vacation-balances`) — tabela com saldo disponível, adquiridos, utilizados
+* **Períodos aquisitivos** — cards visuais na tela do colaborador (calculados do hire_date)
+* **Dias adicionais** — seção com entradas descritivas na tela do colaborador
+* **Concessão manual** — formulário na tela do colaborador (datas + dias)
 
 ---
 
@@ -692,82 +474,42 @@ Módulo de controle de férias operacional.
 
 # Solicitação de Férias
 
-## Objetivo
+## Status: ✅ Implementada
 
-Permitir que colaboradores solicitem férias e que a solicitação passe pelo fluxo de aprovação configurado na Etapa 6.
+## O que foi implementado
 
----
+### Entidades
 
-## Entidades
+* **VacationRequest**: `user_id`, `start_date`, `end_date`, `requested_days` (calculado), `justification`, `status`, `workflow_instance_id`
 
-### VacationRequest
+### Fluxo
 
-Campos:
+1. Colaborador solicita férias → cria `VacationRequest` + inicia `WorkflowInstance` com `workflow_type = 'vacation_request'`
+2. Kanban mostra cards por etapa do workflow
+3. Aprovador aprova/reprova via botões no card
+4. Quando aprovado em todas as etapas → `VacationGrant` criado automaticamente → saldo debitado
 
-* collaborator_id
-* start_date
-* end_date
-* requested_days
-* justification
-* status
-
----
-
-## TDD
-
-Criar testes para:
-
-* Criar solicitação
-* Cancelar solicitação
-* Aprovar solicitação
-* Reprovar solicitação
-* Integrar com workflow
-* Atualizar saldo após aprovação
-
----
-
-## APIs
+### APIs
 
 ```http
-POST /vacation-requests
-
-GET /vacation-requests
-
-POST /vacation-requests/{id}/cancel
+GET    /vacation-requests                  — Listar solicitações
+POST   /vacation-requests                  — Criar solicitação
+POST   /vacation-requests/{id}/cancel       — Cancelar solicitação
 ```
 
----
+### Frontend
 
-## Frontend
+* **Solicitações** (`/vacation-requests`) — kanban + formulário de solicitação
+* Componente `WorkflowKanban` reutilizado
 
-* Solicitar férias
-* Listar solicitações
-* Aprovar solicitação
-* Reprovar solicitação
-* Visualizar histórico
+### Integração com Workflow
 
----
+* `WorkflowInstanceService::approve()` chama `handleSubjectApproval()` ao aprovar última etapa
+* Cria `VacationGrant` e debita `VacationBalance` automaticamente
 
-## Critério de aceite
+### Regras de visibilidade
 
-Criar uma solicitação de férias.
-
-Fluxo:
-
-* Gestora aprova
-* Controlador aprova
-* RH aprova
-
-Resultado:
-
-* Solicitação aprovada
-* Saldo atualizado
-
----
-
-## Entregável
-
-Fluxo completo de solicitação de férias funcionando.
+Mesmo padrão do workflow: colaborador vê próprio + gestor vê subordinados + aprovador vê onde é responsável
 
 ---
 
@@ -781,87 +523,56 @@ Permitir registrar vendas e calcular comissões dos colaboradores.
 
 ---
 
-## Entidades
+## Status: ✅ Implementada
+
+---
+
+## O que foi implementado
+
+### Entidades
 
 ### Sale
 
 * collaborator_id
-* development_name
-* unit
-* sale_date
-* sale_amount
+* development_name — empreendimento
+* unit — unidade
+* sale_date — data da venda
+* sale_amount — valor da venda
+* percentage — percentual de comissão (informado no cadastro)
+* commission_amount — valor calculado automaticamente (`sale_amount * percentage / 100`)
+* notes — observações
 
 ### Commission
 
-* sale_id
+* sale_id — venda vinculada
 * percentage
 * commission_amount
-* status
+* status — pending, approved, rejected, paid
+* workflow_instance_id — integração com motor de aprovações
+* paid_at — data do pagamento
+* paid_by_user_id — quem marcou como paga
 
----
+### Integração com Workflow
 
-## TDD
+Ao registrar a venda, o sistema cria uma `WorkflowInstance` com `workflow_type = 'commission'`. O kanban de aprovação usa o componente `WorkflowKanban` reaproveitado da etapa 8.
 
-Criar testes para:
-
-* Registrar venda
-* Calcular comissão
-* Aprovar comissão
-* Reprovar comissão
-* Marcar pagamento
-
----
-
-## APIs
+### APIs implementadas
 
 ```http
-POST /sales
-
-GET /sales
-
-POST /commissions/{id}/approve
-
-POST /commissions/{id}/reject
-
-POST /commissions/{id}/pay
+GET  /sales                        — Listar vendas/comissões
+POST /sales                        — Registrar venda (cria comissão + inicia workflow)
+POST /commissions/{id}/pay         — Marcar comissão como paga
 ```
 
----
+### Frontend
 
-## Frontend
+* **Comissões** (`/sales`) — kanban de aprovação + formulário de venda + seção de comissões aprovadas aguardando pagamento
 
-* Cadastro de venda
-* Listagem de vendas
-* Aprovação
-* Controle de pagamento
+### Permissões
 
----
-
-## Critério de aceite
-
-Cadastrar uma venda.
-
-Valor:
-
-R$ 500.000,00
-
-Percentual:
-
-2%
-
-Resultado esperado:
-
-Comissão gerada:
-
-R$ 10.000,00
-
-Fluxo aprovado e pagamento registrado.
-
----
-
-## Entregável
-
-Controle de comissão operacional.
+* `commissions.view` — Visualizar Comissões
+* `commissions.create` — Criar Comissões
+* `commissions.pay` — Pagar Comissões
 
 ---
 
@@ -875,74 +586,67 @@ Calcular automaticamente o custo mensal de cada colaborador.
 
 ---
 
-## Entidades
+## Status: ✅ Implementada
+
+---
+
+## O que foi implementado
+
+### Cálculo automático de custos
+
+O demonstrativo mensal (`GET /costs-report`) agrega automaticamente:
+
+1. **Salário base** — do campo `salary` do colaborador
+2. **Provisão 13º** — `salário / 12` por mês
+3. **Provisão Férias** — `salário / 12` por mês
+4. **Provisão 1/3 Férias** — `(salário / 12) / 3` por mês
+5. **Benefícios manuais** — cadastrados via `collaborator_costs` (recorrentes)
+6. **Comissões pagas no mês** — comissões com `paid_at` dentro do mês de referência
+7. **Férias concedidas no mês** — `vacation_grants` criados no mês de referência
+
+### Entidades
 
 ### CostCategory
 
-* name
-* type
-* active
+* name — nome da categoria (ex: Plano de saúde, Vale alimentação)
+* type — tipo (fixed, benefit, provisioned)
+* active — ativo/inativo
 
 ### CollaboratorCost
 
-* collaborator_id
-* category_id
-* amount
-* recurring
+* user_id — colaborador
+* cost_category_id — categoria
+* amount — valor
+* recurring — se é recorrente (mensal) ou pontual
+* reference_month — mês de referência (para custos pontuais)
 
----
-
-## TDD
-
-Criar testes para:
-
-* Criar categoria
-* Vincular custo
-* Calcular custo mensal
-* Provisionar férias
-* Provisionar 13º
-
----
-
-## APIs
+### APIs implementadas
 
 ```http
-POST /cost-categories
-
-GET /cost-categories
-
-POST /collaborator-costs
-
-GET /collaborator-costs
+GET  /costs-report                        — Demonstrativo mensal automático
+GET  /cost-categories                     — Listar categorias (paginado)
+GET  /cost-categories/list                — Listar categorias (completo, sem paginação)
+POST /cost-categories                     — Criar categoria
+GET  /cost-categories/{id}                — Ver categoria
+PUT  /cost-categories/{id}                — Atualizar categoria
+GET  /collaborator-costs                  — Listar custos manuais (paginado)
+POST /collaborator-costs                  — Vincular custo manual
+GET  /collaborator-costs/{id}             — Ver custo
+PUT  /collaborator-costs/{id}             — Atualizar custo
+DELETE /collaborator-costs/{id}           — Remover custo
 ```
 
----
+### Frontend
 
-## Frontend
+* **Categorias de custo** (`/cost-categories`) — tabela paginada com CRUD
+* **Custos** (`/costs`) — demonstrativo mensal automático + benefícios manuais
 
-* Cadastro de categorias
-* Cadastro de custos
-* Demonstrativo mensal
+### Permissões
 
----
-
-## Critério de aceite
-
-Colaborador:
-
-* Remuneração: R$ 5.000
-* Plano de saúde: R$ 300
-* Alimentação: R$ 500
-
-Resultado:
-
-Custo mensal exibido corretamente.
-
----
-
-## Entregável
-
-Motor de custos operacional.
+* `costs.view` — Visualizar Custos
+* `costs.create` — Criar Custos
+* `costs.update` — Atualizar Custos
+* `costs.delete` — Excluir Custos
 
 ---
 
