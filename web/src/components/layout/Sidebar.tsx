@@ -27,7 +27,7 @@ export function Sidebar() {
 
       {/* User info */}
       {user && (
-        <div className="flex items-center gap-3 px-4 pb-5">
+        <div className="flex items-center gap-3 px-4 py-5">
           <div
             className="flex size-10 shrink-0 items-center justify-center rounded-full bg-sidebar-hover text-sm font-semibold text-white"
             aria-hidden
