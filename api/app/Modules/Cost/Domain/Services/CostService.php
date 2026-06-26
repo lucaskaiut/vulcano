@@ -106,6 +106,8 @@ class CostService
     public function monthlyReport(?string $month = null): array
     {
         $month ??= now()->format('Y-m');
+        $startOfMonth = \Carbon\Carbon::createFromFormat('Y-m-d', $month . '-01')->startOfDay();
+        $endOfMonth = $startOfMonth->copy()->endOfMonth()->endOfDay();
 
         $report = [];
 
@@ -154,7 +156,7 @@ class CostService
         $paidCommissions = \App\Modules\Commission\Domain\Models\Commission::query()
             ->with('sale.user')
             ->whereNotNull('paid_at')
-            ->whereRaw("strftime('%Y-%m', paid_at) = ?", [$month])
+            ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
             ->get();
 
         foreach ($paidCommissions as $commission) {
@@ -175,7 +177,7 @@ class CostService
         // 4. Vacation grants this month (additional vacation cost: 1/3 of salary over vacation days)
         $grants = \App\Modules\Vacation\Domain\Models\VacationGrant::query()
             ->with('user')
-            ->whereRaw("strftime('%Y-%m', created_at) = ?", [$month])
+            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
             ->get();
 
         foreach ($grants as $grant) {
