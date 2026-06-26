@@ -1,4 +1,4 @@
-import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, BookOpen, type LucideIcon } from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -22,6 +22,7 @@ const allNavigationItems: NavigationItem[] = [
   { label: 'Notas Fiscais', href: '/invoices', title: 'Notas Fiscais', icon: ReceiptText, permission: 'invoices.view' },
   { label: 'Relatórios', href: '/reports', title: 'Relatórios', icon: BarChart3, permission: 'users.view' },
   { label: 'Auditoria', href: '/audit-logs', title: 'Auditoria', icon: ClipboardList, permission: 'audit.view' },
+  { label: 'Guia do Usuário', href: '/user-guide', title: 'Guia do Usuário', icon: BookOpen },
   { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield, permission: 'roles.view' },
   { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.update' },
 ]
@@ -111,6 +112,7 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/invoices') return 'Notas Fiscais'
   if (pathname === '/reports') return 'Relatórios'
   if (pathname === '/audit-logs') return 'Auditoria'
+  if (pathname === '/user-guide') return 'Guia do Usuário'
   if (pathname === '/vacation-requests') return 'Solicitações de férias'
   if (pathname === '/workflow-instances') return 'Processos'
   if (/^\/workflow-instances\/\d+$/.test(pathname)) return 'Detalhes do processo'

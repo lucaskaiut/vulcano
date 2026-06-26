@@ -17,6 +17,7 @@ use App\Modules\Cost\Http\Controllers\CostController;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
 use App\Modules\Audit\Http\Controllers\AuditController;
+use App\Modules\Dashboard\Http\Controllers\DocController;
 use App\Modules\Dashboard\Http\Controllers\DashboardController;
 use App\Modules\Report\Http\Controllers\ReportController;
 use App\Modules\Document\Http\Controllers\DocumentController;
@@ -223,6 +224,8 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:notifications.view');
 
     Route::get('dashboard', [DashboardController::class, 'summary']);
+
+    Route::get('docs/user-guide', [DocController::class, 'guide']);
 
     Route::get('reports/collaborators', [ReportController::class, 'collaborators'])
         ->middleware('permission:users.view');
