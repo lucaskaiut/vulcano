@@ -3,6 +3,7 @@
 namespace App\Modules\Invoice\Domain\Services;
 
 use App\Modules\Invoice\Domain\Models\Invoice;
+use App\Modules\User\Domain\Enums\Permission;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Domain\Services\WorkflowInstanceService;
 use Illuminate\Database\Eloquent\Collection;
@@ -30,7 +31,7 @@ class InvoiceService
         $query = Invoice::query()
             ->with(['user', 'workflowInstance.currentStep']);
 
-        if ($user->hasPermission(\App\Modules\User\Domain\Enums\Permission::WorkflowInstancesViewAll->value)) {
+        if ($user->hasPermission(Permission::InvoicesViewAll->value)) {
             return $query->orderBy('created_at', 'desc')->get();
         }
 

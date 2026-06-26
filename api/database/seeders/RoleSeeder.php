@@ -52,6 +52,7 @@ class RoleSeeder extends Seeder
                     PermissionEnum::DocumentsDelete->value,
                     PermissionEnum::InvoicesView->value,
                     PermissionEnum::InvoicesCreate->value,
+                    PermissionEnum::InvoicesViewAll->value,
                 ],
             ],
             [

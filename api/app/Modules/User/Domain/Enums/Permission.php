@@ -45,6 +45,7 @@ enum Permission: string
     case DocumentsDelete = 'documents.delete';
     case InvoicesView = 'invoices.view';
     case InvoicesCreate = 'invoices.create';
+    case InvoicesViewAll = 'invoices.view_all';
 
     public function label(): string
     {
@@ -90,6 +91,7 @@ enum Permission: string
             self::DocumentsDelete => 'Excluir Documentos',
             self::InvoicesView => 'Visualizar Notas Fiscais',
             self::InvoicesCreate => 'Criar Notas Fiscais',
+            self::InvoicesViewAll => 'Visualizar Todas as Notas Fiscais',
         };
     }
 
