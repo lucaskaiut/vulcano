@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useState } from 'react'
 import { approveInstance, rejectInstance } from '../services/workflowService'
 import { createSale, listSales, payCommission } from '../services/commissionService'
@@ -26,6 +26,7 @@ export function SalesPage() {
     queryKey: ['sales'],
     queryFn: listSales,
     refetchInterval: 10_000,
+    placeholderData: keepPreviousData,
   })
 
   const createMutation = useMutation({

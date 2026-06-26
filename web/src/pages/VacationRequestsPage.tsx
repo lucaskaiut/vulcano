@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useState } from 'react'
 import {
   approveInstance,
@@ -33,6 +33,7 @@ export function VacationRequestsPage() {
     queryKey: ['vacation-requests'],
     queryFn: listVacationRequests,
     refetchInterval: 10_000,
+    placeholderData: keepPreviousData,
   })
 
   const createMutation = useMutation({

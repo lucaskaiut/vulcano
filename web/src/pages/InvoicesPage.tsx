@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { Download } from 'lucide-react'
 import { useState } from 'react'
 import { approveInstance, rejectInstance } from '../services/workflowService'
@@ -61,6 +61,7 @@ export function InvoicesPage() {
     queryKey: ['invoices'],
     queryFn: listInvoices,
     refetchInterval: 10_000,
+    placeholderData: keepPreviousData,
   })
 
   const createMutation = useMutation({
