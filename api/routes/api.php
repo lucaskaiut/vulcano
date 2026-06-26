@@ -23,6 +23,7 @@ use App\Modules\Invoice\Http\Controllers\InvoiceController;
 use App\Modules\Invoice\Domain\Models\Invoice;
 use App\Modules\MedicalExam\Http\Controllers\MedicalExamController;
 use App\Modules\MedicalExam\Domain\Models\MedicalExam;
+use App\Modules\Notification\Http\Controllers\NotificationController;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -214,4 +215,7 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:medical_exams.delete');
     Route::get('medical-exams/{medical_exam}/download', [MedicalExamController::class, 'download'])
         ->middleware('permission:medical_exams.view');
+
+    Route::get('notifications', [NotificationController::class, 'index'])
+        ->middleware('permission:notifications.view');
 });

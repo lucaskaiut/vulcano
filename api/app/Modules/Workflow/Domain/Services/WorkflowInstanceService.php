@@ -150,6 +150,7 @@ class WorkflowInstanceService
 
         if ($result === true) {
             $this->handleSubjectApproval($instance);
+            $this->notifyApproval($instance);
         }
 
         return $this->find($instance->id);
@@ -161,7 +162,7 @@ class WorkflowInstanceService
         $currentStep = $this->resolveCurrentStep($instance);
         $this->assertCanActOnStep($rejector, $currentStep);
 
-        return DB::transaction(function () use ($instance, $rejector, $currentStep, $notes) {
+        DB::transaction(function () use ($instance, $rejector, $currentStep, $notes) {
             $this->recordHistory(
                 $instance,
                 $rejector,
@@ -176,9 +177,11 @@ class WorkflowInstanceService
             ]);
 
             $this->handleSubjectRejection($instance);
-
-            return $this->find($instance->id);
         });
+
+        $this->notifyRejection($instance, $rejector, $notes);
+
+        return $this->find($instance->id);
     }
 
     public function cancel(WorkflowInstance $instance, User $canceller, ?string $notes = null): WorkflowInstance
@@ -309,5 +312,32 @@ class WorkflowInstanceService
                 $invoice->update(['status' => 'rejected']);
             }
         }
+    }
+
+    private function notifyApproval(WorkflowInstance $instance): void
+    {
+        $initiator = $instance->initiatedBy;
+        if (! $initiator) return;
+
+        $title = "Processo aprovado: {$instance->title}";
+        $body = "Seu processo \"{$instance->title}\" foi totalmente aprovado.";
+
+        app(\App\Modules\Notification\Domain\Services\NotificationService::class)
+            ->dispatch('workflow_approved', $initiator, $title, $body);
+    }
+
+    private function notifyRejection(WorkflowInstance $instance, User $rejector, ?string $notes = null): void
+    {
+        $initiator = $instance->initiatedBy;
+        if (! $initiator) return;
+
+        $title = "Processo reprovado: {$instance->title}";
+        $body = "Seu processo \"{$instance->title}\" foi reprovado por {$rejector->name}.";
+        if ($notes) {
+            $body .= " Motivo: {$notes}";
+        }
+
+        app(\App\Modules\Notification\Domain\Services\NotificationService::class)
+            ->dispatch('workflow_rejected', $initiator, $title, $body);
     }
 }

@@ -58,6 +58,7 @@ enum Permission: string
     case MedicalExamsCreate = 'medical_exams.create';
     case MedicalExamsUpdate = 'medical_exams.update';
     case MedicalExamsDelete = 'medical_exams.delete';
+    case NotificationsView = 'notifications.view';
 
     public function label(): string
     {
@@ -116,6 +117,7 @@ enum Permission: string
             self::MedicalExamsCreate => 'Criar Exames',
             self::MedicalExamsUpdate => 'Atualizar Exames',
             self::MedicalExamsDelete => 'Excluir Exames',
+            self::NotificationsView => 'Visualizar Notificações',
         };
     }
 
