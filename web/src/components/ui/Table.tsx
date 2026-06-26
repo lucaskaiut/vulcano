@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { Children, isValidElement, useState, type ReactNode } from 'react'
+import { Children, isValidElement, useState, type HTMLAttributes, type ReactNode } from 'react'
 
 type TableProps = {
   children: ReactNode
@@ -26,8 +26,8 @@ export function TableBody({ children }: { children: ReactNode }) {
   return <tbody className="divide-y divide-surface-sunken">{children}</tbody>
 }
 
-export function TableRow({ children }: { children: ReactNode }) {
-  return <tr className="transition hover:bg-surface-sunken/60">{children}</tr>
+export function TableRow({ children, className = '', ...props }: { children: ReactNode; className?: string } & HTMLAttributes<HTMLTableRowElement>) {
+  return <tr className={`transition hover:bg-surface-sunken/60 ${className}`} {...props}>{children}</tr>
 }
 
 type TableHeaderCellProps = {
