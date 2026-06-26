@@ -226,7 +226,7 @@ export function CostsListPage() {
             })
 
             return (
-              <div key={row.user_id} className="overflow-hidden rounded-xl bg-surface shadow-overlay">
+              <div key={row.user_id} className="relative overflow-visible rounded-xl bg-surface shadow-overlay">
                 <div className="p-5">
                   <div className="flex items-start justify-between">
                     <div className="min-w-0">
@@ -273,7 +273,7 @@ export function CostsListPage() {
                 </button>
 
                 {isExpanded && (
-                  <div className="space-y-4 bg-surface-sunken/30 px-5 py-4">
+                  <div className="absolute left-0 right-0 top-full z-20 space-y-4 rounded-b-xl bg-surface px-5 py-4 shadow-overlay">
                     {salaryItems.length > 0 && (
                       <div>
                         <p className={`mb-1.5 text-xs font-semibold uppercase tracking-wider ${SECTION_COLORS.salary}`}>Salário</p>
