@@ -254,7 +254,6 @@ export function UserGuidePage() {
           <li>Lembrete diário de documentos próximos do vencimento</li>
           <li>Lembrete diário de exames próximos do vencimento</li>
         </InlineList>
-        <p>No ambiente de desenvolvimento, os e-mails são capturados pelo MailHog em <Code>http://localhost:8025</Code>. Em produção, configure as credenciais SMTP no arquivo <Code>.env</Code>.</p>
       </Section>
     </div>
   )
