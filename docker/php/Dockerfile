@@ -28,8 +28,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY php.ini /usr/local/etc/php/conf.d/99-laravel.ini
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY worker-entrypoint.sh /usr/local/bin/worker-entrypoint.sh
 
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh \
+    && chmod +x /usr/local/bin/worker-entrypoint.sh
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 

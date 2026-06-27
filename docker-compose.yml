@@ -26,6 +26,25 @@ services:
     networks:
       - vulcano
 
+  worker:
+    env_file:
+      - .env.docker
+    build:
+      context: ./docker/php
+      dockerfile: Dockerfile
+    container_name: vulcano-worker
+    restart: unless-stopped
+    working_dir: /var/www/html
+    entrypoint: ["/usr/local/bin/worker-entrypoint.sh"]
+    volumes:
+      - ./api/:/var/www/html
+      - ./docker/php/worker-entrypoint.sh:/usr/local/bin/worker-entrypoint.sh:ro
+    depends_on:
+      app:
+        condition: service_started
+    networks:
+      - vulcano
+
   nginx:
     image: nginx:1.27-alpine
     container_name: vulcano-nginx
