@@ -5,7 +5,7 @@ type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   error?: string
 }
 
-export function Input({ label, id, className = '', error, ...props }: InputProps) {
+export function Input({ label, id, className = '', error, ref, ...props }: InputProps) {
   const inputId = id ?? props.name
 
   return (
@@ -14,6 +14,7 @@ export function Input({ label, id, className = '', error, ...props }: InputProps
         {label}
       </label>
       <input
+        ref={ref}
         id={inputId}
         aria-invalid={error ? true : undefined}
         className={`w-full rounded-lg bg-surface-sunken px-3 py-2.5 text-foreground shadow-inset outline-none placeholder:text-foreground-subtle focus:bg-surface focus:shadow-raised ${error ? 'ring-2 ring-danger/30' : ''} ${className}`}

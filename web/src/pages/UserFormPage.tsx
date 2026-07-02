@@ -1,12 +1,12 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useFieldArray, useForm } from "react-hook-form";
 import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
 import { z } from "zod";
 import { Plus, Trash2 } from "lucide-react";
 import { applyApiErrors } from "../lib/applyApiErrors";
-import { toInputDate } from "../lib/format";
+import { formatSalary, maskCep, maskCnpj, maskCpf, maskPhone, toInputDate } from "../lib/format";
 import * as aclService from "../services/aclService";
 import { ApiError } from "../services/api";
 import { Alert } from "../components/ui/Alert";
@@ -22,7 +22,6 @@ import { Textarea } from "../components/ui/Textarea";
 import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { UserSalaryHistorySection } from "../components/users/UserSalaryHistorySection";
 import { SearchSelect } from "../components/ui/SearchSelect";
-import { formatSalary } from "../lib/format";
 import { UserVacationSection } from "../components/users/UserVacationSection";
 import { UserDocumentsSection } from "../components/users/UserDocumentsSection";
 import { UserInvoicesSection } from "../components/users/UserInvoicesSection";
@@ -109,6 +108,8 @@ export function UserFormPage() {
   const userId = id ? Number(id) : null;
   const isEditing = userId !== null && !Number.isNaN(userId);
   const [formError, setFormError] = useState<string | null>(null);
+  const [cepLoading, setCepLoading] = useState(false);
+  const numberInputRef = useRef<HTMLInputElement>(null);
 
   const userQuery = useQuery({
     queryKey: ["users", userId],
@@ -157,6 +158,8 @@ export function UserFormPage() {
     handleSubmit,
     reset,
     setError,
+    setValue,
+    getValues,
     formState: { errors, isSubmitting },
   } = useForm<UserFormValues>({
     resolver: zodResolver(schema),
@@ -175,6 +178,26 @@ export function UserFormPage() {
     control,
     name: "benefits",
   });
+
+  const handleCepBlur = useCallback(async () => {
+    const cep = getValues("zip_code")?.replace(/\D/g, "");
+    if (!cep || cep.length !== 8) return;
+
+    setCepLoading(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+      const data = await res.json();
+      if (!data.erro) {
+        setValue("street", data.logradouro ?? "");
+        setValue("neighborhood", data.bairro ?? "");
+        setValue("city", data.localidade ?? "");
+        setValue("state", data.uf ?? "");
+      }
+    } finally {
+      setCepLoading(false);
+      setTimeout(() => numberInputRef.current?.focus(), 0);
+    }
+  }, [getValues, setValue]);
 
   useEffect(() => {
     if (!isEditing || !userQuery.data) return;
@@ -323,12 +346,16 @@ export function UserFormPage() {
         <Card className="p-6">
           <SectionTitle>Dados Pessoais</SectionTitle>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
-            <Input label="CPF" error={errors.cpf?.message} {...register("cpf")} placeholder="000.000.000-00" />
+            <Input label="CPF" error={errors.cpf?.message} {...register("cpf", {
+              onChange: (e) => { e.target.value = maskCpf(e.target.value) },
+            })} placeholder="000.000.000-00" />
             <Input label="RG" error={errors.rg?.message} {...register("rg")} />
             <Controller name="birth_date" control={control} render={({ field }) => (
               <DatePicker label="Data de nascimento" value={field.value ?? ""} onChange={field.onChange} error={errors.birth_date?.message} />
             )} />
-            <Input label="Telefone" error={errors.phone?.message} {...register("phone")} placeholder="(00) 00000-0000" />
+            <Input label="Telefone" error={errors.phone?.message} {...register("phone", {
+              onChange: (e) => { e.target.value = maskPhone(e.target.value) },
+            })} placeholder="(00) 00000-0000" />
           </div>
         </Card>
 
@@ -364,7 +391,9 @@ export function UserFormPage() {
           <SectionTitle>Dados da Empresa</SectionTitle>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
             <Input label="Razão social" error={errors.company_name?.message} {...register("company_name")} />
-            <Input label="CNPJ" error={errors.cnpj?.message} {...register("cnpj")} placeholder="00.000.000/0000-00" />
+            <Input label="CNPJ" error={errors.cnpj?.message} {...register("cnpj", {
+              onChange: (e) => { e.target.value = maskCnpj(e.target.value) },
+            })} placeholder="00.000.000/0000-00" />
           </div>
         </Card>
 
@@ -372,11 +401,39 @@ export function UserFormPage() {
         <Card className="p-6">
           <SectionTitle>Endereço</SectionTitle>
           <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <Input label="CEP" error={errors.zip_code?.message} {...register("zip_code")} placeholder="00000-000" />
+            <div>
+              <label className="mb-1.5 flex items-center gap-2 text-sm font-medium text-foreground-muted">
+                CEP
+                {cepLoading && (
+                  <span className="inline-block size-3.5 animate-spin rounded-full border-2 border-foreground-muted border-t-transparent" />
+                )}
+              </label>
+              <input
+                {...register("zip_code", {
+                  onChange: (e) => { e.target.value = maskCep(e.target.value) },
+                  onBlur: (e) => {
+                    void handleCepBlur()
+                  },
+                })}
+                placeholder="00000-000"
+                className={`w-full rounded-lg bg-surface-sunken px-3 py-2.5 text-foreground shadow-inset outline-none placeholder:text-foreground-subtle focus:bg-surface focus:shadow-raised ${errors.zip_code?.message ? 'ring-2 ring-danger/30' : ''}`}
+              />
+              {errors.zip_code?.message && <p className="mt-1.5 text-sm text-danger">{errors.zip_code.message}</p>}
+            </div>
             <div className="md:col-span-2">
               <Input label="Rua" error={errors.street?.message} {...register("street")} />
             </div>
-            <Input label="Número" error={errors.number?.message} {...register("number")} />
+            {(() => {
+              const { ref: rRef, ...rRest } = register("number")
+              return (
+                <Input
+                  label="Número"
+                  error={errors.number?.message}
+                  {...rRest}
+                  ref={(e) => { rRef(e); numberInputRef.current = e }}
+                />
+              )
+            })()}
             <Input label="Bairro" error={errors.neighborhood?.message} {...register("neighborhood")} />
             <Input label="Cidade" error={errors.city?.message} {...register("city")} />
             <Controller name="state" control={control} render={({ field }) => (
