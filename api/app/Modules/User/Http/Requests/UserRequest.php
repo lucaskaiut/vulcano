@@ -19,6 +19,23 @@ abstract class UserRequest extends FormRequest
             'hired_at' => [$required, 'date'],
             'manager_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'sector_id' => ['nullable', 'integer', Rule::exists('sectors', 'id')],
+            'company_name' => ['nullable', 'string', 'max:255'],
+            'cnpj' => ['nullable', 'string', 'max:18'],
+            'cpf' => ['nullable', 'string', 'max:14'],
+            'rg' => ['nullable', 'string', 'max:20'],
+            'birth_date' => ['nullable', 'date'],
+            'phone' => ['nullable', 'string', 'max:20'],
+            'zip_code' => ['nullable', 'string', 'max:9'],
+            'street' => ['nullable', 'string', 'max:255'],
+            'number' => ['nullable', 'string', 'max:20'],
+            'neighborhood' => ['nullable', 'string', 'max:255'],
+            'city' => ['nullable', 'string', 'max:255'],
+            'state' => ['nullable', 'string', 'max:2'],
+            'contract_type' => ['nullable', 'string', 'in:clt,pj,hybrid,other'],
+            'contracting_company' => ['nullable', 'string', 'max:255'],
+            'emergency_contacts' => ['nullable', 'string'],
+            'bank_details' => ['nullable', 'string'],
+            'observations' => ['nullable', 'string'],
         ];
 
         if ($includeSalary) {
@@ -26,6 +43,13 @@ abstract class UserRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    protected function collaboratorMessages(): array
+    {
+        return [
+            'contract_type.in' => 'A modalidade de contrato deve ser CLT, PJ, Híbrido ou Outros.',
+        ];
     }
 
     protected function withCollaboratorValidation(Validator $validator): void

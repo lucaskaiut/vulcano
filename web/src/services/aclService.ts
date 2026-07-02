@@ -1,6 +1,7 @@
 import { apiFetch } from './api'
 import type {
   AclUser,
+  Benefit,
   ItemResponse,
   MessageResponse,
   PaginatedResponse,
@@ -96,6 +97,24 @@ export async function createUser(payload: {
   email: string
   password: string
   role_ids?: number[]
+  company_name?: string | null
+  cnpj?: string | null
+  cpf?: string | null
+  rg?: string | null
+  birth_date?: string | null
+  phone?: string | null
+  zip_code?: string | null
+  street?: string | null
+  number?: string | null
+  neighborhood?: string | null
+  city?: string | null
+  state?: string | null
+  contract_type?: string | null
+  contracting_company?: string | null
+  emergency_contacts?: string | null
+  bank_details?: string | null
+  observations?: string | null
+  benefits?: Benefit[]
 }): Promise<AclUser> {
   const response = await apiFetch<ItemResponse<AclUser>>('/users', {
     method: 'POST',
@@ -117,6 +136,24 @@ export async function updateUser(
     email?: string
     password?: string
     role_ids?: number[]
+    company_name?: string | null
+    cnpj?: string | null
+    cpf?: string | null
+    rg?: string | null
+    birth_date?: string | null
+    phone?: string | null
+    zip_code?: string | null
+    street?: string | null
+    number?: string | null
+    neighborhood?: string | null
+    city?: string | null
+    state?: string | null
+    contract_type?: string | null
+    contracting_company?: string | null
+    emergency_contacts?: string | null
+    bank_details?: string | null
+    observations?: string | null
+    benefits?: Benefit[]
   },
 ): Promise<AclUser> {
   const response = await apiFetch<ItemResponse<AclUser>>(`/users/${id}`, {

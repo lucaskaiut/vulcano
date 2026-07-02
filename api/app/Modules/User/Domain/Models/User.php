@@ -17,7 +17,13 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Collection;
 
-#[Fillable(['name', 'job_title', 'hired_at', 'manager_id', 'sector_id', 'salary', 'email', 'password'])]
+#[Fillable([
+    'name', 'job_title', 'hired_at', 'manager_id', 'sector_id', 'salary', 'email', 'password',
+    'company_name', 'cnpj', 'cpf', 'rg', 'birth_date', 'phone',
+    'zip_code', 'street', 'number', 'neighborhood', 'city', 'state',
+    'contract_type', 'contracting_company',
+    'emergency_contacts', 'bank_details', 'observations',
+])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -29,6 +35,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'hired_at' => 'date',
+            'birth_date' => 'date',
             'salary' => 'decimal:2',
             'password' => 'hashed',
         ];
@@ -57,6 +64,11 @@ class User extends Authenticatable
     public function salaryHistories(): HasMany
     {
         return $this->hasMany(SalaryHistory::class);
+    }
+
+    public function benefits(): HasMany
+    {
+        return $this->hasMany(Benefit::class);
     }
 
     /** @return array<string, mixed> */

@@ -20,6 +20,9 @@ class StoreUserRequest extends UserRequest
             'password' => ['required', 'string', 'min:8'],
             'role_ids' => ['sometimes', 'array'],
             'role_ids.*' => ['integer', Rule::exists('roles', 'id')],
+            'benefits' => ['sometimes', 'array'],
+            'benefits.*.name' => ['required_with:benefits', 'string', 'max:255'],
+            'benefits.*.price' => ['required_with:benefits', 'numeric', 'min:0'],
         ];
     }
 
@@ -45,6 +48,7 @@ class StoreUserRequest extends UserRequest
             'email.unique' => 'Este e-mail já está em uso.',
             'password.required' => 'Informe a senha.',
             'password.min' => 'A senha deve ter no mínimo 8 caracteres.',
+            ...$this->collaboratorMessages(),
         ];
     }
 }

@@ -22,6 +22,9 @@ class UpdateUserRequest extends UserRequest
             'password' => ['sometimes', 'nullable', 'string', 'min:8'],
             'role_ids' => ['sometimes', 'array'],
             'role_ids.*' => ['integer', Rule::exists('roles', 'id')],
+            'benefits' => ['sometimes', 'array'],
+            'benefits.*.name' => ['required_with:benefits', 'string', 'max:255'],
+            'benefits.*.price' => ['required_with:benefits', 'numeric', 'min:0'],
         ];
     }
 
@@ -43,6 +46,7 @@ class UpdateUserRequest extends UserRequest
             'email.email' => 'Informe um e-mail válido.',
             'email.unique' => 'Este e-mail já está em uso.',
             'password.min' => 'A senha deve ter no mínimo 8 caracteres.',
+            ...$this->collaboratorMessages(),
         ];
     }
 }

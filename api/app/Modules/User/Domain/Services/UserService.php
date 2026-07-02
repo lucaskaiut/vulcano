@@ -18,6 +18,56 @@ class UserService
     /** @var list<string> */
     public const SORTABLE_COLUMNS = ['name', 'job_title', 'hired_at', 'email', 'salary', 'created_at'];
 
+    /** @var list<string> */
+    private const UPDATABLE_FIELDS = [
+        'name', 'job_title', 'hired_at', 'email',
+        'company_name', 'cnpj', 'cpf', 'rg', 'birth_date', 'phone',
+        'zip_code', 'street', 'number', 'neighborhood', 'city', 'state',
+        'contract_type', 'contracting_company',
+        'emergency_contacts', 'bank_details', 'observations',
+    ];
+
+    private function extractAttributes(array $data): array
+    {
+        $attributes = [];
+
+        foreach (self::UPDATABLE_FIELDS as $field) {
+            if (array_key_exists($field, $data)) {
+                $attributes[$field] = $data[$field];
+            }
+        }
+
+        if (array_key_exists('manager_id', $data)) {
+            $attributes['manager_id'] = $data['manager_id'];
+        }
+
+        if (array_key_exists('sector_id', $data)) {
+            $attributes['sector_id'] = $data['sector_id'];
+        }
+
+        return $attributes;
+    }
+
+    private function syncBenefits(User $user, array $data): void
+    {
+        if (! array_key_exists('benefits', $data)) {
+            return;
+        }
+
+        $user->benefits()->delete();
+
+        foreach ($data['benefits'] as $benefitData) {
+            if (empty($benefitData['name'])) {
+                continue;
+            }
+
+            $user->benefits()->create([
+                'name' => $benefitData['name'],
+                'price' => $benefitData['price'] ?? 0,
+            ]);
+        }
+    }
+
     /** @return LengthAwarePaginator<int, User> */
     public function paginate(SortQuery $sort, PaginationQuery $pagination, FilterQuery $filters): LengthAwarePaginator
     {
@@ -36,27 +86,24 @@ class UserService
     public function find(int $id): User
     {
         return User::query()
-            ->with(['roles', 'manager', 'sector'])
+            ->with(['roles', 'manager', 'sector', 'benefits'])
             ->findOrFail($id);
     }
 
-    /** @param  array{name: string, job_title: string, hired_at: string, manager_id?: int|null, sector_id?: int|null, salary: string|float|int, email: string, password: string, role_ids?: list<int>}  $data */
+    /** @param  array{name: string, job_title: string, hired_at: string, salary: string|float|int, email: string, password: string, manager_id?: int|null, sector_id?: int|null, role_ids?: list<int>, benefits?: list<array{name: string, price?: float|string}>, ...}  $data */
     public function create(array $data, User $actor): User
     {
-        $user = User::query()->create([
-            'name' => $data['name'],
-            'job_title' => $data['job_title'],
-            'hired_at' => $data['hired_at'],
-            'manager_id' => $data['manager_id'] ?? null,
-            'sector_id' => $data['sector_id'] ?? null,
-            'salary' => $data['salary'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        $attributes = $this->extractAttributes($data);
+        $attributes['salary'] = $data['salary'];
+        $attributes['password'] = Hash::make($data['password']);
+
+        $user = User::query()->create($attributes);
 
         if (! empty($data['role_ids'])) {
             $user->roles()->sync($data['role_ids']);
         }
+
+        $this->syncBenefits($user, $data);
 
         $this->salaryHistoryService->recordInitial($user, $actor, [
             'new_salary' => $data['salary'],
@@ -73,27 +120,13 @@ class UserService
             ],
         );
 
-        return $user->load(['roles', 'manager', 'sector']);
+        return $user->load(['roles', 'manager', 'sector', 'benefits']);
     }
 
-    /** @param  array{name?: string, job_title?: string, hired_at?: string, manager_id?: int|null, sector_id?: int|null, email?: string, password?: string|null, role_ids?: list<int>}  $data */
+    /** @param  array{name?: string, job_title?: string, hired_at?: string, manager_id?: int|null, sector_id?: int|null, email?: string, password?: string|null, role_ids?: list<int>, benefits?: list<array{name: string, price?: float|string}>, ...}  $data */
     public function update(User $user, array $data): User
     {
-        $attributes = [];
-
-        foreach (['name', 'job_title', 'hired_at', 'email'] as $field) {
-            if (array_key_exists($field, $data)) {
-                $attributes[$field] = $data[$field];
-            }
-        }
-
-        if (array_key_exists('manager_id', $data)) {
-            $attributes['manager_id'] = $data['manager_id'];
-        }
-
-        if (array_key_exists('sector_id', $data)) {
-            $attributes['sector_id'] = $data['sector_id'];
-        }
+        $attributes = $this->extractAttributes($data);
 
         if (! empty($data['password'])) {
             $attributes['password'] = Hash::make($data['password']);
@@ -107,7 +140,9 @@ class UserService
             $user->roles()->sync($data['role_ids']);
         }
 
-        return $user->load(['roles', 'manager', 'sector']);
+        $this->syncBenefits($user, $data);
+
+        return $user->load(['roles', 'manager', 'sector', 'benefits']);
     }
 
     public function delete(User $user, User $actor): void

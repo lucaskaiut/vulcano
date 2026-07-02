@@ -27,6 +27,9 @@ const MONTHS = [
   'Dezembro',
 ]
 
+const YEAR_RANGE_START = 1900
+const YEAR_RANGE_END = new Date().getFullYear() + 10
+
 function parseDateValue(value: string): Date | null {
   if (!value) {
     return null
@@ -66,12 +69,14 @@ export function DatePicker({
   disabled = false,
 }: DatePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const yearListRef = useRef<HTMLDivElement>(null)
   const listboxId = useId()
   const selectedDate = parseDateValue(value)
   const today = useMemo(() => new Date(), [])
 
   const [isOpen, setIsOpen] = useState(false)
   const [viewDate, setViewDate] = useState(() => selectedDate ?? today)
+  const [showYearPicker, setShowYearPicker] = useState(false)
 
   useEffect(() => {
     if (selectedDate) {
@@ -105,6 +110,17 @@ export function DatePicker({
     }
   }, [isOpen])
 
+  useEffect(() => {
+    if (!showYearPicker || !yearListRef.current) {
+      return
+    }
+
+    const selectedEl = yearListRef.current.querySelector('[data-selected="true"]')
+    if (selectedEl) {
+      selectedEl.scrollIntoView({ block: 'center' })
+    }
+  }, [showYearPicker])
+
   const calendarDays = useMemo(() => {
     const year = viewDate.getFullYear()
     const month = viewDate.getMonth()
@@ -120,6 +136,14 @@ export function DatePicker({
     })
   }, [viewDate])
 
+  const years = useMemo(() => {
+    const list: number[] = []
+    for (let y = YEAR_RANGE_START; y <= YEAR_RANGE_END; y++) {
+      list.push(y)
+    }
+    return list
+  }, [])
+
   function selectDate(date: Date) {
     onChange(toIsoDate(date))
     setIsOpen(false)
@@ -131,6 +155,11 @@ export function DatePicker({
 
   function goToNextMonth() {
     setViewDate((current) => new Date(current.getFullYear(), current.getMonth() + 1, 1))
+  }
+
+  function selectYear(year: number) {
+    setViewDate((current) => new Date(year, current.getMonth(), 1))
+    setShowYearPicker(false)
   }
 
   const displayValue = value ? formatDate(value) : placeholder
@@ -163,88 +192,134 @@ export function DatePicker({
             aria-label={label}
             className="absolute z-30 mt-2 w-full min-w-[280px] rounded-xl bg-surface p-3 shadow-overlay sm:min-w-[300px]"
           >
-            <div className="mb-3 flex items-center justify-between">
-              <button
-                type="button"
-                onClick={goToPreviousMonth}
-                aria-label="Mês anterior"
-                className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
-              >
-                <ChevronLeft className="size-4" aria-hidden />
-              </button>
-
-              <p className="text-sm font-semibold text-foreground">
-                {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
-              </p>
-
-              <button
-                type="button"
-                onClick={goToNextMonth}
-                aria-label="Próximo mês"
-                className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
-              >
-                <ChevronRight className="size-4" aria-hidden />
-              </button>
-            </div>
-
-            <div className="mb-1 grid grid-cols-7 gap-1">
-              {WEEKDAYS.map((weekday) => (
-                <span
-                  key={weekday}
-                  className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-foreground-muted"
-                >
-                  {weekday}
-                </span>
-              ))}
-            </div>
-
-            <div className="grid grid-cols-7 gap-1">
-              {calendarDays.map((day, index) => {
-                if (!day) {
-                  return <span key={`empty-${index}`} aria-hidden />
-                }
-
-                const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
-                const isToday = isSameDay(day, today)
-
-                return (
+            {showYearPicker ? (
+              <>
+                <div className="mb-3 flex items-center justify-between">
                   <button
-                    key={toIsoDate(day)}
                     type="button"
-                    onClick={() => selectDate(day)}
-                    className={`flex size-9 items-center justify-center rounded-lg text-sm transition ${
-                      isSelected
-                        ? 'bg-primary font-semibold text-primary-foreground shadow-surface'
-                        : isToday
-                          ? 'bg-primary-muted font-medium text-primary'
-                          : 'text-foreground hover:bg-surface-sunken'
-                    }`}
+                    onClick={() => setShowYearPicker(false)}
+                    aria-label="Voltar para calendário"
+                    className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
                   >
-                    {day.getDate()}
+                    <ChevronLeft className="size-4" aria-hidden />
                   </button>
-                )
-              })}
-            </div>
+                  <p className="text-sm font-semibold text-foreground">Selecione o ano</p>
+                  <div className="size-8" />
+                </div>
+                <div
+                  ref={yearListRef}
+                  className="grid max-h-48 grid-cols-4 gap-1 overflow-y-auto"
+                >
+                  {years.map((year) => (
+                    <button
+                      key={year}
+                      type="button"
+                      data-selected={year === viewDate.getFullYear()}
+                      onClick={() => selectYear(year)}
+                      className={`rounded-lg px-1 py-2 text-center text-sm transition ${
+                        year === viewDate.getFullYear()
+                          ? 'bg-primary font-semibold text-primary-foreground'
+                          : year === today.getFullYear()
+                            ? 'font-medium text-primary'
+                            : 'text-foreground hover:bg-surface-sunken'
+                      }`}
+                    >
+                      {year}
+                    </button>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="mb-3 flex items-center justify-between">
+                  <button
+                    type="button"
+                    onClick={goToPreviousMonth}
+                    aria-label="Mês anterior"
+                    className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
+                  >
+                    <ChevronLeft className="size-4" aria-hidden />
+                  </button>
 
-            <div className="mt-3 flex items-center justify-between gap-2 border-t border-surface-sunken pt-3">
-              <button
-                type="button"
-                onClick={() => {
-                  onChange('')
-                  setIsOpen(false)
-                }}
-                className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
-              >
-                Limpar
-              </button>
-              <button
-                type="button"
-                onClick={() => selectDate(today)}
-                className="rounded-lg bg-primary-muted px-2.5 py-1.5 text-xs font-medium text-primary transition hover:brightness-95"
-              >
-                Hoje
-              </button>
-            </div>
+                  <button
+                    type="button"
+                    onClick={() => setShowYearPicker(true)}
+                    className="flex items-center gap-1 rounded-lg px-2 py-1 text-sm font-semibold text-foreground transition hover:bg-surface-sunken"
+                  >
+                    {MONTHS[viewDate.getMonth()]} {viewDate.getFullYear()}
+                    <ChevronDown className="size-3.5 text-foreground-muted" aria-hidden />
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={goToNextMonth}
+                    aria-label="Próximo mês"
+                    className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
+                  >
+                    <ChevronRight className="size-4" aria-hidden />
+                  </button>
+                </div>
+
+                <div className="mb-1 grid grid-cols-7 gap-1">
+                  {WEEKDAYS.map((weekday) => (
+                    <span
+                      key={weekday}
+                      className="py-1 text-center text-[11px] font-semibold uppercase tracking-wide text-foreground-muted"
+                    >
+                      {weekday}
+                    </span>
+                  ))}
+                </div>
+
+                <div className="grid grid-cols-7 gap-1">
+                  {calendarDays.map((day, index) => {
+                    if (!day) {
+                      return <span key={`empty-${index}`} aria-hidden />
+                    }
+
+                    const isSelected = selectedDate ? isSameDay(day, selectedDate) : false
+                    const isToday = isSameDay(day, today)
+
+                    return (
+                      <button
+                        key={toIsoDate(day)}
+                        type="button"
+                        onClick={() => selectDate(day)}
+                        className={`flex size-9 items-center justify-center rounded-lg text-sm transition ${
+                          isSelected
+                            ? 'bg-primary font-semibold text-primary-foreground shadow-surface'
+                            : isToday
+                              ? 'bg-primary-muted font-medium text-primary'
+                              : 'text-foreground hover:bg-surface-sunken'
+                        }`}
+                      >
+                        {day.getDate()}
+                      </button>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-3 flex items-center justify-between gap-2 border-t border-surface-sunken pt-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange('')
+                      setIsOpen(false)
+                    }}
+                    className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
+                  >
+                    Limpar
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => selectDate(today)}
+                    className="rounded-lg bg-primary-muted px-2.5 py-1.5 text-xs font-medium text-primary transition hover:brightness-95"
+                  >
+                    Hoje
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         )}
       </div>

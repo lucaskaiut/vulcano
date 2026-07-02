@@ -40,6 +40,12 @@ export type Sector = {
   name: string
 }
 
+export type Benefit = {
+  id?: number
+  name: string
+  price: number | string
+}
+
 export type AclUser = {
   id: number
   name: string
@@ -52,6 +58,24 @@ export type AclUser = {
   salary: string
   email: string
   email_verified_at: string | null
+  company_name: string | null
+  cnpj: string | null
+  cpf: string | null
+  rg: string | null
+  birth_date: string | null
+  phone: string | null
+  zip_code: string | null
+  street: string | null
+  number: string | null
+  neighborhood: string | null
+  city: string | null
+  state: string | null
+  contract_type: string | null
+  contracting_company: string | null
+  emergency_contacts: string | null
+  bank_details: string | null
+  observations: string | null
+  benefits?: Benefit[]
   roles?: Role[]
 }
 
