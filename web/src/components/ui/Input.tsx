@@ -1,11 +1,14 @@
-import type { InputHTMLAttributes } from 'react'
+import { forwardRef, type InputHTMLAttributes } from 'react'
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & {
   label: string
   error?: string
 }
 
-export function Input({ label, id, className = '', error, ref, ...props }: InputProps) {
+export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
+  { label, id, className = '', error, ...props },
+  ref,
+) {
   const inputId = id ?? props.name
 
   return (
@@ -23,4 +26,4 @@ export function Input({ label, id, className = '', error, ref, ...props }: Input
       {error && <p className="mt-1.5 text-sm text-danger">{error}</p>}
     </div>
   )
-}
+})

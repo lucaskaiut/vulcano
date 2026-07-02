@@ -109,7 +109,7 @@ export function UserFormPage() {
   const isEditing = userId !== null && !Number.isNaN(userId);
   const [formError, setFormError] = useState<string | null>(null);
   const [cepLoading, setCepLoading] = useState(false);
-  const numberInputRef = useRef<HTMLInputElement>(null);
+  const numberInputRef = useRef<HTMLInputElement | null>(null);
 
   const userQuery = useQuery({
     queryKey: ["users", userId],
@@ -411,7 +411,7 @@ export function UserFormPage() {
               <input
                 {...register("zip_code", {
                   onChange: (e) => { e.target.value = maskCep(e.target.value) },
-                  onBlur: (e) => {
+                  onBlur: () => {
                     void handleCepBlur()
                   },
                 })}
@@ -430,7 +430,7 @@ export function UserFormPage() {
                   label="Número"
                   error={errors.number?.message}
                   {...rRest}
-                  ref={(e) => { rRef(e); numberInputRef.current = e }}
+                  ref={(el: HTMLInputElement | null) => { rRef(el); numberInputRef.current = el }}
                 />
               )
             })()}
