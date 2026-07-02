@@ -1,12 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, Gift, PiggyBank, Plus, Search, TrendingUp, Users, Wallet } from 'lucide-react'
+import { ChevronDown, ChevronUp, Gift, PiggyBank, Search, TrendingUp, Users, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { Link } from '@tanstack/react-router'
 import { getReport } from '../services/costService'
 import { PageHeader } from '../components/ui/PageHeader'
-import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Input'
-import { usePermissions } from '../hooks/usePermissions'
 
 type CategoryColor = 'salary' | 'provision' | 'benefit' | 'commission' | 'vacation' | 'other'
 
@@ -110,22 +107,10 @@ export function CostsListPage() {
 
   const distTotal = distribution.reduce((s, d) => s + d.value, 0)
 
-  const { can } = usePermissions()
-
   return (
     <>
       <PageHeader
         title="Custos"
-        action={
-          can('costs.create') && (
-            <Link to="/costs/novo">
-              <Button variant="primary" size="sm">
-                <Plus className="mr-1.5 size-4" />
-                Vincular custo
-              </Button>
-            </Link>
-          )
-        }
       />
 
       {/* Summary Cards */}

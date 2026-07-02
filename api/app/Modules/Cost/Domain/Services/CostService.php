@@ -98,7 +98,7 @@ class CostService
 
     /**
      * Relatório mensal consolidado.
-     * Inclui: salário base, provisões (13º e férias), benefícios manuais,
+     * Inclui: salário base, provisões (13º e férias), benefícios dos colaboradores,
      * comissões pagas no mês e férias concedidas no mês.
      *
      * @return array<int, array{user_id: int, user_name: string, total: float, categories: array<string, float>}>
@@ -112,13 +112,13 @@ class CostService
         $report = [];
 
         // 1. Base salary + provisions for all active users
-        $users = User::query()->get();
+        $users = User::query()->with('benefits')->get();
 
         foreach ($users as $user) {
             $salary = (float) $user->salary;
             $thirteenth = $salary / 12;
-            $vacationProvision = $salary / 12; // férias (1 mês por ano)
-            $vacationBonus = ($salary / 12) / 3; // adicional de 1/3 sobre férias
+            $vacationProvision = $salary / 12;
+            $vacationBonus = ($salary / 12) / 3;
 
             $report[$user->id] = [
                 'user_id' => $user->id,
@@ -133,23 +133,15 @@ class CostService
             $this->addToReport($report, $user->id, 'Provisão 1/3 Férias', round($vacationBonus, 2));
         }
 
-        // 2. Manual recurring costs (benefits)
-        $manualCosts = CollaboratorCost::query()
-            ->with('category')
-            ->where('recurring', true)
-            ->get();
-
-        foreach ($manualCosts as $cost) {
-            if (! isset($report[$cost->user_id])) {
-                $report[$cost->user_id] = [
-                    'user_id' => $cost->user_id,
-                    'user_name' => $cost->user?->name ?? '—',
-                    'total' => 0,
-                    'categories' => [],
-                ];
+        // 2. Benefits (from benefits table)
+        foreach ($users as $user) {
+            if ($user->benefits->isEmpty()) {
+                continue;
             }
 
-            $this->addToReport($report, $cost->user_id, $cost->category?->name ?? 'Benefício', (float) $cost->amount);
+            foreach ($user->benefits as $benefit) {
+                $this->addToReport($report, $user->id, $benefit->name, (float) $benefit->price);
+            }
         }
 
         // 3. Commissions paid this month
