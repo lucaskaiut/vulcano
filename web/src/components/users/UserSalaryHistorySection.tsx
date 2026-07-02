@@ -11,6 +11,7 @@ import * as aclService from '../../services/aclService'
 import type { SalaryHistory } from '../../types/acl'
 import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
+import { CurrencyInput } from '../ui/CurrencyInput'
 import { DatePicker } from '../ui/DatePicker'
 import { Input } from '../ui/Input'
 import { Textarea } from '../ui/Textarea'
@@ -238,13 +239,17 @@ export function UserSalaryHistorySection({
             noValidate
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
-                label="Novo salário"
-                type="number"
-                min="0"
-                step="0.01"
-                error={errors.new_salary?.message}
-                {...register('new_salary', { valueAsNumber: true })}
+              <Controller
+                name="new_salary"
+                control={control}
+                render={({ field }) => (
+                  <CurrencyInput
+                    label="Novo salário"
+                    value={field.value ?? 0}
+                    onChange={field.onChange}
+                    error={errors.new_salary?.message}
+                  />
+                )}
               />
               <Controller
                 name="effective_date"

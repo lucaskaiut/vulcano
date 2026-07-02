@@ -4,6 +4,7 @@ namespace App\Modules\Commission\Domain\Services;
 
 use App\Modules\Commission\Domain\Enums\CommissionStatus;
 use App\Modules\Commission\Domain\Models\Commission;
+use App\Modules\Commission\Domain\Models\Enterprise;
 use App\Modules\Commission\Domain\Models\Sale;
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
@@ -25,7 +26,7 @@ class CommissionService
     public function list(User $user): Collection
     {
         $query = Sale::query()
-            ->with(['user', 'commission.workflowInstance.currentStep.responsibleRole']);
+            ->with(['user', 'enterprise', 'commission.workflowInstance.currentStep.responsibleRole']);
 
         if ($user->hasPermission(PermissionEnum::CommissionsViewAll->value)) {
             return $query->orderByDesc('created_at')->get();
@@ -62,7 +63,7 @@ class CommissionService
         return $query->orderByDesc('created_at')->get();
     }
 
-    /** @param  array{development_name: string, unit: string, sale_date: string, sale_amount: float|string, percentage: float|string, notes?: string|null}  $data */
+    /** @param  array{enterprise_id: int, unit: string, sale_date: string, sale_amount: float|string, percentage: float|string, notes?: string|null}  $data */
     public function create(User $user, array $data): Sale
     {
         $saleAmount = (float) $data['sale_amount'];
@@ -70,10 +71,13 @@ class CommissionService
         $commissionAmount = round($saleAmount * $percentage / 100, 2);
         $title = "Comissão de {$user->name} — R\$ " . number_format($commissionAmount, 2, ',', '.');
 
+        $enterprise = Enterprise::query()->find($data['enterprise_id']);
+        $enterpriseName = $enterprise?->name ?? '—';
+
         $sale = DB::transaction(function () use ($user, $data, $saleAmount, $percentage, $commissionAmount, $title) {
             $sale = Sale::query()->create([
                 'user_id' => $user->id,
-                'development_name' => $data['development_name'],
+                'enterprise_id' => $data['enterprise_id'],
                 'unit' => $data['unit'],
                 'sale_date' => $data['sale_date'],
                 'sale_amount' => $saleAmount,
@@ -98,14 +102,14 @@ class CommissionService
 
             $commission->update(['workflow_instance_id' => $instance->id]);
 
-            return $sale->load(['user', 'commission.workflowInstance.currentStep']);
+            return $sale->load(['user', 'enterprise', 'commission.workflowInstance.currentStep']);
         });
 
         $this->notificationService->dispatch(
             'commission_submitted',
             $user,
-            "Venda registrada: {$data['development_name']}",
-            "Sua venda {$data['development_name']}/{$data['unit']} foi registrada e a comissão está aguardando aprovação.",
+            "Venda registrada: {$enterpriseName}",
+            "Sua venda {$enterpriseName}/{$data['unit']} foi registrada e a comissão está aguardando aprovação.",
         );
 
         return $sale;

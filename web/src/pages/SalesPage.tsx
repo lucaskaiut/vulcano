@@ -1,12 +1,14 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { approveInstance, rejectInstance } from '../services/workflowService'
-import { createSale, listSales, payCommission } from '../services/commissionService'
+import { createSale, listEnterprises, listSales, payCommission } from '../services/commissionService'
 import { Button } from '../components/ui/Button'
 import { Card, CardHeader, CardTitle } from '../components/ui/Card'
+import { CurrencyInput } from '../components/ui/CurrencyInput'
 import { DatePicker } from '../components/ui/DatePicker'
 import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
+import { SearchSelect } from '../components/ui/SearchSelect'
 import { Textarea } from '../components/ui/Textarea'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
 import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
@@ -14,10 +16,10 @@ import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
 export function SalesPage() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
-  const [developmentName, setDevelopmentName] = useState('')
+  const [enterpriseId, setEnterpriseId] = useState<number | null>(null)
   const [unit, setUnit] = useState('')
   const [saleDate, setSaleDate] = useState('')
-  const [saleAmount, setSaleAmount] = useState('')
+  const [saleAmount, setSaleAmount] = useState(0)
   const [percentage, setPercentage] = useState('')
   const [notes, setNotes] = useState('')
   const [formError, setFormError] = useState('')
@@ -29,29 +31,43 @@ export function SalesPage() {
     placeholderData: keepPreviousData,
   })
 
+  const searchEnterprises = useCallback(async (query: string) => {
+    const enterprises = await listEnterprises()
+    const normalizedQuery = query
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+    return enterprises
+      .filter((e) => {
+        if (query.trim() === '') return true
+        return e.name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').includes(normalizedQuery)
+      })
+      .map((e) => ({ value: e.id, label: e.name }))
+  }, [])
+
   const createMutation = useMutation({
     mutationFn: () =>
       createSale({
-        development_name: developmentName,
+        enterprise_id: enterpriseId!,
         unit,
         sale_date: saleDate,
-        sale_amount: parseFloat(saleAmount),
+        sale_amount: saleAmount,
         percentage: parseFloat(percentage),
         notes: notes || undefined,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales'] })
       setShowForm(false)
-      setDevelopmentName('')
+      setEnterpriseId(null)
       setUnit('')
       setSaleDate('')
-      setSaleAmount('')
+      setSaleAmount(0)
       setPercentage('')
       setNotes('')
       setFormError('')
     },
     onError: (err: any) => {
-      setFormError(err?.errors?.development_name?.[0] || err?.errors?.sale_amount?.[0] || 'Erro ao registrar venda.')
+      setFormError(err?.errors?.enterprise_id?.[0] || err?.errors?.sale_amount?.[0] || 'Erro ao registrar venda.')
     },
   })
 
@@ -83,7 +99,7 @@ export function SalesPage() {
     .map((s) => ({
       id: s.commission!.workflow_instance!.id,
       workflow_type: 'commission' as WorkflowType,
-      title: `${s.development_name} / ${s.unit}`,
+      title: `${s.enterprise?.name ?? '—'} / ${s.unit}`,
       status: s.commission!.workflow_instance!.status as WorkflowInstanceStatus,
       status_label: s.commission!.workflow_instance!.status_label,
       current_step: s.commission!.workflow_instance!.current_step
@@ -127,22 +143,32 @@ export function SalesPage() {
 
           <div className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input label="Empreendimento" value={developmentName} onChange={(e) => setDevelopmentName(e.target.value)} />
+              <SearchSelect
+                label="Empreendimento"
+                value={enterpriseId}
+                onChange={setEnterpriseId}
+                onSearch={searchEnterprises}
+                placeholder="Selecione o empreendimento"
+                searchPlaceholder="Buscar empreendimento..."
+                emptyMessage="Digite para buscar empreendimentos."
+                noResultsMessage="Nenhum empreendimento encontrado."
+                clearLabel="Limpar"
+              />
               <Input label="Unidade" value={unit} onChange={(e) => setUnit(e.target.value)} />
             </div>
 
             <div className="grid gap-4 sm:grid-cols-3">
               <DatePicker label="Data da venda" value={saleDate} onChange={setSaleDate} />
-              <Input label="Valor da venda (R$)" type="number" step="0.01" min="0" value={saleAmount} onChange={(e) => setSaleAmount(e.target.value)} />
+              <CurrencyInput label="Valor da venda" value={saleAmount} onChange={setSaleAmount} />
               <Input label="Comissão (%)" type="number" step="0.01" min="0" max="100" value={percentage} onChange={(e) => setPercentage(e.target.value)} />
             </div>
 
-            {saleAmount && percentage && (
+            {saleAmount > 0 && percentage && (
               <p className="text-sm text-foreground-muted">
                 Valor da comissão:{' '}
                 <span className="font-medium text-foreground">
                   {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                    (parseFloat(saleAmount) || 0) * (parseFloat(percentage) || 0) / 100,
+                    saleAmount * (parseFloat(percentage) || 0) / 100,
                   )}
                 </span>
               </p>
@@ -155,7 +181,7 @@ export function SalesPage() {
             <Button
               variant="primary"
               onClick={() => createMutation.mutate()}
-              disabled={createMutation.isPending || !developmentName || !unit || !saleDate || !saleAmount || !percentage}
+              disabled={createMutation.isPending || !enterpriseId || !unit || !saleDate || !saleAmount || !percentage}
             >
               {createMutation.isPending ? 'Registrando...' : 'Registrar venda'}
             </Button>
@@ -174,7 +200,7 @@ export function SalesPage() {
               <div key={sale.id} className="flex items-center justify-between rounded-lg bg-surface-sunken p-3">
                 <div>
                   <p className="text-sm font-medium text-foreground">
-                    {sale.development_name} / {sale.unit}
+                    {sale.enterprise?.name ?? '—'} / {sale.unit}
                   </p>
                   <p className="text-xs text-foreground-muted">
                     {sale.user.name} — {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(Number(sale.commission_amount))}

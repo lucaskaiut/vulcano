@@ -11,7 +11,7 @@ use App\Modules\Audit\Domain\Traits\Auditable;
 
 #[Fillable([
     'user_id',
-    'development_name',
+    'enterprise_id',
     'unit',
     'sale_date',
     'sale_amount',
@@ -40,5 +40,10 @@ class Sale extends Model
     public function commission(): HasOne
     {
         return $this->hasOne(Commission::class);
+    }
+
+    public function enterprise(): BelongsTo
+    {
+        return $this->belongsTo(Enterprise::class);
     }
 }

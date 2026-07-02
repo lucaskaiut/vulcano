@@ -1,4 +1,4 @@
-import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, BookOpen, Building2, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, Building, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, BookOpen, Building2, type LucideIcon } from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -17,6 +17,7 @@ const allNavigationItems: NavigationItem[] = [
   { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree, permission: 'vacation_balances.view' },
   { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarPlus, permission: 'vacation_requests.view' },
   { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
+  { label: 'Empreendimentos', href: '/enterprises', title: 'Empreendimentos', icon: Building, permission: 'commissions.view' },
   { label: 'Categorias de custo', href: '/cost-categories', title: 'Categorias de custo', icon: FolderOpen, permission: 'costs.view' },
   { label: 'Custos', href: '/costs', title: 'Custos', icon: Coins, permission: 'costs.view' },
   { label: 'Tipos de documento', href: '/document-types', title: 'Tipos de documento', icon: FileText, permission: 'documents.view' },
@@ -33,6 +34,8 @@ const routePermissionMap: Record<string, string> = {
   '/users/novo': 'users.create',
   '/sectors': 'users.view',
   '/sectors/novo': 'users.create',
+  '/enterprises': 'commissions.view',
+  '/enterprises/novo': 'commissions.create',
   '/sales': 'commissions.view',
   '/costs': 'costs.view',
   '/costs/novo': 'costs.create',
@@ -54,6 +57,7 @@ const routePermissionMap: Record<string, string> = {
 const ROUTE_EDIT_PATTERNS: { pattern: RegExp; permission: string }[] = [
   { pattern: /^\/users\/\d+\/editar$/, permission: 'users.update' },
   { pattern: /^\/sectors\/\d+\/editar$/, permission: 'users.update' },
+  { pattern: /^\/enterprises\/\d+\/editar$/, permission: 'commissions.create' },
   { pattern: /^\/roles\/\d+\/editar$/, permission: 'roles.update' },
 ]
 
@@ -113,6 +117,9 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/sectors') return 'Setores'
   if (pathname === '/sectors/novo') return 'Novo setor'
   if (/^\/sectors\/\d+\/editar$/.test(pathname)) return 'Editar setor'
+  if (pathname === '/enterprises') return 'Empreendimentos'
+  if (pathname === '/enterprises/novo') return 'Novo empreendimento'
+  if (/^\/enterprises\/\d+\/editar$/.test(pathname)) return 'Editar empreendimento'
   if (pathname === '/document-types') return 'Tipos de documento'
   if (pathname === '/document-types/novo') return 'Novo tipo'
   if (/^\/document-types\/\d+\/editar$/.test(pathname)) return 'Editar tipo'

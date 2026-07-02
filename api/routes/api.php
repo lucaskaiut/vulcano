@@ -14,7 +14,9 @@ use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Http\Controllers\WorkflowInstanceController;
 use App\Modules\Workflow\Http\Controllers\WorkflowStepController;
 use App\Modules\Commission\Http\Controllers\CommissionController;
+use App\Modules\Commission\Http\Controllers\EnterpriseController;
 use App\Modules\Commission\Domain\Models\Commission;
+use App\Modules\Commission\Domain\Models\Enterprise;
 use App\Modules\Cost\Http\Controllers\CostController;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
@@ -56,6 +58,7 @@ Route::bind('document_type', fn (string $value) => DocumentType::query()->findOr
 Route::bind('invoice', fn (string $value) => Invoice::query()->findOrFail($value));
 Route::bind('medical_exam', fn (string $value) => MedicalExam::query()->findOrFail($value));
 Route::bind('sector', fn (string $value) => Sector::query()->findOrFail($value));
+Route::bind('enterprise', fn (string $value) => Enterprise::query()->findOrFail($value));
 
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
@@ -167,6 +170,15 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:commissions.view');
     Route::post('sales', [CommissionController::class, 'store'])
         ->middleware('permission:commissions.create');
+
+    Route::get('enterprises/list', [EnterpriseController::class, 'list'])
+        ->middleware('permission:commissions.view');
+    Route::apiResource('enterprises', EnterpriseController::class)->middleware([
+        'index' => 'permission:commissions.view',
+        'store' => 'permission:commissions.create',
+        'show' => 'permission:commissions.view',
+        'update' => 'permission:commissions.create',
+    ])->except(['destroy']);
     Route::post('commissions/{commission}/pay', [CommissionController::class, 'pay'])
         ->middleware('permission:commissions.pay');
 

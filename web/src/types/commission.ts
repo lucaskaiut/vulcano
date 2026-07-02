@@ -17,9 +17,15 @@ export type Commission = {
   } | null
 }
 
+export type Enterprise = {
+  id: number
+  name: string
+}
+
 export type Sale = {
   id: number
-  development_name: string
+  enterprise_id: number
+  enterprise: Enterprise | null
   unit: string
   sale_date: string
   sale_amount: string

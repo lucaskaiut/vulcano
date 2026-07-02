@@ -19,6 +19,7 @@ import { MultiSelect } from "../components/ui/MultiSelect";
 import { PageHeader } from "../components/ui/PageHeader";
 import { Select } from "../components/ui/Select";
 import { Textarea } from "../components/ui/Textarea";
+import { CurrencyInput } from "../components/ui/CurrencyInput";
 import { UserSalaryHistorySection } from "../components/users/UserSalaryHistorySection";
 import { SearchSelect } from "../components/ui/SearchSelect";
 import { formatSalary } from "../lib/format";
@@ -298,7 +299,9 @@ export function UserFormPage() {
               <DatePicker label="Contratação" value={field.value} onChange={field.onChange} error={errors.hired_at?.message} />
             )} />
             {!isEditing && (
-              <Input label="Remuneração" type="number" min="0" step="0.01" error={errors.salary?.message} {...register("salary", { valueAsNumber: true })} />
+              <Controller name="salary" control={control} render={({ field }) => (
+                <CurrencyInput label="Remuneração" value={field.value ?? 0} onChange={field.onChange} error={errors.salary?.message} />
+              )} />
             )}
           </div>
           {!isEditing && <p className="mt-3 text-sm text-foreground-muted">O salário inicial será registrado automaticamente no histórico salarial.</p>}
@@ -407,13 +410,17 @@ export function UserFormPage() {
                   />
                 </div>
                 <div className="w-36">
-                  <Input
-                    label={index === 0 ? "Valor (R$)" : undefined}
-                    type="number"
-                    min="0"
-                    step="0.01"
-                    error={errors.benefits?.[index]?.price?.message}
-                    {...register(`benefits.${index}.price`, { valueAsNumber: true })}
+                  <Controller
+                    name={`benefits.${index}.price`}
+                    control={control}
+                    render={({ field }) => (
+                      <CurrencyInput
+                        label={index === 0 ? "Valor (R$)" : undefined}
+                        value={field.value as number ?? 0}
+                        onChange={field.onChange}
+                        error={errors.benefits?.[index]?.price?.message}
+                      />
+                    )}
                   />
                 </div>
                 <div className="pt-[26px]">

@@ -4,6 +4,7 @@ import { approveInstance, rejectInstance } from '../services/workflowService'
 import { createInvoice, getInvoiceDownloadUrl, listInvoices } from '../services/invoiceService'
 import { Button } from '../components/ui/Button'
 import { Card, CardHeader, CardTitle } from '../components/ui/Card'
+import { CurrencyInput } from '../components/ui/CurrencyInput'
 import { DatePicker } from '../components/ui/DatePicker'
 import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -43,7 +44,7 @@ export function InvoicesPage() {
   const [showForm, setShowForm] = useState(false)
   const [competence, setCompetence] = useState(new Date().toISOString().slice(0, 7))
   const [invoiceNumber, setInvoiceNumber] = useState('')
-  const [amount, setAmount] = useState('')
+  const [amount, setAmount] = useState(0)
   const [issueDate, setIssueDate] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [formError, setFormError] = useState('')
@@ -60,7 +61,7 @@ export function InvoicesPage() {
       createInvoice({
         competence,
         invoice_number: invoiceNumber,
-        amount: parseFloat(amount),
+        amount: amount,
         issue_date: issueDate,
         file: file!,
       }),
@@ -70,7 +71,7 @@ export function InvoicesPage() {
       setShowForm(false)
       setCompetence(new Date().toISOString().slice(0, 7))
       setInvoiceNumber('')
-      setAmount('')
+      setAmount(0)
       setIssueDate('')
       setFile(null)
       setFormError('')
@@ -134,13 +135,10 @@ export function InvoicesPage() {
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">
-              <Input
+              <CurrencyInput
                 label="Valor (R$)"
-                type="number"
-                step="0.01"
-                min="0.01"
                 value={amount}
-                onChange={(e) => setAmount(e.target.value)}
+                onChange={setAmount}
               />
               <DatePicker label="Data de emissão" value={issueDate} onChange={setIssueDate} />
             </div>

@@ -13,7 +13,8 @@ class SaleResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'development_name' => $this->development_name,
+            'enterprise_id' => $this->enterprise_id,
+            'enterprise' => new EnterpriseResource($this->whenLoaded('enterprise')),
             'unit' => $this->unit,
             'sale_date' => $this->sale_date->toDateString(),
             'sale_amount' => $this->sale_amount,

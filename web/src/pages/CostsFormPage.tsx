@@ -7,6 +7,7 @@ import { z } from 'zod'
 import { getCost, createCost, updateCost, listCategories } from '../services/costService'
 import { listUsers } from '../services/aclService'
 import { Card } from '../components/ui/Card'
+import { CurrencyInput } from '../components/ui/CurrencyInput'
 import { FormActions } from '../components/ui/FormActions'
 import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
@@ -129,13 +130,17 @@ export function CostsFormPage() {
             )}
           />
 
-          <Input
-            label="Valor (R$)"
-            type="number"
-            step="0.01"
-            min="0.01"
-            error={errors.amount?.message}
-            {...register('amount', { valueAsNumber: true })}
+          <Controller
+            name="amount"
+            control={control}
+            render={({ field }) => (
+              <CurrencyInput
+                label="Valor (R$)"
+                value={field.value ?? 0}
+                onChange={field.onChange}
+                error={errors.amount?.message}
+              />
+            )}
           />
 
           <div className="flex items-center gap-2">

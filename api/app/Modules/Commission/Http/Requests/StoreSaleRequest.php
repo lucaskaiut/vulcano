@@ -3,6 +3,7 @@
 namespace App\Modules\Commission\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreSaleRequest extends FormRequest
 {
@@ -14,7 +15,7 @@ class StoreSaleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'development_name' => ['required', 'string', 'max:255'],
+            'enterprise_id' => ['required', 'integer', Rule::exists('enterprises', 'id')],
             'unit' => ['required', 'string', 'max:255'],
             'sale_date' => ['required', 'date'],
             'sale_amount' => ['required', 'numeric', 'min:0.01'],
@@ -26,7 +27,8 @@ class StoreSaleRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'development_name.required' => 'Informe o nome do empreendimento.',
+            'enterprise_id.required' => 'Selecione o empreendimento.',
+            'enterprise_id.exists' => 'O empreendimento selecionado não foi encontrado.',
             'unit.required' => 'Informe a unidade.',
             'sale_date.required' => 'Informe a data da venda.',
             'sale_amount.required' => 'Informe o valor da venda.',
