@@ -27,7 +27,6 @@ import { UserVacationSection } from "../components/users/UserVacationSection";
 import { UserDocumentsSection } from "../components/users/UserDocumentsSection";
 import { UserInvoicesSection } from "../components/users/UserInvoicesSection";
 import { UserMedicalExamsSection } from "../components/users/UserMedicalExamsSection";
-import type { Benefit } from "../types/acl";
 
 const STATES = [
   { value: "AC", label: "AC" }, { value: "AL", label: "AL" }, { value: "AP", label: "AP" },
@@ -144,10 +143,13 @@ export function UserFormPage() {
 
   const schema = useMemo(() => createUserFormSchema(isEditing), [isEditing]);
 
-  const defaultBenefits = useMemo((): Benefit[] => {
-    if (!isEditing || !userQuery.data?.benefits) return [];
-    return userQuery.data.benefits.map((b) => ({ id: b.id, name: b.name, price: Number(b.price) }));
-  }, [isEditing, userQuery.data?.benefits]);
+  const defaultBenefits = useMemo(() => {
+    if (!isEditing || !userQuery.data?.benefits) return []
+    return userQuery.data.benefits.map((b) => ({
+      name: b.name,
+      price: Number(b.price),
+    }))
+  }, [isEditing, userQuery.data?.benefits])
 
   const {
     register,
@@ -403,7 +405,7 @@ export function UserFormPage() {
               <div key={field.id} className="flex items-start gap-3">
                 <div className="flex-1">
                   <Input
-                    label={index === 0 ? "Nome" : undefined}
+                    label={index === 0 ? "Nome" : ""}
                     error={errors.benefits?.[index]?.name?.message}
                     {...register(`benefits.${index}.name`)}
                     placeholder="Ex: Vale Alimentação"

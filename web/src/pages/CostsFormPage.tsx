@@ -9,7 +9,6 @@ import { listUsers } from '../services/aclService'
 import { Card } from '../components/ui/Card'
 import { CurrencyInput } from '../components/ui/CurrencyInput'
 import { FormActions } from '../components/ui/FormActions'
-import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Select } from '../components/ui/Select'
 import { SearchSelect, type SearchSelectOption } from '../components/ui/SearchSelect'
@@ -47,7 +46,7 @@ export function CostsFormPage() {
     queryFn: listCategories,
   })
 
-  const { control, register, handleSubmit, reset, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm<FormValues>({
+  const { control, handleSubmit, reset, setValue, watch, setError, formState: { errors, isSubmitting } } = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: { user_id: 0, cost_category_id: 0, amount: 0, recurring: true },
   })

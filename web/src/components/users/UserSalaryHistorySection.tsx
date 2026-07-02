@@ -13,7 +13,6 @@ import { Alert } from '../ui/Alert'
 import { Button } from '../ui/Button'
 import { CurrencyInput } from '../ui/CurrencyInput'
 import { DatePicker } from '../ui/DatePicker'
-import { Input } from '../ui/Input'
 import { Textarea } from '../ui/Textarea'
 
 const salaryHistorySchema = z.object({
