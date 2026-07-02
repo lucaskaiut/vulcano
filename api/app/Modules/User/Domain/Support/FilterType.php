@@ -11,4 +11,5 @@ enum FilterType: string
     case NumericGreaterThanOrEqual = 'numeric_gte';
     case NumericLessThanOrEqual = 'numeric_lte';
     case NotEqual = 'not_equal';
+    case Equals = 'equals';
 }

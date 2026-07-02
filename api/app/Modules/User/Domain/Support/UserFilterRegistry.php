@@ -54,6 +54,12 @@ class UserFilterRegistry
                 columns: 'id',
                 rules: ['nullable', 'integer', 'exists:users,id'],
             ),
+            new FilterDefinition(
+                param: 'sector_id',
+                type: FilterType::Equals,
+                columns: 'sector_id',
+                rules: ['nullable', 'integer', 'exists:sectors,id'],
+            ),
         ];
     }
 

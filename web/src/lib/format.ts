@@ -3,11 +3,17 @@ export function formatDate(value: string | null | undefined): string {
     return '—'
   }
 
-  const date = new Date(value)
-
-  if (Number.isNaN(date.getTime())) {
+  const parts = value.slice(0, 10).split('-')
+  if (parts.length !== 3) {
     return '—'
   }
+
+  const [year, month, day] = parts.map(Number)
+  if (!year || !month || !day) {
+    return '—'
+  }
+
+  const date = new Date(year, month - 1, day)
 
   return new Intl.DateTimeFormat('pt-BR').format(date)
 }

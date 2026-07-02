@@ -1,4 +1,4 @@
-import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, BookOpen, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, BookOpen, Building2, type LucideIcon } from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -13,6 +13,7 @@ export type NavigationItem = {
 const allNavigationItems: NavigationItem[] = [
   { label: 'Dashboard', href: '/', title: 'Dashboard', icon: LayoutDashboard },
   { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users, permission: 'users.view' },
+  { label: 'Setores', href: '/sectors', title: 'Setores', icon: Building2, permission: 'users.view' },
   { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree, permission: 'vacation_balances.view' },
   { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarPlus, permission: 'vacation_requests.view' },
   { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
@@ -30,6 +31,8 @@ const allNavigationItems: NavigationItem[] = [
 const routePermissionMap: Record<string, string> = {
   '/users': 'users.view',
   '/users/novo': 'users.create',
+  '/sectors': 'users.view',
+  '/sectors/novo': 'users.create',
   '/sales': 'commissions.view',
   '/costs': 'costs.view',
   '/costs/novo': 'costs.create',
@@ -50,6 +53,7 @@ const routePermissionMap: Record<string, string> = {
 
 const ROUTE_EDIT_PATTERNS: { pattern: RegExp; permission: string }[] = [
   { pattern: /^\/users\/\d+\/editar$/, permission: 'users.update' },
+  { pattern: /^\/sectors\/\d+\/editar$/, permission: 'users.update' },
   { pattern: /^\/roles\/\d+\/editar$/, permission: 'roles.update' },
 ]
 
@@ -106,6 +110,9 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/cost-categories') return 'Categorias de custo'
   if (pathname === '/cost-categories/novo') return 'Nova categoria'
   if (/^\/cost-categories\/\d+\/editar$/.test(pathname)) return 'Editar categoria'
+  if (pathname === '/sectors') return 'Setores'
+  if (pathname === '/sectors/novo') return 'Novo setor'
+  if (/^\/sectors\/\d+\/editar$/.test(pathname)) return 'Editar setor'
   if (pathname === '/document-types') return 'Tipos de documento'
   if (pathname === '/document-types/novo') return 'Novo tipo'
   if (/^\/document-types\/\d+\/editar$/.test(pathname)) return 'Editar tipo'

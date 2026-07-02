@@ -88,6 +88,7 @@ class FilterQuery
                 FilterType::NumericGreaterThanOrEqual => $query->where($columns[0], '>=', $value),
                 FilterType::NumericLessThanOrEqual => $query->where($columns[0], '<=', $value),
                 FilterType::NotEqual => $query->where($columns[0], '!=', $value),
+                FilterType::Equals => $query->where($columns[0], '=', $value),
             };
         }
     }

@@ -11,6 +11,7 @@ type UserFilterBadgesProps = {
   filters: UserDrawerFilters
   onRemove: (key: (typeof USER_FILTER_KEYS)[number]) => void
   onClearAll: () => void
+  valueDisplay?: Partial<Record<(typeof USER_FILTER_KEYS)[number], string>>
 }
 
 function formatFilterValue(key: (typeof USER_FILTER_KEYS)[number], value: string): string {
@@ -25,7 +26,7 @@ function formatFilterValue(key: (typeof USER_FILTER_KEYS)[number], value: string
   return value
 }
 
-export function UserFilterBadges({ filters, onRemove, onClearAll }: UserFilterBadgesProps) {
+export function UserFilterBadges({ filters, onRemove, onClearAll, valueDisplay }: UserFilterBadgesProps) {
   const badges = getActiveUserFilterBadges(filters)
 
   if (badges.length === 0) {
@@ -40,7 +41,7 @@ export function UserFilterBadges({ filters, onRemove, onClearAll }: UserFilterBa
           className="inline-flex items-center gap-1 rounded-full border border-border bg-surface-raised px-2.5 py-1 text-xs text-foreground"
         >
           <span className="text-foreground-muted">{badge.label}:</span>
-          <span className="font-medium">{formatFilterValue(badge.key, badge.value)}</span>
+          <span className="font-medium">{valueDisplay?.[badge.key] ?? formatFilterValue(badge.key, badge.value)}</span>
           <button
             type="button"
             onClick={() => onRemove(badge.key)}

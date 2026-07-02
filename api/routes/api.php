@@ -6,7 +6,9 @@ use App\Modules\User\Http\Controllers\RoleController;
 use App\Modules\User\Http\Controllers\SalaryHistoryController;
 use App\Modules\User\Http\Controllers\UserController;
 use App\Modules\User\Http\Controllers\UserPreferenceController;
+use App\Modules\User\Http\Controllers\SectorController;
 use App\Modules\User\Domain\Models\Role;
+use App\Modules\User\Domain\Models\Sector;
 use App\Modules\User\Domain\Models\SalaryHistory;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\Workflow\Http\Controllers\WorkflowInstanceController;
@@ -53,6 +55,8 @@ Route::bind('document', fn (string $value) => Document::query()->findOrFail($val
 Route::bind('document_type', fn (string $value) => DocumentType::query()->findOrFail($value));
 Route::bind('invoice', fn (string $value) => Invoice::query()->findOrFail($value));
 Route::bind('medical_exam', fn (string $value) => MedicalExam::query()->findOrFail($value));
+Route::bind('sector', fn (string $value) => Sector::query()->findOrFail($value));
+
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
 
@@ -71,6 +75,15 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/me/preferences', [UserPreferenceController::class, 'show']);
     Route::patch('/me/preferences', [UserPreferenceController::class, 'update']);
+
+    Route::get('sectors/list', [SectorController::class, 'list'])
+        ->middleware('permission:users.view');
+    Route::apiResource('sectors', SectorController::class)->middleware([
+        'index' => 'permission:users.view',
+        'store' => 'permission:users.create',
+        'show' => 'permission:users.view',
+        'update' => 'permission:users.update',
+    ])->except(['destroy']);
 
     Route::apiResource('users', UserController::class)->middleware([
         'index' => 'permission:users.view',

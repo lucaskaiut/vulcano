@@ -39,6 +39,7 @@ class StoreUserRequest extends UserRequest
             'salary.numeric' => 'Informe uma remuneração válida.',
             'salary.min' => 'A remuneração deve ser maior ou igual a zero.',
             'manager_id.exists' => 'Selecione um gestor válido.',
+            'sector_id.exists' => 'Selecione um setor válido.',
             'email.required' => 'Informe o e-mail.',
             'email.email' => 'Informe um e-mail válido.',
             'email.unique' => 'Este e-mail já está em uso.',

@@ -18,6 +18,7 @@ abstract class UserRequest extends FormRequest
             'job_title' => [$required, 'string', 'max:255'],
             'hired_at' => [$required, 'date'],
             'manager_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
+            'sector_id' => ['nullable', 'integer', Rule::exists('sectors', 'id')],
         ];
 
         if ($includeSalary) {

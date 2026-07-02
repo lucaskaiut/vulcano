@@ -7,6 +7,7 @@ import type {
   Permission,
   Role,
   SalaryHistory,
+  Sector,
 } from '../types/acl'
 import type { UserListFilters } from '../lib/userFilters'
 import type { AllowedPerPage, TableSort } from '../types/preferences'
@@ -90,6 +91,7 @@ export async function createUser(payload: {
   job_title: string
   hired_at: string
   manager_id?: number | null
+  sector_id?: number | null
   salary: number
   email: string
   password: string
@@ -110,6 +112,7 @@ export async function updateUser(
     job_title?: string
     hired_at?: string
     manager_id?: number | null
+    sector_id?: number | null
     salary?: number
     email?: string
     password?: string
@@ -219,4 +222,41 @@ export async function listPermissions(
   params: ListQueryParams = {},
 ): Promise<PaginatedResponse<Permission>> {
   return apiFetch<PaginatedResponse<Permission>>(`/permissions${buildListQuery(params)}`)
+}
+
+export async function listSectors(): Promise<Sector[]> {
+  const response = await apiFetch<{ data: Sector[] }>('/sectors/list')
+  return response.data
+}
+
+export async function paginateSectors(params: {
+  page?: number
+  per_page?: number
+} = {}): Promise<PaginatedResponse<Sector>> {
+  const query = new URLSearchParams()
+  if (params.page) query.set('page', String(params.page))
+  if (params.per_page) query.set('per_page', String(params.per_page))
+  const qs = query.toString()
+  return apiFetch<PaginatedResponse<Sector>>(`/sectors${qs ? `?${qs}` : ''}`)
+}
+
+export async function getSector(id: number): Promise<Sector> {
+  const response = await apiFetch<{ data: Sector }>(`/sectors/${id}`)
+  return response.data
+}
+
+export async function createSector(payload: { name: string }): Promise<Sector> {
+  const response = await apiFetch<{ data: Sector; message: string }>('/sectors', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  return response.data
+}
+
+export async function updateSector(id: number, payload: { name?: string }): Promise<Sector> {
+  const response = await apiFetch<{ data: Sector; message: string }>(`/sectors/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+  return response.data
 }

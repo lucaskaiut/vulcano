@@ -27,6 +27,7 @@ class FilterDefinition
             FilterType::DateGreaterThanOrEqual, FilterType::DateLessThanOrEqual => [$this->param => ['nullable', 'date']],
             FilterType::NumericGreaterThanOrEqual, FilterType::NumericLessThanOrEqual => [$this->param => ['nullable', 'numeric', 'min:0']],
             FilterType::NotEqual => [$this->param => ['nullable', 'integer']],
+            FilterType::Equals => [$this->param => ['nullable', 'integer']],
         };
     }
 }

@@ -28,6 +28,7 @@ const userFormSchema = z.object({
   job_title: z.string().min(1, "Informe o cargo."),
   hired_at: z.string().min(1, "Informe a data de contratação."),
   manager_id: z.number().nullable(),
+  sector_id: z.number().nullable(),
   salary: z
     .number()
     .min(0, "A remuneração deve ser maior ou igual a zero.")
@@ -113,6 +114,31 @@ export function UserFormPage() {
     [userId],
   );
 
+  const searchSectors = useCallback(
+    async (query: string) => {
+      const sectors = await aclService.listSectors();
+      const normalizedQuery = query
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+
+      return sectors
+        .filter((s) => {
+          if (query.trim() === "") return true;
+          const normalizedName = s.name
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "");
+          return normalizedName.includes(normalizedQuery);
+        })
+        .map((s) => ({
+          value: s.id,
+          label: s.name,
+        }));
+    },
+    [],
+  );
+
   const schema = useMemo(() => createUserFormSchema(isEditing), [isEditing]);
 
   const {
@@ -129,6 +155,7 @@ export function UserFormPage() {
       job_title: "",
       hired_at: "",
       manager_id: null,
+      sector_id: null,
       salary: 0,
       email: "",
       password: "",
@@ -146,6 +173,7 @@ export function UserFormPage() {
       job_title: userQuery.data.job_title,
       hired_at: toInputDate(userQuery.data.hired_at),
       manager_id: userQuery.data.manager_id,
+      sector_id: userQuery.data.sector_id,
       salary: Number(userQuery.data.salary),
       email: userQuery.data.email,
       password: "",
@@ -160,6 +188,7 @@ export function UserFormPage() {
         job_title: values.job_title,
         hired_at: values.hired_at,
         manager_id: values.manager_id,
+        sector_id: values.sector_id,
         email: values.email,
         role_ids: values.role_ids,
       };
@@ -221,6 +250,17 @@ export function UserFormPage() {
       description: userQuery.data.manager.job_title,
     };
   }, [userQuery.data?.manager]);
+
+  const selectedSector = useMemo(() => {
+    if (!userQuery.data?.sector) {
+      return null;
+    }
+
+    return {
+      value: userQuery.data.sector.id,
+      label: userQuery.data.sector.name,
+    };
+  }, [userQuery.data?.sector]);
 
   if (isEditing && userQuery.isLoading) {
     return (
@@ -333,6 +373,26 @@ export function UserFormPage() {
                 noResultsMessage="Nenhum colaborador encontrado."
                 clearLabel="Sem gestor"
                 error={errors.manager_id?.message}
+              />
+            )}
+          />
+
+          <Controller
+            name="sector_id"
+            control={control}
+            render={({ field }) => (
+              <SearchSelect
+                label="Setor"
+                value={field.value}
+                onChange={field.onChange}
+                onSearch={searchSectors}
+                selectedOption={selectedSector}
+                placeholder="Selecione o setor"
+                searchPlaceholder="Buscar setor..."
+                emptyMessage="Digite para buscar setores."
+                noResultsMessage="Nenhum setor encontrado."
+                clearLabel="Sem setor"
+                error={errors.sector_id?.message}
               />
             )}
           />

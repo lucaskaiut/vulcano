@@ -21,7 +21,7 @@ class UserService
     /** @return LengthAwarePaginator<int, User> */
     public function paginate(SortQuery $sort, PaginationQuery $pagination, FilterQuery $filters): LengthAwarePaginator
     {
-        $query = User::query()->with(['roles', 'manager']);
+        $query = User::query()->with(['roles', 'manager', 'sector']);
         $filters->apply($query);
         $sort->apply($query);
 
@@ -36,11 +36,11 @@ class UserService
     public function find(int $id): User
     {
         return User::query()
-            ->with(['roles', 'manager'])
+            ->with(['roles', 'manager', 'sector'])
             ->findOrFail($id);
     }
 
-    /** @param  array{name: string, job_title: string, hired_at: string, manager_id?: int|null, salary: string|float|int, email: string, password: string, role_ids?: list<int>}  $data */
+    /** @param  array{name: string, job_title: string, hired_at: string, manager_id?: int|null, sector_id?: int|null, salary: string|float|int, email: string, password: string, role_ids?: list<int>}  $data */
     public function create(array $data, User $actor): User
     {
         $user = User::query()->create([
@@ -48,6 +48,7 @@ class UserService
             'job_title' => $data['job_title'],
             'hired_at' => $data['hired_at'],
             'manager_id' => $data['manager_id'] ?? null,
+            'sector_id' => $data['sector_id'] ?? null,
             'salary' => $data['salary'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
@@ -72,10 +73,10 @@ class UserService
             ],
         );
 
-        return $user->load(['roles', 'manager']);
+        return $user->load(['roles', 'manager', 'sector']);
     }
 
-    /** @param  array{name?: string, job_title?: string, hired_at?: string, manager_id?: int|null, email?: string, password?: string|null, role_ids?: list<int>}  $data */
+    /** @param  array{name?: string, job_title?: string, hired_at?: string, manager_id?: int|null, sector_id?: int|null, email?: string, password?: string|null, role_ids?: list<int>}  $data */
     public function update(User $user, array $data): User
     {
         $attributes = [];
@@ -90,6 +91,10 @@ class UserService
             $attributes['manager_id'] = $data['manager_id'];
         }
 
+        if (array_key_exists('sector_id', $data)) {
+            $attributes['sector_id'] = $data['sector_id'];
+        }
+
         if (! empty($data['password'])) {
             $attributes['password'] = Hash::make($data['password']);
         }
@@ -102,7 +107,7 @@ class UserService
             $user->roles()->sync($data['role_ids']);
         }
 
-        return $user->load(['roles', 'manager']);
+        return $user->load(['roles', 'manager', 'sector']);
     }
 
     public function delete(User $user, User $actor): void

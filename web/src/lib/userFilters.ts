@@ -7,6 +7,7 @@ export type UserListFilters = {
   created_to?: string
   salary_min?: string
   salary_max?: string
+  sector_id?: string
   exclude_id?: number
 }
 
@@ -18,6 +19,7 @@ export const USER_FILTER_KEYS = [
   'created_to',
   'salary_min',
   'salary_max',
+  'sector_id',
 ] as const
 
 export type UserDrawerFilters = {
@@ -28,6 +30,7 @@ export type UserDrawerFilters = {
   created_to: string
   salary_min: string
   salary_max: string
+  sector_id: string
 }
 
 export const EMPTY_USER_DRAWER_FILTERS: UserDrawerFilters = {
@@ -38,6 +41,7 @@ export const EMPTY_USER_DRAWER_FILTERS: UserDrawerFilters = {
   created_to: '',
   salary_min: '',
   salary_max: '',
+  sector_id: '',
 }
 
 export function parseUserDrawerFilters(searchParams: URLSearchParams): UserDrawerFilters
@@ -58,6 +62,7 @@ export function parseUserDrawerFilters(source: URLSearchParams | Record<string, 
     created_to: get('created_to'),
     salary_min: get('salary_min'),
     salary_max: get('salary_max'),
+    sector_id: get('sector_id'),
   }
 }
 
@@ -120,6 +125,7 @@ export const USER_FILTER_LABELS: Record<(typeof USER_FILTER_KEYS)[number], strin
   created_to: 'Criação (até)',
   salary_min: 'Remuneração (mín.)',
   salary_max: 'Remuneração (máx.)',
+  sector_id: 'Setor',
 }
 
 export type UserFilterBadge = {

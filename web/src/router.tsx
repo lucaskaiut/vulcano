@@ -30,6 +30,8 @@ import { UsersPage } from './pages/UsersPage'
 import { WorkflowStepsPage } from './pages/WorkflowStepsPage'
 import { WorkflowInstancesPage } from './pages/WorkflowInstancesPage'
 import { WorkflowInstanceDetailPage } from './pages/WorkflowInstanceDetailPage'
+import { SectorsPage } from './pages/SectorsPage'
+import { SectorFormPage } from './pages/SectorFormPage'
 
 // ---------------------------------------------------------------
 // Root route
@@ -233,6 +235,24 @@ const workflowInstanceDetailRoute = createRoute({
   component: WorkflowInstanceDetailPage,
 })
 
+const sectorsRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'sectors',
+  component: SectorsPage,
+})
+
+const sectorsNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'sectors/novo',
+  component: SectorFormPage,
+})
+
+const sectorsEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'sectors/$id/editar',
+  component: SectorFormPage,
+})
+
 // ---------------------------------------------------------------
 // Route tree
 // ---------------------------------------------------------------
@@ -268,6 +288,9 @@ const routeTree = rootRoute.addChildren([
     workflowStepsRoute,
     workflowInstancesRoute,
     workflowInstanceDetailRoute,
+    sectorsRoute,
+    sectorsNewRoute,
+    sectorsEditRoute,
   ]),
 ])
 

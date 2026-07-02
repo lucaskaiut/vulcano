@@ -36,6 +36,8 @@ class IndexUserRequest extends FormRequest
             'salary_max.numeric' => 'Informe um valor máximo de remuneração válido.',
             'salary_min.min' => 'A remuneração mínima deve ser maior ou igual a zero.',
             'salary_max.min' => 'A remuneração máxima deve ser maior ou igual a zero.',
+            'sector_id.integer' => 'Informe um setor válido.',
+            'sector_id.exists' => 'O setor informado não foi encontrado.',
         ];
     }
 }

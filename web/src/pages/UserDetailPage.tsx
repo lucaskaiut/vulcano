@@ -75,6 +75,7 @@ export function UserDetailPage() {
             <DetailItem label="Cargo" value={user.job_title} />
             <DetailItem label="Contratação" value={formatDate(user.hired_at)} />
             <DetailItem label="Gestor" value={user.manager?.name ?? '—'} />
+            <DetailItem label="Setor" value={user.sector?.name ?? '—'} />
             <DetailItem label="Remuneração" value={formatSalary(user.salary)} />
           </dl>
         </Card>

@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { DatePicker } from '../ui/DatePicker'
 import { FilterDrawer } from '../ui/FilterDrawer'
 import { Input } from '../ui/Input'
+import { SearchSelect } from '../ui/SearchSelect'
+import { listSectors } from '../../services/aclService'
 import {
   EMPTY_USER_DRAWER_FILTERS,
   hasUserDrawerFilterErrors,
@@ -47,6 +49,44 @@ export function UserFiltersDrawer({
     onApply(draft)
   }
 
+  const searchSectors = useCallback(
+    async (query: string) => {
+      const sectors = await listSectors()
+      const normalizedQuery = query
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+
+      return sectors
+        .filter((s) => {
+          if (query.trim() === '') return true
+          const normalizedName = s.name
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '')
+          return normalizedName.includes(normalizedQuery)
+        })
+        .map((s) => ({
+          value: s.id,
+          label: s.name,
+        }))
+    },
+    [],
+  )
+
+  const selectedSectorId = useMemo(() => {
+    const id = draft.sector_id ? Number(draft.sector_id) : null
+    return id && !Number.isNaN(id) ? id : null
+  }, [draft.sector_id])
+
+  const selectedSectorOption = useMemo(() => {
+    if (selectedSectorId === null) return null
+    return {
+      value: selectedSectorId,
+      label: `Setor ${selectedSectorId}`,
+    }
+  }, [selectedSectorId])
+
   return (
     <FilterDrawer
       open={open}
@@ -66,6 +106,19 @@ export function UserFiltersDrawer({
           value={draft.email}
           onChange={(event) => updateField('email', event.target.value)}
           placeholder="Buscar por e-mail"
+        />
+
+        <SearchSelect
+          label="Setor"
+          value={selectedSectorId}
+          onChange={(value) => updateField('sector_id', value !== null ? String(value) : '')}
+          onSearch={searchSectors}
+          selectedOption={selectedSectorOption}
+          placeholder="Selecione o setor"
+          searchPlaceholder="Buscar setor..."
+          emptyMessage="Digite para buscar setores."
+          noResultsMessage="Nenhum setor encontrado."
+          clearLabel="Sem setor"
         />
 
         <div className="space-y-3">

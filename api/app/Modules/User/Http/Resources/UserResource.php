@@ -18,6 +18,8 @@ class UserResource extends JsonResource
             'hired_at' => $this->hired_at?->toDateString(),
             'manager_id' => $this->manager_id,
             'manager' => new UserSummaryResource($this->whenLoaded('manager')),
+            'sector_id' => $this->sector_id,
+            'sector' => new SectorResource($this->whenLoaded('sector')),
             'salary' => $this->salary,
             'email' => $this->email,
             'email_verified_at' => $this->email_verified_at?->toIso8601String(),

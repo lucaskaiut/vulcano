@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Eye, Filter, Pencil, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import { Link } from '@tanstack/react-router'
 import { ApiError } from '../services/api'
 import { getApiErrorMessage } from '../services/getApiErrorMessage'
@@ -33,6 +33,7 @@ import { useUserFilters } from '../hooks/useUserFilters'
 import { useTableSort } from '../hooks/useTableSort'
 import { formatDate, formatSalary } from '../lib/format'
 import { encodeSorts } from '../lib/sortQuery'
+import { USER_FILTER_KEYS } from '../lib/userFilters'
 
 const USER_SORTABLE_COLUMNS = ['name', 'job_title', 'hired_at'] as const
 
@@ -82,6 +83,21 @@ export function UsersPage() {
 
   const users = usersQuery.data?.data ?? []
 
+  const sectorIdFilter = drawerFilters.sector_id
+  const sectorQuery = useQuery({
+    queryKey: ['sectors', Number(sectorIdFilter)],
+    queryFn: () => aclService.getSector(Number(sectorIdFilter)!),
+    enabled: sectorIdFilter !== '' && !Number.isNaN(Number(sectorIdFilter)),
+  })
+
+  const filterValueDisplay = useMemo((): Partial<Record<(typeof USER_FILTER_KEYS)[number], string>> => {
+    const map: Partial<Record<(typeof USER_FILTER_KEYS)[number], string>> = {}
+    if (sectorIdFilter && sectorQuery.data) {
+      map['sector_id'] = sectorQuery.data.name
+    }
+    return map
+  }, [sectorIdFilter, sectorQuery.data])
+
   return (
     <div>
       <PageHeader
@@ -122,6 +138,7 @@ export function UsersPage() {
             filters={drawerFilters}
             onRemove={removeFilter}
             onClearAll={clearDrawerFilters}
+            valueDisplay={filterValueDisplay}
           />
 
           <Table>
@@ -143,6 +160,7 @@ export function UsersPage() {
                 className="hidden lg:table-cell"
               />
               <TableHeaderCellCollapsible>Gestor</TableHeaderCellCollapsible>
+              <TableHeaderCellCollapsible>Setor</TableHeaderCellCollapsible>
               <TableHeaderCellCollapsible>Remuneração</TableHeaderCellCollapsible>
               <TableHeaderCellExpand />
               <TableHeaderCell className="w-28 text-right">Ações</TableHeaderCell>
@@ -161,6 +179,7 @@ export function UsersPage() {
                       <TableDetail label="Cargo">{user.job_title}</TableDetail>
                       <TableDetail label="Contratação">{formatDate(user.hired_at)}</TableDetail>
                       <TableDetail label="Gestor">{user.manager?.name ?? '—'}</TableDetail>
+                      <TableDetail label="Setor">{user.sector?.name ?? '—'}</TableDetail>
                       <TableDetail label="Remuneração">{formatSalary(user.salary)}</TableDetail>
                       <TableDetail label="E-mail">{user.email}</TableDetail>
                       <TableDetail label="Perfis">{rolesLabel}</TableDetail>
@@ -171,6 +190,7 @@ export function UsersPage() {
                   <TableCellCollapsible className="truncate">{user.job_title}</TableCellCollapsible>
                   <TableCell className="hidden lg:table-cell">{formatDate(user.hired_at)}</TableCell>
                   <TableCellCollapsible>{user.manager?.name ?? '—'}</TableCellCollapsible>
+                  <TableCellCollapsible>{user.sector?.name ?? '—'}</TableCellCollapsible>
                   <TableCellCollapsible>{formatSalary(user.salary)}</TableCellCollapsible>
                   <TableCell className="text-right">
                     <div className="flex gap-1 justify-end">

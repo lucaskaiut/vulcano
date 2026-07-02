@@ -35,6 +35,11 @@ export type SalaryHistory = {
   updated_at: string
 }
 
+export type Sector = {
+  id: number
+  name: string
+}
+
 export type AclUser = {
   id: number
   name: string
@@ -42,6 +47,8 @@ export type AclUser = {
   hired_at: string
   manager_id: number | null
   manager?: UserManager | null
+  sector_id: number | null
+  sector?: Sector | null
   salary: string
   email: string
   email_verified_at: string | null
