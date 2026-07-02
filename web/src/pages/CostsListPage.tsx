@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { getReport } from '../services/costService'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Input } from '../components/ui/Input'
+import type { CategoryGroup } from '../types/cost'
 
 type CategoryColor = 'salary' | 'provision' | 'benefit' | 'commission' | 'vacation' | 'other'
 
@@ -34,16 +35,6 @@ const SECTION_COLORS: Record<CategoryColor, string> = {
   other:      'text-foreground-muted',
 }
 
-function classifyCategory(name: string): CategoryColor {
-  const n = name.toLowerCase()
-  if (n.includes('salário') || n.includes('salario')) return 'salary'
-  if (n.includes('provisão') || n.includes('provisao') || n.includes('13º') || n.includes('férias') || n.includes('ferias')) return 'provision'
-  if (n.includes('benefício') || n.includes('beneficio') || n.includes('plano') || n.includes('vale') || n.includes('alimentação')) return 'benefit'
-  if (n.includes('comissão') || n.includes('comissao')) return 'commission'
-  if (n.includes('concedida')) return 'vacation'
-  return 'other'
-}
-
 function currency(value: number): string {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value)
 }
@@ -52,10 +43,15 @@ export function CostsListPage() {
   const [search, setSearch] = useState('')
   const [expandedUsers, setExpandedUsers] = useState<Set<number>>(new Set())
 
-  const { data: report = [], isLoading } = useQuery({
+  const { data: result, isLoading } = useQuery({
     queryKey: ['costs-report'],
     queryFn: () => getReport(),
   })
+
+  const report = result?.data ?? []
+  const groups: Record<string, CategoryGroup> = result?.groups ?? {}
+
+  const classify = (name: string): CategoryColor => groups[name] ?? 'other'
 
   const totalCost = report.reduce((s, r) => s + r.total, 0)
   const collaborators = report.length
@@ -65,30 +61,30 @@ export function CostsListPage() {
     const map: Record<string, { value: number; color: CategoryColor }> = {}
     for (const row of report) {
       for (const [cat, val] of Object.entries(row.categories)) {
-        const color = classifyCategory(cat)
+        const color = classify(cat)
         const key = color === 'provision' ? 'Provisões' : color === 'benefit' ? 'Benefícios' : cat
         if (!map[key]) map[key] = { value: 0, color }
         map[key].value += val as number
       }
     }
     return Object.entries(map).map(([name, d]) => ({ name, value: d.value, color: d.color }))
-  }, [report])
+  }, [report, groups])
 
   const benefitsTotal = useMemo(() => {
     return report.reduce((s, r) => {
       return s + Object.entries(r.categories)
-        .filter(([cat]) => classifyCategory(cat) === 'benefit')
+        .filter(([cat]) => classify(cat) === 'benefit')
         .reduce((a, [, v]) => a + (v as number), 0)
     }, 0)
-  }, [report])
+  }, [report, groups])
 
   const provisionsTotal = useMemo(() => {
     return report.reduce((s, r) => {
       return s + Object.entries(r.categories)
-        .filter(([cat]) => classifyCategory(cat) === 'provision')
+        .filter(([cat]) => classify(cat) === 'provision')
         .reduce((a, [, v]) => a + (v as number), 0)
     }, 0)
-  }, [report])
+  }, [report, groups])
 
   const filtered = useMemo(() => {
     if (!search.trim()) return report
@@ -219,11 +215,11 @@ export function CostsListPage() {
             const isExpanded = expandedUsers.has(row.user_id)
             const categories = Object.entries(row.categories)
 
-            const salaryItems = categories.filter(([cat]) => classifyCategory(cat) === 'salary')
-            const provisionItems = categories.filter(([cat]) => classifyCategory(cat) === 'provision')
-            const benefitItems = categories.filter(([cat]) => classifyCategory(cat) === 'benefit')
+            const salaryItems = categories.filter(([cat]) => classify(cat) === 'salary')
+            const provisionItems = categories.filter(([cat]) => classify(cat) === 'provision')
+            const benefitItems = categories.filter(([cat]) => classify(cat) === 'benefit')
             const otherItems = categories.filter(([cat]) => {
-              const c = classifyCategory(cat)
+              const c = classify(cat)
               return c !== 'salary' && c !== 'provision' && c !== 'benefit'
             })
 

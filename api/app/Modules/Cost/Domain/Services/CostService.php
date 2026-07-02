@@ -4,6 +4,7 @@ namespace App\Modules\Cost\Domain\Services;
 
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\Cost\Domain\Models\ProvisionRule;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
@@ -98,10 +99,10 @@ class CostService
 
     /**
      * Relatório mensal consolidado.
-     * Inclui: salário base, provisões (13º e férias), benefícios dos colaboradores,
-     * comissões pagas no mês e férias concedidas no mês.
+     * Inclui: salário base, provisões configuráveis, benefícios dos colaboradores
+     * e comissões pagas no mês.
      *
-     * @return array<int, array{user_id: int, user_name: string, total: float, categories: array<string, float>}>
+     * @return array{data: array<int, array{user_id: int, user_name: string, total: float, categories: array<string, float>}>, groups: array<string, string>}
      */
     public function monthlyReport(?string $month = null): array
     {
@@ -110,15 +111,19 @@ class CostService
         $endOfMonth = $startOfMonth->copy()->endOfMonth()->endOfDay();
 
         $report = [];
+        $groups = [];
 
-        // 1. Base salary + provisions for all active users
+        // 1. Base salary + provisions for all users
         $users = User::query()->with('benefits')->get();
+        $provisionRules = ProvisionRule::query()->where('active', true)->get();
+
+        $groups['Salário'] = 'salary';
+        foreach ($provisionRules as $rule) {
+            $groups[$rule->name] = 'provision';
+        }
 
         foreach ($users as $user) {
             $salary = (float) $user->salary;
-            $thirteenth = $salary / 12;
-            $vacationProvision = $salary / 12;
-            $vacationBonus = ($salary / 12) / 3;
 
             $report[$user->id] = [
                 'user_id' => $user->id,
@@ -128,9 +133,11 @@ class CostService
             ];
 
             $this->addToReport($report, $user->id, 'Salário', $salary);
-            $this->addToReport($report, $user->id, 'Provisão 13º', round($thirteenth, 2));
-            $this->addToReport($report, $user->id, 'Provisão Férias', round($vacationProvision, 2));
-            $this->addToReport($report, $user->id, 'Provisão 1/3 Férias', round($vacationBonus, 2));
+
+            foreach ($provisionRules as $rule) {
+                $value = round($salary * (float) $rule->percentage / 100, 2);
+                $this->addToReport($report, $user->id, $rule->name, $value);
+            }
         }
 
         // 2. Benefits (from benefits table)
@@ -140,6 +147,7 @@ class CostService
             }
 
             foreach ($user->benefits as $benefit) {
+                $groups[$benefit->name] = 'benefit';
                 $this->addToReport($report, $user->id, $benefit->name, (float) $benefit->price);
             }
         }
@@ -150,6 +158,8 @@ class CostService
             ->whereNotNull('paid_at')
             ->whereBetween('paid_at', [$startOfMonth, $endOfMonth])
             ->get();
+
+        $groups['Comissão'] = 'commission';
 
         foreach ($paidCommissions as $commission) {
             $userId = $commission->sale->user_id;
@@ -166,27 +176,6 @@ class CostService
             $this->addToReport($report, $userId, 'Comissão', (float) $commission->commission_amount);
         }
 
-        // 4. Vacation grants this month (additional vacation cost: 1/3 of salary over vacation days)
-        $grants = \App\Modules\Vacation\Domain\Models\VacationGrant::query()
-            ->with('user')
-            ->whereBetween('created_at', [$startOfMonth, $endOfMonth])
-            ->get();
-
-        foreach ($grants as $grant) {
-            $userId = $grant->user_id;
-
-            if (! isset($report[$userId])) {
-                $report[$userId] = [
-                    'user_id' => $userId,
-                    'user_name' => $grant->user?->name ?? '—',
-                    'total' => 0,
-                    'categories' => [],
-                ];
-            }
-
-            $this->addToReport($report, $userId, 'Férias concedidas', (float) $grant->days_used);
-        }
-
         // Round totals
         foreach ($report as &$row) {
             $row['total'] = round($row['total'], 2);
@@ -196,7 +185,10 @@ class CostService
             }
         }
 
-        return array_values($report);
+        return [
+            'data' => array_values($report),
+            'groups' => $groups,
+        ];
     }
 
     /** @param  array<int, array<string, mixed>>  $report */

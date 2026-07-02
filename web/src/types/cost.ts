@@ -1,3 +1,10 @@
+export type ProvisionRule = {
+  id: number
+  name: string
+  percentage: string
+  active: boolean
+}
+
 export type CostCategory = {
   id: number
   name: string
@@ -15,6 +22,8 @@ export type CollaboratorCost = {
   category: { id: number; name: string; type: string } | null
   created_at: string
 }
+
+export type CategoryGroup = 'salary' | 'provision' | 'benefit' | 'commission' | 'vacation' | 'other'
 
 export type MonthlyCostReport = {
   user_id: number

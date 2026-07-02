@@ -1,4 +1,4 @@
-import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, Building, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, ReceiptText, Shield, Users, BookOpen, Building2, type LucideIcon } from 'lucide-react'
+import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, Building, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, PiggyBank, ReceiptText, Shield, Users, BookOpen, Building2, type LucideIcon } from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -19,6 +19,7 @@ const allNavigationItems: NavigationItem[] = [
   { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
   { label: 'Empreendimentos', href: '/enterprises', title: 'Empreendimentos', icon: Building, permission: 'commissions.view' },
   { label: 'Categorias de custo', href: '/cost-categories', title: 'Categorias de custo', icon: FolderOpen, permission: 'costs.view' },
+  { label: 'Provisões', href: '/provision-rules', title: 'Regras de provisão', icon: PiggyBank, permission: 'costs.view' },
   { label: 'Custos', href: '/costs', title: 'Custos', icon: Coins, permission: 'costs.view' },
   { label: 'Tipos de documento', href: '/document-types', title: 'Tipos de documento', icon: FileText, permission: 'documents.view' },
   { label: 'Notas Fiscais', href: '/invoices', title: 'Notas Fiscais', icon: ReceiptText, permission: 'invoices.view' },
@@ -41,6 +42,8 @@ const routePermissionMap: Record<string, string> = {
   '/costs/novo': 'costs.create',
   '/cost-categories': 'costs.view',
   '/cost-categories/novo': 'costs.create',
+  '/provision-rules': 'costs.view',
+  '/provision-rules/novo': 'costs.create',
   '/document-types': 'documents.view',
   '/document-types/novo': 'documents.create',
   '/invoices': 'invoices.view',
@@ -58,6 +61,7 @@ const ROUTE_EDIT_PATTERNS: { pattern: RegExp; permission: string }[] = [
   { pattern: /^\/users\/\d+\/editar$/, permission: 'users.update' },
   { pattern: /^\/sectors\/\d+\/editar$/, permission: 'users.update' },
   { pattern: /^\/enterprises\/\d+\/editar$/, permission: 'commissions.create' },
+  { pattern: /^\/provision-rules\/\d+\/editar$/, permission: 'costs.create' },
   { pattern: /^\/roles\/\d+\/editar$/, permission: 'roles.update' },
 ]
 
@@ -120,6 +124,9 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/enterprises') return 'Empreendimentos'
   if (pathname === '/enterprises/novo') return 'Novo empreendimento'
   if (/^\/enterprises\/\d+\/editar$/.test(pathname)) return 'Editar empreendimento'
+  if (pathname === '/provision-rules') return 'Regras de provisão'
+  if (pathname === '/provision-rules/novo') return 'Nova regra'
+  if (/^\/provision-rules\/\d+\/editar$/.test(pathname)) return 'Editar regra'
   if (pathname === '/document-types') return 'Tipos de documento'
   if (pathname === '/document-types/novo') return 'Novo tipo'
   if (/^\/document-types\/\d+\/editar$/.test(pathname)) return 'Editar tipo'

@@ -18,8 +18,10 @@ use App\Modules\Commission\Http\Controllers\EnterpriseController;
 use App\Modules\Commission\Domain\Models\Commission;
 use App\Modules\Commission\Domain\Models\Enterprise;
 use App\Modules\Cost\Http\Controllers\CostController;
+use App\Modules\Cost\Http\Controllers\ProvisionRuleController;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
+use App\Modules\Cost\Domain\Models\ProvisionRule;
 use App\Modules\Audit\Http\Controllers\AuditController;
 use App\Modules\Dashboard\Http\Controllers\DocController;
 use App\Modules\Dashboard\Http\Controllers\DashboardController;
@@ -52,6 +54,7 @@ Route::bind('vacation_period', fn (string $value) => VacationPeriod::query()->fi
 Route::bind('vacation_request', fn (string $value) => VacationRequest::query()->findOrFail($value));
 Route::bind('commission', fn (string $value) => Commission::query()->findOrFail($value));
 Route::bind('cost_category', fn (string $value) => CostCategory::query()->findOrFail($value));
+Route::bind('provision_rule', fn (string $value) => ProvisionRule::query()->findOrFail($value));
 Route::bind('collaborator_cost', fn (string $value) => CollaboratorCost::query()->findOrFail($value));
 Route::bind('document', fn (string $value) => Document::query()->findOrFail($value));
 Route::bind('document_type', fn (string $value) => DocumentType::query()->findOrFail($value));
@@ -203,6 +206,15 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:costs.update');
     Route::delete('collaborator-costs/{collaborator_cost}', [CostController::class, 'destroy'])
         ->middleware('permission:costs.delete');
+
+    Route::get('provision-rules/list', [ProvisionRuleController::class, 'list'])
+        ->middleware('permission:costs.view');
+    Route::apiResource('provision-rules', ProvisionRuleController::class)->middleware([
+        'index' => 'permission:costs.view',
+        'store' => 'permission:costs.create',
+        'show' => 'permission:costs.view',
+        'update' => 'permission:costs.create',
+    ])->except(['destroy']);
 
     Route::get('costs-report', [CostController::class, 'report'])
         ->middleware('permission:costs.view');

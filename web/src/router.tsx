@@ -34,6 +34,8 @@ import { SectorsPage } from './pages/SectorsPage'
 import { SectorFormPage } from './pages/SectorFormPage'
 import { EnterprisesPage } from './pages/EnterprisesPage'
 import { EnterpriseFormPage } from './pages/EnterpriseFormPage'
+import { ProvisionRulesPage } from './pages/ProvisionRulesPage'
+import { ProvisionRuleFormPage } from './pages/ProvisionRuleFormPage'
 
 // ---------------------------------------------------------------
 // Root route
@@ -273,6 +275,24 @@ const enterprisesEditRoute = createRoute({
   component: EnterpriseFormPage,
 })
 
+const provisionRulesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'provision-rules',
+  component: ProvisionRulesPage,
+})
+
+const provisionRulesNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'provision-rules/novo',
+  component: ProvisionRuleFormPage,
+})
+
+const provisionRulesEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'provision-rules/$id/editar',
+  component: ProvisionRuleFormPage,
+})
+
 // ---------------------------------------------------------------
 // Route tree
 // ---------------------------------------------------------------
@@ -314,6 +334,9 @@ const routeTree = rootRoute.addChildren([
     enterprisesRoute,
     enterprisesNewRoute,
     enterprisesEditRoute,
+    provisionRulesRoute,
+    provisionRulesNewRoute,
+    provisionRulesEditRoute,
   ]),
 ])
 

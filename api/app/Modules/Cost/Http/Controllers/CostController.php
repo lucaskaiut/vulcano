@@ -118,9 +118,11 @@ class CostController extends Controller
     public function report(Request $request): JsonResponse
     {
         $month = $request->query('month');
+        $report = $this->costService->monthlyReport($month);
 
         return response()->json([
-            'data' => $this->costService->monthlyReport($month),
+            'data' => $report['data'],
+            'groups' => $report['groups'],
         ]);
     }
 }

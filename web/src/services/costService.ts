@@ -1,5 +1,5 @@
 import { apiFetch } from './api'
-import type { CollaboratorCost, CostCategory, MonthlyCostReport } from '../types/cost'
+import type { CategoryGroup, CollaboratorCost, CostCategory, MonthlyCostReport, ProvisionRule } from '../types/cost'
 
 export type PaginatedResponse<T> = {
   data: T[]
@@ -87,8 +87,51 @@ export async function deleteCost(id: number): Promise<void> {
   await apiFetch<{ message: string }>(`/collaborator-costs/${id}`, { method: 'DELETE' })
 }
 
-export async function getReport(month?: string): Promise<MonthlyCostReport[]> {
+export async function getReport(month?: string): Promise<{ data: MonthlyCostReport[]; groups: Record<string, CategoryGroup> }> {
   const query = month ? `?month=${month}` : ''
-  const response = await apiFetch<{ data: MonthlyCostReport[] }>(`/costs-report${query}`)
+  return apiFetch<{ data: MonthlyCostReport[]; groups: Record<string, CategoryGroup> }>(`/costs-report${query}`)
+}
+
+export async function listProvisionRules(): Promise<ProvisionRule[]> {
+  const response = await apiFetch<{ data: ProvisionRule[] }>('/provision-rules/list')
+  return response.data
+}
+
+export async function paginateProvisionRules(params: {
+  page?: number
+  per_page?: number
+} = {}): Promise<PaginatedResponse<ProvisionRule>> {
+  const query = new URLSearchParams()
+  if (params.page) query.set('page', String(params.page))
+  if (params.per_page) query.set('per_page', String(params.per_page))
+  const qs = query.toString()
+  return apiFetch<PaginatedResponse<ProvisionRule>>(`/provision-rules${qs ? `?${qs}` : ''}`)
+}
+
+export async function getProvisionRule(id: number): Promise<ProvisionRule> {
+  const response = await apiFetch<{ data: ProvisionRule }>(`/provision-rules/${id}`)
+  return response.data
+}
+
+export async function createProvisionRule(payload: {
+  name: string
+  percentage: number
+  active?: boolean
+}): Promise<ProvisionRule> {
+  const response = await apiFetch<{ data: ProvisionRule; message: string }>('/provision-rules', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  })
+  return response.data
+}
+
+export async function updateProvisionRule(
+  id: number,
+  payload: { name?: string; percentage?: number; active?: boolean },
+): Promise<ProvisionRule> {
+  const response = await apiFetch<{ data: ProvisionRule; message: string }>(`/provision-rules/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
   return response.data
 }
