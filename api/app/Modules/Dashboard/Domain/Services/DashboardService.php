@@ -20,10 +20,7 @@ class DashboardService
             'total_collaborators' => $this->getTotalCollaborators($user),
             'total_cost' => $this->getTotalCost($user, $ownAndSubordinates),
             'pending_vacation_requests' => $this->getPendingVacationRequests($user, $ownAndSubordinates),
-            'pending_commissions' => $this->scopeQuery(
-                Commission::query()->where('status', 'pending'),
-                $user, $ownAndSubordinates, PermissionEnum::CommissionsViewAll->value, 'user_id',
-            )->count(),
+            'pending_commissions' => $this->getPendingCommissions($user, $ownAndSubordinates),
             'pending_invoices' => $this->scopeQuery(
                 Invoice::query()->where('status', 'pending'),
                 $user, $ownAndSubordinates, PermissionEnum::InvoicesViewAll->value, 'user_id',
@@ -97,5 +94,16 @@ class DashboardService
             \App\Modules\Vacation\Domain\Models\VacationRequest::query()->where('status', 'pending'),
             $user, $ownAndSubordinates, PermissionEnum::VacationRequestsViewAll->value, 'user_id',
         )->count();
+    }
+
+    private function getPendingCommissions(User $user, \Illuminate\Support\Collection $ownAndSubordinates): int
+    {
+        $query = Commission::query()->where('status', 'pending');
+
+        if (! $user->hasPermission(PermissionEnum::CommissionsViewAll->value)) {
+            $query->whereHas('sale', fn ($q) => $q->whereIn('user_id', $ownAndSubordinates));
+        }
+
+        return $query->count();
     }
 }
