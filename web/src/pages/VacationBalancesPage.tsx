@@ -40,6 +40,7 @@ export function VacationBalancesPage() {
         <Alert variant="danger">Não foi possível carregar os saldos de férias.</Alert>
       ) : (
         <Card className="overflow-hidden">
+          <div className="overflow-x-auto">
           <Table>
             <TableHead>
               <TableRow>
@@ -79,6 +80,7 @@ export function VacationBalancesPage() {
               )}
             </TableBody>
           </Table>
+          </div>
 
           {meta && (
             <TablePagination

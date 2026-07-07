@@ -34,6 +34,10 @@ use App\Modules\Invoice\Domain\Models\Invoice;
 use App\Modules\MedicalExam\Http\Controllers\MedicalExamController;
 use App\Modules\MedicalExam\Domain\Models\MedicalExam;
 use App\Modules\Notification\Http\Controllers\NotificationController;
+use App\Modules\Notification\Http\Controllers\NotificationRuleController;
+use App\Modules\Notification\Http\Controllers\NotificationTemplateController;
+use App\Modules\Notification\Domain\Models\NotificationRule as NotificationRuleModel;
+use App\Modules\Notification\Domain\Models\NotificationTemplate as NotificationTemplateModel;
 use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use App\Modules\Workflow\Domain\Models\WorkflowStep;
 use App\Modules\Vacation\Http\Controllers\VacationBalanceController;
@@ -41,6 +45,7 @@ use App\Modules\Vacation\Http\Controllers\VacationGrantController;
 use App\Modules\Vacation\Http\Controllers\VacationPeriodController;
 use App\Modules\Vacation\Http\Controllers\VacationRequestController;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
+use App\Modules\Vacation\Domain\Models\VacationGrant;
 use App\Modules\Vacation\Domain\Models\VacationPeriod;
 use App\Modules\Vacation\Domain\Models\VacationRequest;
 use Illuminate\Support\Facades\Route;
@@ -50,6 +55,7 @@ Route::bind('role', fn (string $value) => Role::query()->findOrFail($value));
 Route::bind('workflow_step', fn (string $value) => WorkflowStep::query()->findOrFail($value));
 Route::bind('workflow_instance', fn (string $value) => WorkflowInstance::query()->findOrFail($value));
 Route::bind('vacation_balance', fn (string $value) => VacationBalance::query()->findOrFail($value));
+Route::bind('vacation_grant', fn (string $value) => VacationGrant::query()->findOrFail($value));
 Route::bind('vacation_period', fn (string $value) => VacationPeriod::query()->findOrFail($value));
 Route::bind('vacation_request', fn (string $value) => VacationRequest::query()->findOrFail($value));
 Route::bind('commission', fn (string $value) => Commission::query()->findOrFail($value));
@@ -62,6 +68,10 @@ Route::bind('invoice', fn (string $value) => Invoice::query()->findOrFail($value
 Route::bind('medical_exam', fn (string $value) => MedicalExam::query()->findOrFail($value));
 Route::bind('sector', fn (string $value) => Sector::query()->findOrFail($value));
 Route::bind('enterprise', fn (string $value) => Enterprise::query()->findOrFail($value));
+Route::bind('sale', fn (string $value) => \App\Modules\Commission\Domain\Models\Sale::query()->findOrFail($value));
+Route::bind('notification_rule', fn (string $value) => NotificationRuleModel::query()->findOrFail($value));
+Route::bind('notification_template', fn (string $value) => NotificationTemplateModel::query()->findOrFail($value));
+Route::bind('notification', fn (string $value) => \App\Modules\Notification\Domain\Models\Notification::query()->findOrFail($value));
 
 Route::bind('salary_history', function (string $value, $route) {
     $user = $route->parameter('user');
@@ -71,9 +81,12 @@ Route::bind('salary_history', function (string $value, $route) {
         ->findOrFail($value);
 });
 
-Route::post('/login', [AuthController::class, 'login']);
-Route::post('/forgot-password', [AuthController::class, 'forgotPassword']);
-Route::post('/reset-password', [AuthController::class, 'resetPassword']);
+Route::post('/login', [AuthController::class, 'login'])
+    ->middleware('throttle:6,1');
+Route::post('/forgot-password', [AuthController::class, 'forgotPassword'])
+    ->middleware('throttle:3,1');
+Route::post('/reset-password', [AuthController::class, 'resetPassword'])
+    ->middleware('throttle:3,1');
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me', [AuthController::class, 'me']);
@@ -161,6 +174,10 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:vacation_grants.view');
     Route::post('vacation-grants', [VacationGrantController::class, 'store'])
         ->middleware('permission:vacation_grants.create');
+    Route::put('vacation-grants/{vacation_grant}', [VacationGrantController::class, 'update'])
+        ->middleware('permission:vacation_grants.update');
+    Route::delete('vacation-grants/{vacation_grant}', [VacationGrantController::class, 'destroy'])
+        ->middleware('permission:vacation_grants.delete');
 
     Route::get('vacation-requests', [VacationRequestController::class, 'index'])
         ->middleware('permission:vacation_requests.view');
@@ -184,6 +201,8 @@ Route::middleware('auth:sanctum')->group(function () {
     ])->except(['destroy']);
     Route::post('commissions/{commission}/pay', [CommissionController::class, 'pay'])
         ->middleware('permission:commissions.pay');
+    Route::get('sales/{sale}/invoice-download', [CommissionController::class, 'downloadInvoice'])
+        ->middleware('permission:commissions.view');
 
     Route::get('cost-categories', [CostController::class, 'categories'])
         ->middleware('permission:costs.view');
@@ -225,7 +244,11 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:documents.create');
     Route::put('document-types/{document_type}', [DocumentController::class, 'updateType'])
         ->middleware('permission:documents.create');
+    Route::delete('document-types/{document_type}', [DocumentController::class, 'destroyType'])
+        ->middleware('permission:documents.delete');
 
+    Route::get('documents', [DocumentController::class, 'indexAll'])
+        ->middleware('permission:documents.view');
     Route::get('users/{user}/documents', [DocumentController::class, 'index'])
         ->middleware('permission:documents.view');
     Route::post('users/{user}/documents', [DocumentController::class, 'store'])
@@ -246,6 +269,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('invoices/{invoice}/download', [InvoiceController::class, 'download'])
         ->middleware('permission:invoices.view');
 
+    Route::get('medical-exams', [MedicalExamController::class, 'indexAll'])
+        ->middleware('permission:medical_exams.view');
     Route::get('users/{user}/medical-exams', [MedicalExamController::class, 'index'])
         ->middleware('permission:medical_exams.view');
     Route::post('users/{user}/medical-exams', [MedicalExamController::class, 'store'])
@@ -258,6 +283,36 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:medical_exams.view');
 
     Route::get('notifications', [NotificationController::class, 'index'])
+        ->middleware('permission:notifications.view');
+    Route::get('notifications/all', [NotificationController::class, 'indexAll'])
+        ->middleware('permission:notifications.view');
+    Route::post('notifications/{notification}/retry', [NotificationController::class, 'retry'])
+        ->middleware('permission:notifications.view');
+
+    Route::get('notification-rules', [NotificationRuleController::class, 'index'])
+        ->middleware('permission:notifications.view');
+    Route::post('notification-rules', [NotificationRuleController::class, 'store'])
+        ->middleware('permission:notifications.view');
+    Route::get('notification-rules/{notification_rule}', [NotificationRuleController::class, 'show'])
+        ->middleware('permission:notifications.view');
+    Route::put('notification-rules/{notification_rule}', [NotificationRuleController::class, 'update'])
+        ->middleware('permission:notifications.view');
+    Route::delete('notification-rules/{notification_rule}', [NotificationRuleController::class, 'destroy'])
+        ->middleware('permission:notifications.view');
+    Route::post('notification-rules/{notification_rule}/test-send', [NotificationRuleController::class, 'testSend'])
+        ->middleware('permission:notifications.view');
+
+    Route::get('notification-templates', [NotificationTemplateController::class, 'index'])
+        ->middleware('permission:notifications.view');
+    Route::post('notification-templates', [NotificationTemplateController::class, 'store'])
+        ->middleware('permission:notifications.view');
+    Route::get('notification-templates/{notification_template}', [NotificationTemplateController::class, 'show'])
+        ->middleware('permission:notifications.view');
+    Route::put('notification-templates/{notification_template}', [NotificationTemplateController::class, 'update'])
+        ->middleware('permission:notifications.view');
+    Route::delete('notification-templates/{notification_template}', [NotificationTemplateController::class, 'destroy'])
+        ->middleware('permission:notifications.view');
+    Route::get('notification-variables', [NotificationTemplateController::class, 'variables'])
         ->middleware('permission:notifications.view');
 
     Route::get('dashboard', [DashboardController::class, 'summary']);

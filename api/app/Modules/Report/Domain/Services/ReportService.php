@@ -12,9 +12,7 @@ use App\Modules\Workflow\Domain\Models\WorkflowInstance;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Collection;
 use OpenSpout\Common\Entity\Row;
-use OpenSpout\Common\Entity\Style\Style;
 use OpenSpout\Writer\XLSX\Writer;
-use Illuminate\Support\Facades\Response;
 
 class ReportService
 {
@@ -96,30 +94,31 @@ class ReportService
     }
 
     /** @param  array<string, mixed>  $rows */
-    public function generateXlsx(string $filePrefix, array $headers, array $rows): \Symfony\Component\HttpFoundation\StreamedResponse
+    public function generateXlsx(string $filePrefix, array $headers, array $rows): \Symfony\Component\HttpFoundation\BinaryFileResponse
     {
-        $filename = $filePrefix . '_' . now()->format('Y-m-d') . '.xlsx';
+        $filename = $filePrefix . '_' . now()->format('d-m-Y') . '.xlsx';
+        $tempPath = tempnam(sys_get_temp_dir(), 'report_') . '.xlsx';
 
-        return response()->streamDownload(function () use ($headers, $rows) {
-            $writer = new Writer;
-            $writer->openToBrowser('php://output');
+        $writer = new Writer;
+        $writer->openToFile($tempPath);
 
-            $writer->addRow(Row::fromValues($headers));
+        $writer->addRow(Row::fromValues($headers));
 
-            foreach ($rows as $row) {
-                $writer->addRow(Row::fromValues($row));
-            }
+        foreach ($rows as $row) {
+            $writer->addRow(Row::fromValues($row));
+        }
 
-            $writer->close();
-        }, $filename, [
+        $writer->close();
+
+        return response()->download($tempPath, $filename, [
             'Content-Type' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        ]);
+        ])->deleteFileAfterSend(true);
     }
 
     /** @param  array<string, mixed>  $data */
     public function generatePdf(string $view, string $filePrefix, array $data): \Illuminate\Http\Response
     {
-        $filename = $filePrefix . '_' . now()->format('Y-m-d') . '.pdf';
+        $filename = $filePrefix . '_' . now()->format('d-m-Y') . '.pdf';
         $pdf = Pdf::loadView($view, $data);
 
         return $pdf->download($filename);

@@ -2,6 +2,7 @@
 
 namespace App\Modules\Vacation\Domain\Services;
 
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
@@ -16,11 +17,16 @@ class VacationBalanceService
     public const SORTABLE_COLUMNS = ['available_days', 'accrued_days', 'used_days', 'created_at'];
 
     /** @return LengthAwarePaginator<int, VacationBalance> */
-    public function paginate(SortQuery $sort, PaginationQuery $pagination, ?int $userId = null): LengthAwarePaginator
+    public function paginate(SortQuery $sort, PaginationQuery $pagination, User $user, ?int $userId = null): LengthAwarePaginator
     {
         $query = VacationBalance::query()->with('user');
 
         if ($userId !== null) {
+            if (! $user->hasPermission(PermissionEnum::VacationBalancesViewAll->value)) {
+                $subordinateIds = User::query()->where('manager_id', $user->id)->pluck('id')->push($user->id)->unique();
+                abort_unless($subordinateIds->contains($userId), 403, 'Acesso negado.');
+            }
+
             $query->where('user_id', $userId);
 
             if (! VacationBalance::query()->where('user_id', $userId)->exists()) {
@@ -32,6 +38,10 @@ class VacationBalanceService
                     'additional_days' => 0,
                 ]);
             }
+        } elseif (! $user->hasPermission(PermissionEnum::VacationBalancesViewAll->value)) {
+            $subordinateIds = User::query()->where('manager_id', $user->id)->pluck('id');
+            $ids = $subordinateIds->push($user->id)->unique();
+            $query->whereIn('user_id', $ids);
         }
 
         $sort->apply($query);

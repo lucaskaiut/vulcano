@@ -72,6 +72,7 @@ export type AclUser = {
   state: string | null
   contract_type: string | null
   contracting_company: string | null
+  invoice_due_day: number | null
   emergency_contacts: string | null
   bank_details: string | null
   observations: string | null

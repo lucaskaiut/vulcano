@@ -36,6 +36,11 @@ import { EnterprisesPage } from './pages/EnterprisesPage'
 import { EnterpriseFormPage } from './pages/EnterpriseFormPage'
 import { ProvisionRulesPage } from './pages/ProvisionRulesPage'
 import { ProvisionRuleFormPage } from './pages/ProvisionRuleFormPage'
+import { NotificationTemplatesPage } from './pages/NotificationTemplatesPage'
+import { NotificationTemplateFormPage } from './pages/NotificationTemplateFormPage'
+import { NotificationRulesPage } from './pages/NotificationRulesPage'
+import { NotificationRuleFormPage } from './pages/NotificationRuleFormPage'
+import { NotificationHistoryPage } from './pages/NotificationHistoryPage'
 
 // ---------------------------------------------------------------
 // Root route
@@ -293,6 +298,48 @@ const provisionRulesEditRoute = createRoute({
   component: ProvisionRuleFormPage,
 })
 
+const notificationTemplatesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-templates',
+  component: NotificationTemplatesPage,
+})
+
+const notificationTemplatesNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-templates/novo',
+  component: NotificationTemplateFormPage,
+})
+
+const notificationTemplatesEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-templates/$id/editar',
+  component: NotificationTemplateFormPage,
+})
+
+const notificationRulesRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-rules',
+  component: NotificationRulesPage,
+})
+
+const notificationRulesNewRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-rules/novo',
+  component: NotificationRuleFormPage,
+})
+
+const notificationRulesEditRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-rules/$id/editar',
+  component: NotificationRuleFormPage,
+})
+
+const notificationHistoryRoute = createRoute({
+  getParentRoute: () => layoutRoute,
+  path: 'notification-history',
+  component: NotificationHistoryPage,
+})
+
 // ---------------------------------------------------------------
 // Route tree
 // ---------------------------------------------------------------
@@ -337,6 +384,13 @@ const routeTree = rootRoute.addChildren([
     provisionRulesRoute,
     provisionRulesNewRoute,
     provisionRulesEditRoute,
+    notificationTemplatesRoute,
+    notificationTemplatesNewRoute,
+    notificationTemplatesEditRoute,
+    notificationRulesRoute,
+    notificationRulesNewRoute,
+    notificationRulesEditRoute,
+    notificationHistoryRoute,
   ]),
 ])
 

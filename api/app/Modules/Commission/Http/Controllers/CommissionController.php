@@ -4,10 +4,13 @@ namespace App\Modules\Commission\Http\Controllers;
 
 use App\Http\Controllers\Controller;
 use App\Modules\Commission\Domain\Models\Commission;
+use App\Modules\Commission\Domain\Models\Sale;
 use App\Modules\Commission\Domain\Services\CommissionService;
 use App\Modules\Commission\Http\Requests\StoreSaleRequest;
 use App\Modules\Commission\Http\Resources\SaleResource;
 use Illuminate\Http\JsonResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
+use Illuminate\Support\Facades\Storage;
 
 class CommissionController extends Controller
 {
@@ -24,7 +27,11 @@ class CommissionController extends Controller
 
     public function store(StoreSaleRequest $request): JsonResponse
     {
-        $sale = $this->commissionService->create($request->user(), $request->validated());
+        $sale = $this->commissionService->create(
+            $request->user(),
+            $request->validated(),
+            $request->file('invoice_file'),
+        );
 
         return response()->json([
             'data' => new SaleResource($sale),
@@ -40,5 +47,15 @@ class CommissionController extends Controller
             'data' => ['id' => $commission->id, 'status' => $commission->status->value],
             'message' => 'Comissão marcada como paga.',
         ]);
+    }
+
+    public function downloadInvoice(Sale $sale): BinaryFileResponse
+    {
+        abort_unless($sale->invoice_file_path, 404);
+
+        return response()->download(
+            Storage::disk('local')->path($sale->invoice_file_path),
+            $sale->invoice_file_name ?? 'nf.pdf',
+        );
     }
 }

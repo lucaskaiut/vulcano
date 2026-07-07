@@ -21,7 +21,7 @@ class VacationPeriodController extends Controller
 
         return response()->json([
             'data' => VacationPeriodResource::collection(
-                $this->vacationPeriodService->list($userId ? (int) $userId : null),
+                $this->vacationPeriodService->list($request->user(), $userId ? (int) $userId : null),
             ),
         ]);
     }

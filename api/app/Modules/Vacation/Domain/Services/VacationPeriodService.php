@@ -1,6 +1,8 @@
 <?php
 
 namespace App\Modules\Vacation\Domain\Services;
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
+use App\Modules\User\Domain\Models\User;
 use App\Modules\Vacation\Domain\Enums\VacationPeriodStatus;
 use App\Modules\Vacation\Domain\Models\VacationBalance;
 use App\Modules\Vacation\Domain\Models\VacationPeriod;
@@ -14,13 +16,26 @@ class VacationPeriodService
     public function __construct(private readonly VacationBalanceService $vacationBalanceService) {}
 
     /** @return Collection<int, VacationPeriod> */
-    public function list(?int $userId = null): Collection
+    public function list(User $user, ?int $userId = null): Collection
     {
-        return VacationPeriod::query()
+        $query = VacationPeriod::query()
             ->with('user')
-            ->when($userId, fn ($query) => $query->where('user_id', $userId))
-            ->orderByDesc('start_date')
-            ->get();
+            ->orderByDesc('start_date');
+
+        if ($userId !== null) {
+            if (! $user->hasPermission(PermissionEnum::VacationPeriodsViewAll->value)) {
+                $subordinateIds = User::query()->where('manager_id', $user->id)->pluck('id')->push($user->id)->unique();
+                abort_unless($subordinateIds->contains($userId), 403, 'Acesso negado.');
+            }
+
+            $query->where('user_id', $userId);
+        } elseif (! $user->hasPermission(PermissionEnum::VacationPeriodsViewAll->value)) {
+            $subordinateIds = User::query()->where('manager_id', $user->id)->pluck('id');
+            $ids = $subordinateIds->push($user->id)->unique();
+            $query->whereIn('user_id', $ids);
+        }
+
+        return $query->get();
     }
 
     /** @param  array{user_id: int, start_date: string}  $data */

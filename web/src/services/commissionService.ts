@@ -14,10 +14,22 @@ export async function createSale(payload: {
   sale_amount: number
   percentage: number
   notes?: string | null
+  invoice_number?: string | null
+  invoice_file?: File | null
 }): Promise<Sale> {
+  const formData = new FormData()
+  formData.append('enterprise_id', String(payload.enterprise_id))
+  formData.append('unit', payload.unit)
+  formData.append('sale_date', payload.sale_date)
+  formData.append('sale_amount', String(payload.sale_amount))
+  formData.append('percentage', String(payload.percentage))
+  if (payload.notes) formData.append('notes', payload.notes)
+  if (payload.invoice_number) formData.append('invoice_number', payload.invoice_number)
+  if (payload.invoice_file) formData.append('invoice_file', payload.invoice_file)
+
   const response = await apiFetch<{ data: Sale; message: string }>('/sales', {
     method: 'POST',
-    body: JSON.stringify(payload),
+    body: formData,
   })
   return response.data
 }
@@ -28,6 +40,10 @@ export async function payCommission(id: number): Promise<{ id: number; status: s
     { method: 'POST' },
   )
   return response.data
+}
+
+export function getInvoiceDownloadUrl(saleId: number): string {
+  return `${import.meta.env.VITE_API_BASE_URL ?? '/api'}/sales/${saleId}/invoice-download`
 }
 
 export async function listEnterprises(): Promise<Enterprise[]> {

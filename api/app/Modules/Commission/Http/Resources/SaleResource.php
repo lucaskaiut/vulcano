@@ -21,6 +21,8 @@ class SaleResource extends JsonResource
             'percentage' => $this->percentage,
             'commission_amount' => $this->commission_amount,
             'notes' => $this->notes,
+            'invoice_number' => $this->invoice_number,
+            'invoice_file_name' => $this->invoice_file_name,
             'user' => new UserSummaryResource($this->whenLoaded('user')),
             'commission' => $this->whenLoaded('commission', fn () => [
                 'id' => $this->commission->id,

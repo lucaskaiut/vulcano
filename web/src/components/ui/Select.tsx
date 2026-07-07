@@ -74,7 +74,7 @@ export function Select<T extends string | number = string | number>({
         aria-haspopup="listbox"
         aria-controls={listboxId}
         onClick={() => setIsOpen((open) => !open)}
-        className={`inline-flex items-center gap-1 rounded-md bg-surface py-1.5 pl-2.5 pr-2 text-xs font-semibold text-primary shadow-surface outline-none transition hover:bg-surface-sunken focus:bg-surface focus:shadow-raised focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 sm:py-2 sm:pl-3 sm:text-sm ${className}`}
+        className={`inline-flex items-center gap-1 rounded-md bg-surface py-2.5 pl-3 pr-2 text-sm font-semibold text-primary shadow-surface outline-none transition hover:bg-surface-sunken focus:bg-surface focus:shadow-raised focus:ring-2 focus:ring-primary/30 disabled:cursor-not-allowed disabled:opacity-50 ${className}`}
       >
         <span>{selectedOption?.label ?? value}</span>
         <ChevronDown
@@ -98,7 +98,7 @@ export function Select<T extends string | number = string | number>({
                 <button
                   type="button"
                   onClick={() => selectOption(option.value)}
-                  className={`flex w-full items-center justify-between gap-2 rounded-sm px-2.5 py-1.5 text-left text-xs font-medium transition sm:text-sm ${
+                  className={`flex w-full items-center justify-between gap-2 rounded-sm px-3 py-2.5 text-left text-sm font-medium transition ${
                     isSelected
                       ? 'bg-primary-muted text-primary'
                       : 'text-foreground hover:bg-surface-sunken'

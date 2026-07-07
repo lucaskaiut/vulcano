@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
-import { useCallback, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { approveInstance, rejectInstance } from '../services/workflowService'
 import { createSale, listEnterprises, listSales, payCommission } from '../services/commissionService'
 import { Button } from '../components/ui/Button'
@@ -22,6 +22,9 @@ export function SalesPage() {
   const [saleAmount, setSaleAmount] = useState(0)
   const [percentage, setPercentage] = useState('')
   const [notes, setNotes] = useState('')
+  const [invoiceNumber, setInvoiceNumber] = useState('')
+  const [invoiceFile, setInvoiceFile] = useState<File | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   const [formError, setFormError] = useState('')
 
   const { data: sales = [], isLoading } = useQuery({
@@ -54,6 +57,8 @@ export function SalesPage() {
         sale_amount: saleAmount,
         percentage: parseFloat(percentage),
         notes: notes || undefined,
+        invoice_number: invoiceNumber || undefined,
+        invoice_file: invoiceFile || undefined,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['sales'] })
@@ -64,6 +69,8 @@ export function SalesPage() {
       setSaleAmount(0)
       setPercentage('')
       setNotes('')
+      setInvoiceNumber('')
+      setInvoiceFile(null)
       setFormError('')
     },
     onError: (err: any) => {
@@ -175,6 +182,23 @@ export function SalesPage() {
             )}
 
             <Textarea label="Observações (opcional)" value={notes} onChange={(e) => setNotes(e.target.value)} />
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <Input label="Número da NF" value={invoiceNumber} onChange={(e) => setInvoiceNumber(e.target.value)} placeholder="Opcional" />
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground-muted">Upload da NF</label>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf,.png,.jpg,.jpeg"
+                  onChange={(e) => setInvoiceFile(e.target.files?.[0] ?? null)}
+                  className="block w-full text-sm text-foreground-muted file:mr-3 file:rounded-md file:border-0 file:bg-surface-sunken file:px-3 file:py-2 file:text-sm file:font-medium file:text-foreground hover:file:bg-surface"
+                />
+                {invoiceFile && (
+                  <p className="mt-1 text-xs text-foreground-muted">{invoiceFile.name}</p>
+                )}
+              </div>
+            </div>
 
             {formError && <p className="text-sm text-danger">{formError}</p>}
 

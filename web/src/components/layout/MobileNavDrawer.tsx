@@ -3,6 +3,7 @@ import { useCallback, useEffect, type PointerEvent as ReactPointerEvent } from '
 import { useLocation, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '../../contexts/AuthContext'
 import { isNavItemActive, useFilteredNavigation } from '../../config/navigation'
+import type { NavigationItem } from '../../config/navigation'
 import { MOBILE_NAV_SHEET_ANIMATION_MS } from '../../hooks/useMobileNavSheet'
 import { getInitials } from '../../lib/layout'
 
@@ -35,7 +36,15 @@ export function MobileNavDrawer({
   const navigate = useNavigate()
   const allItems = useFilteredNavigation()
 
-  const menuItems = allItems.filter((item) => item.href !== '/')
+  // Flatten groups into individual items for mobile
+  const menuItems: NavigationItem[] = []
+  for (const item of allItems) {
+    if ('children' in item && item.children) {
+      menuItems.push(...item.children)
+    } else if ('href' in item && item.href && item.href !== '/') {
+      menuItems.push(item)
+    }
+  }
 
   const goTo = useCallback(
     (href: string) => {

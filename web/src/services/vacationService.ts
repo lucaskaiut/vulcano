@@ -131,6 +131,7 @@ export async function createVacationGrant(payload: {
   start_date: string
   end_date: string
   days_used: number
+  reason?: string | null
 }): Promise<VacationGrant> {
   const response = await apiFetch<ItemResponse<VacationGrant>>('/vacation-grants', {
     method: 'POST',
@@ -138,6 +139,22 @@ export async function createVacationGrant(payload: {
   })
 
   return response.data
+}
+
+export async function updateVacationGrant(
+  id: number,
+  payload: { start_date?: string; end_date?: string; days_used?: number; reason?: string | null },
+): Promise<VacationGrant> {
+  const response = await apiFetch<ItemResponse<VacationGrant>>(`/vacation-grants/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(payload),
+  })
+
+  return response.data
+}
+
+export async function deleteVacationGrant(id: number): Promise<void> {
+  await apiFetch<{ message: string }>(`/vacation-grants/${id}`, { method: 'DELETE' })
 }
 
 export async function listVacationRequests(): Promise<VacationRequest[]> {

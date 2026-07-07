@@ -1,9 +1,12 @@
 import { useQuery } from '@tanstack/react-query'
-import { ChevronDown, ChevronUp, Gift, PiggyBank, Search, TrendingUp, Users, Wallet } from 'lucide-react'
+import { ChevronDown, ChevronUp, FileSpreadsheet, FileText, Gift, Loader2, PiggyBank, Search, TrendingUp, Users, Wallet } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import { getReport } from '../services/costService'
+import { getReport, downloadCostReport } from '../services/costService'
+import { getSavedColumns } from '../lib/reportColumns'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Input } from '../components/ui/Input'
+import { ReportColumnModal } from '../components/ui/ReportColumnModal'
+import { useAuth } from '../contexts/AuthContext'
 import type { CategoryGroup } from '../types/cost'
 
 type CategoryColor = 'salary' | 'provision' | 'benefit' | 'commission' | 'vacation' | 'other'
@@ -40,8 +43,11 @@ function currency(value: number): string {
 }
 
 export function CostsListPage() {
+  const { user, mergePreferences } = useAuth()
   const [search, setSearch] = useState('')
   const [expandedUsers, setExpandedUsers] = useState<Set<number>>(new Set())
+  const [downloading, setDownloading] = useState<string | null>(null)
+  const [columnModal, setColumnModal] = useState<{ format: 'pdf' | 'xlsx' } | null>(null)
 
   const { data: result, isLoading } = useQuery({
     queryKey: ['costs-report'],
@@ -50,6 +56,11 @@ export function CostsListPage() {
 
   const report = result?.data ?? []
   const groups: Record<string, CategoryGroup> = result?.groups ?? {}
+
+  const savedColumns = useMemo(
+    () => getSavedColumns('costs', user?.preferences),
+    [user?.preferences],
+  )
 
   const classify = (name: string): CategoryColor => groups[name] ?? 'other'
 
@@ -190,16 +201,47 @@ export function CostsListPage() {
         </div>
       )}
 
-      {/* Search */}
-      <div className="relative mb-6 max-w-sm">
-        <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground-subtle" aria-hidden />
-        <Input
-          label=""
-          placeholder="Buscar colaborador..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      {/* Search + Export */}
+      <div className="mb-6 flex flex-wrap items-end gap-3">
+        <div className="relative max-w-sm flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-foreground-subtle" aria-hidden />
+          <Input
+            label=""
+            placeholder="Buscar colaborador..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+
+        <div className="flex gap-2 sm:ml-auto">
+          <button
+            type="button"
+            disabled={downloading !== null}
+            onClick={() => setColumnModal({ format: 'xlsx' })}
+            className="inline-flex items-center gap-1.5 rounded-md bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-success-muted hover:text-success disabled:opacity-50"
+          >
+            {downloading === 'xlsx' ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <FileSpreadsheet className="size-4" aria-hidden />
+            )}
+            Excel
+          </button>
+          <button
+            type="button"
+            disabled={downloading !== null}
+            onClick={() => setColumnModal({ format: 'pdf' })}
+            className="inline-flex items-center gap-1.5 rounded-md bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50"
+          >
+            {downloading === 'pdf' ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <FileText className="size-4" aria-hidden />
+            )}
+            PDF
+          </button>
+        </div>
       </div>
 
       {/* Collaborator Cards */}
@@ -326,6 +368,28 @@ export function CostsListPage() {
           })}
         </div>
       )}
+
+      <ReportColumnModal
+        open={columnModal !== null}
+        reportType="costs"
+        savedColumns={savedColumns}
+        onExport={async (selectedColumns) => {
+          if (!columnModal) return
+          setColumnModal(null)
+          setDownloading(columnModal.format)
+          try {
+            await downloadCostReport(columnModal.format, selectedColumns)
+          } catch {
+            // ignore
+          } finally {
+            setDownloading(null)
+          }
+          mergePreferences({
+            report_columns: { costs: selectedColumns },
+          })
+        }}
+        onCancel={() => setColumnModal(null)}
+      />
     </>
   )
 }

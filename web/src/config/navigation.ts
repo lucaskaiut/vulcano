@@ -1,4 +1,9 @@
-import { CalendarPlus, Coins, ClipboardList, DollarSign, FileText, Building, FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, PiggyBank, ReceiptText, Shield, Users, BookOpen, Building2, type LucideIcon } from 'lucide-react'
+import {
+  CalendarPlus, Coins, ClipboardList, DollarSign, FileText, Building,
+  FolderOpen, GitBranch, BarChart3, LayoutDashboard, Palmtree, PiggyBank,
+  ReceiptText, Shield, Users, BookOpen, Building2, Bell,
+  type LucideIcon,
+} from 'lucide-react'
 import { usePermissions } from '../hooks/usePermissions'
 import { useMemo } from 'react'
 
@@ -8,27 +13,94 @@ export type NavigationItem = {
   title: string
   icon: LucideIcon
   permission?: string
+  children?: NavigationItem[]
 }
 
-const allNavigationItems: NavigationItem[] = [
+type NavigationGroup = {
+  label: string
+  icon: LucideIcon
+  children: NavigationItem[]
+  permission?: string
+}
+
+const allNavigationItems: (NavigationItem | NavigationGroup)[] = [
   { label: 'Dashboard', href: '/', title: 'Dashboard', icon: LayoutDashboard },
-  { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users, permission: 'users.view' },
-  { label: 'Setores', href: '/sectors', title: 'Setores', icon: Building2, permission: 'users.view' },
-  { label: 'Férias', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree, permission: 'vacation_balances.view' },
-  { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarPlus, permission: 'vacation_requests.view' },
-  { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
-  { label: 'Empreendimentos', href: '/enterprises', title: 'Empreendimentos', icon: Building, permission: 'commissions.view' },
-  { label: 'Categorias de custo', href: '/cost-categories', title: 'Categorias de custo', icon: FolderOpen, permission: 'costs.view' },
-  { label: 'Provisões', href: '/provision-rules', title: 'Regras de provisão', icon: PiggyBank, permission: 'costs.view' },
-  { label: 'Custos', href: '/costs', title: 'Custos', icon: Coins, permission: 'costs.view' },
-  { label: 'Tipos de documento', href: '/document-types', title: 'Tipos de documento', icon: FileText, permission: 'documents.view' },
-  { label: 'Notas Fiscais', href: '/invoices', title: 'Notas Fiscais', icon: ReceiptText, permission: 'invoices.view' },
-  { label: 'Relatórios', href: '/reports', title: 'Relatórios', icon: BarChart3, permission: 'users.view' },
-  { label: 'Auditoria', href: '/audit-logs', title: 'Auditoria', icon: ClipboardList, permission: 'audit.view' },
-  { label: 'Guia do Usuário', href: '/user-guide', title: 'Guia do Usuário', icon: BookOpen },
-  { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield, permission: 'roles.view' },
-  { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.update' },
+
+  {
+    label: 'Pessoas',
+    icon: Users,
+    children: [
+      { label: 'Colaboradores', href: '/users', title: 'Colaboradores', icon: Users, permission: 'users.view' },
+      { label: 'Setores', href: '/sectors', title: 'Setores', icon: Building2, permission: 'users.view' },
+      { label: 'Perfis', href: '/roles', title: 'Perfis', icon: Shield, permission: 'roles.view' },
+    ],
+  },
+
+  {
+    label: 'Férias',
+    icon: Palmtree,
+    children: [
+      { label: 'Saldos', href: '/vacation-balances', title: 'Saldos de férias', icon: Palmtree, permission: 'vacation_balances.view' },
+      { label: 'Solicitações', href: '/vacation-requests', title: 'Solicitações de férias', icon: CalendarPlus, permission: 'vacation_requests.view' },
+    ],
+  },
+
+  {
+    label: 'Financeiro',
+    icon: DollarSign,
+    children: [
+      { label: 'Comissões', href: '/sales', title: 'Comissões', icon: DollarSign, permission: 'commissions.view' },
+      { label: 'Empreendimentos', href: '/enterprises', title: 'Empreendimentos', icon: Building, permission: 'commissions.view' },
+      { label: 'Custos', href: '/costs', title: 'Custos', icon: Coins, permission: 'costs.view' },
+      { label: 'Categorias', href: '/cost-categories', title: 'Categorias de custo', icon: FolderOpen, permission: 'costs.view' },
+      { label: 'Provisões', href: '/provision-rules', title: 'Regras de provisão', icon: PiggyBank, permission: 'costs.view' },
+      { label: 'Notas Fiscais', href: '/invoices', title: 'Notas Fiscais', icon: ReceiptText, permission: 'invoices.view' },
+    ],
+  },
+
+  {
+    label: 'Documentos',
+    icon: FileText,
+    children: [
+      { label: 'Tipos', href: '/document-types', title: 'Tipos de documento', icon: FileText, permission: 'documents.view' },
+    ],
+  },
+
+  {
+    label: 'Automação',
+    icon: GitBranch,
+    children: [
+      { label: 'Workflows', href: '/workflows', title: 'Fluxos de Aprovação', icon: GitBranch, permission: 'workflow_steps.update' },
+      { label: 'Notificações', href: '/notification-rules', title: 'Notificações', icon: Bell, permission: 'notifications.view' },
+    ],
+  },
+
+  {
+    label: 'Sistema',
+    icon: BarChart3,
+    children: [
+      { label: 'Relatórios', href: '/reports', title: 'Relatórios', icon: BarChart3, permission: 'users.view' },
+      { label: 'Auditoria', href: '/audit-logs', title: 'Auditoria', icon: ClipboardList, permission: 'audit.view' },
+      { label: 'Guia do Usuário', href: '/user-guide', title: 'Guia do Usuário', icon: BookOpen },
+    ],
+  },
 ]
+
+// Flatten all navigation items for route matching (groups are not routes)
+function flattenItems(items: (NavigationItem | NavigationGroup)[]): NavigationItem[] {
+  const result: NavigationItem[] = []
+  for (const item of items) {
+    if ('href' in item && item.href) {
+      result.push(item)
+    }
+    if ('children' in item && item.children) {
+      result.push(...flattenItems(item.children))
+    }
+  }
+  return result
+}
+
+const flatItems = flattenItems(allNavigationItems)
 
 const routePermissionMap: Record<string, string> = {
   '/users': 'users.view',
@@ -55,6 +127,11 @@ const routePermissionMap: Record<string, string> = {
   '/roles/novo': 'roles.create',
   '/workflows': 'workflow_steps.update',
   '/workflow-instances': 'workflow_instances.view',
+  '/notification-templates': 'notifications.view',
+  '/notification-templates/novo': 'notifications.view',
+  '/notification-rules': 'notifications.view',
+  '/notification-rules/novo': 'notifications.view',
+  '/notification-history': 'notifications.view',
 }
 
 const ROUTE_EDIT_PATTERNS: { pattern: RegExp; permission: string }[] = [
@@ -63,6 +140,8 @@ const ROUTE_EDIT_PATTERNS: { pattern: RegExp; permission: string }[] = [
   { pattern: /^\/enterprises\/\d+\/editar$/, permission: 'commissions.create' },
   { pattern: /^\/provision-rules\/\d+\/editar$/, permission: 'costs.create' },
   { pattern: /^\/roles\/\d+\/editar$/, permission: 'roles.update' },
+  { pattern: /^\/notification-templates\/\d+\/editar$/, permission: 'notifications.view' },
+  { pattern: /^\/notification-rules\/\d+\/editar$/, permission: 'notifications.view' },
 ]
 
 const ROUTE_VIEW_PATTERNS: { pattern: RegExp; permission: string }[] = [
@@ -71,39 +150,60 @@ const ROUTE_VIEW_PATTERNS: { pattern: RegExp; permission: string }[] = [
 ]
 
 export function routeRequiresPermission(pathname: string): string | null {
-  if (routePermissionMap[pathname]) {
-    return routePermissionMap[pathname]
-  }
-
+  if (routePermissionMap[pathname]) return routePermissionMap[pathname]
   for (const { pattern, permission } of ROUTE_EDIT_PATTERNS) {
     if (pattern.test(pathname)) return permission
   }
-
   for (const { pattern, permission } of ROUTE_VIEW_PATTERNS) {
     if (pattern.test(pathname)) return permission
   }
-
   return null
 }
 
-export function useFilteredNavigation(): NavigationItem[] {
+export function useFilteredNavigation(): (NavigationItem | NavigationGroup)[] {
   const { can } = usePermissions()
 
   return useMemo(
-    () => allNavigationItems.filter((item) => !item.permission || can(item.permission)),
+    () => filterNavigation(allNavigationItems, can),
     [can],
   )
 }
 
-export { allNavigationItems }
+function filterNavigation(
+  items: (NavigationItem | NavigationGroup)[],
+  can: (slug: string) => boolean,
+): (NavigationItem | NavigationGroup)[] {
+  const result: (NavigationItem | NavigationGroup)[] = []
 
-export function isNavItemActive(href: string, pathname: string): boolean {
-  if (href === '/') {
-    return pathname === '/'
+  for (const item of items) {
+    // Regular nav item
+    if ('href' in item && item.href) {
+      if (!item.permission || can(item.permission)) {
+        result.push(item)
+      }
+      continue
+    }
+
+    // Group item
+    if ('children' in item && item.children) {
+      const visibleChildren = item.children.filter(
+        (child) => !child.permission || can(child.permission),
+      )
+      if (visibleChildren.length > 0) {
+        result.push({ ...item, children: visibleChildren })
+      }
+    }
   }
 
+  return result
+}
+
+export function isNavItemActive(href: string, pathname: string): boolean {
+  if (href === '/') return pathname === '/'
   return pathname === href || pathname.startsWith(`${href}/`)
 }
+
+export { allNavigationItems, flatItems }
 
 export function getNavigationTitle(pathname: string): string {
   if (pathname === '/users/novo') return 'Novo colaborador'
@@ -137,15 +237,18 @@ export function getNavigationTitle(pathname: string): string {
   if (pathname === '/vacation-requests') return 'Solicitações de férias'
   if (pathname === '/workflow-instances') return 'Processos'
   if (/^\/workflow-instances\/\d+$/.test(pathname)) return 'Detalhes do processo'
+  if (pathname === '/notification-templates') return 'Templates'
+  if (pathname === '/notification-templates/novo') return 'Novo template'
+  if (/^\/notification-templates\/\d+\/editar$/.test(pathname)) return 'Editar template'
+  if (pathname === '/notification-rules') return 'Regras'
+  if (pathname === '/notification-rules/novo') return 'Nova regra'
+  if (/^\/notification-rules\/\d+\/editar$/.test(pathname)) return 'Editar regra'
 
-  const exactMatch = allNavigationItems.find((item) => item.href === pathname)
-  if (exactMatch) {
-    return exactMatch.title
-  }
+  const exactMatch = flatItems.find((item) => item.href === pathname)
+  if (exactMatch) return exactMatch.title
 
-  const prefixMatch = allNavigationItems.find(
+  const prefixMatch = flatItems.find(
     (item) => item.href !== '/' && pathname.startsWith(item.href),
   )
-
   return prefixMatch?.title ?? 'Vulcano'
 }

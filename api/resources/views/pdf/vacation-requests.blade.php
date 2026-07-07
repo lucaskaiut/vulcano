@@ -6,10 +6,20 @@
 <body>
 <h1>Relatório de Solicitações de Férias</h1>
 <table>
-<thead><tr><th>Colaborador</th><th>Início</th><th>Fim</th><th>Dias</th><th>Status</th></tr></thead>
+<thead><tr>@foreach(($headers ?? ['Colaborador','Início','Fim','Dias','Status','Justificativa']) as $h)<th>{{$h}}</th>@endforeach</tr></thead>
 <tbody>
 @foreach($rows as $r)
-<tr><td>{{$r->user->name}}</td><td>{{$r->start_date->format('d/m/Y')}}</td><td>{{$r->end_date->format('d/m/Y')}}</td><td>{{$r->requested_days}}</td><td>{{$r->status}}</td></tr>
+<tr>
+@foreach(($headers ?? ['Colaborador','Início','Fim','Dias','Status','Justificativa']) as $h)
+@if($h === 'Colaborador')<td>{{$r->user->name}}</td>
+@elseif($h === 'Início')<td>{{$r->start_date->format('d/m/Y')}}</td>
+@elseif($h === 'Fim')<td>{{$r->end_date->format('d/m/Y')}}</td>
+@elseif($h === 'Dias')<td>{{$r->requested_days}}</td>
+@elseif($h === 'Status')<td>{{$r->status}}</td>
+@elseif($h === 'Justificativa')<td>{{$r->justification ?? '—'}}</td>
+@endif
+@endforeach
+</tr>
 @endforeach
 </tbody>
 </table>

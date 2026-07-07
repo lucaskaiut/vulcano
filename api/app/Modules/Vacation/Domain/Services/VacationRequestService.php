@@ -113,6 +113,11 @@ class VacationRequestService
 
     public function cancel(VacationRequest $request, User $user): VacationRequest
     {
+        if ($request->user_id !== $user->id
+            && ! $user->hasPermission(PermissionEnum::VacationRequestsViewAll->value)) {
+            abort(403, 'Acesso negado.');
+        }
+
         if ($request->status !== VacationRequestStatus::Pending) {
             throw ValidationException::withMessages([
                 'status' => 'Apenas solicitações pendentes podem ser canceladas.',

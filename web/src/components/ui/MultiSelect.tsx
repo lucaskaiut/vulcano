@@ -140,7 +140,7 @@ export function MultiSelect<T extends string | number = number>({
                   type="button"
                   onClick={() => removeOption(option.value)}
                   aria-label={`Remover ${option.label}`}
-                  className="rounded p-0.5 transition hover:bg-primary/10"
+                  className="rounded p-1.5 transition hover:bg-primary/10"
                 >
                   <X className="size-3.5" aria-hidden />
                 </button>

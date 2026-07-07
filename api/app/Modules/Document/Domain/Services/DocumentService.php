@@ -4,6 +4,8 @@ namespace App\Modules\Document\Domain\Services;
 
 use App\Modules\Document\Domain\Models\Document;
 use App\Modules\Document\Domain\Models\DocumentType;
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
+use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -33,6 +35,11 @@ class DocumentService
         return $type->fresh();
     }
 
+    public function deleteType(DocumentType $type): void
+    {
+        $type->delete();
+    }
+
     /** @return Collection<int, Document> */
     public function listByUser(int $userId): Collection
     {
@@ -41,6 +48,22 @@ class DocumentService
             ->where('user_id', $userId)
             ->orderBy('created_at', 'desc')
             ->get();
+    }
+
+    /** @return Collection<int, Document> */
+    public function listAll(User $user): Collection
+    {
+        $query = Document::query()
+            ->with(['documentType', 'user'])
+            ->orderBy('created_at', 'desc');
+
+        if (! $user->hasPermission(PermissionEnum::DocumentsViewAll->value)) {
+            $subordinateIds = User::query()->where('manager_id', $user->id)->pluck('id');
+            $ids = $subordinateIds->push($user->id)->unique();
+            $query->whereIn('user_id', $ids);
+        }
+
+        return $query->get();
     }
 
     /** @param  array{document_type_id: int, expiration_date?: string|null}  $data */

@@ -18,7 +18,7 @@ class StoreInvoiceRequest extends FormRequest
             'invoice_number' => ['required', 'string', 'max:255'],
             'amount' => ['required', 'numeric', 'min:0.01'],
             'issue_date' => ['required', 'date'],
-            'file' => ['required', 'file', 'max:10240'],
+            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,xml,png,jpg,jpeg'],
         ];
     }
 

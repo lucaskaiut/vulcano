@@ -155,7 +155,7 @@ export function SearchSelect({
                 type="button"
                 onClick={() => selectOption(null)}
                 aria-label={`Remover ${currentOption.label}`}
-                className="rounded p-0.5 transition hover:bg-primary/10"
+                className="rounded p-1.5 transition hover:bg-primary/10"
               >
                 <X className="size-3.5" aria-hidden />
               </button>

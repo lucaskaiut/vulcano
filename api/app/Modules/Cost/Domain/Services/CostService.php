@@ -5,6 +5,7 @@ namespace App\Modules\Cost\Domain\Services;
 use App\Modules\Cost\Domain\Models\CollaboratorCost;
 use App\Modules\Cost\Domain\Models\CostCategory;
 use App\Modules\Cost\Domain\Models\ProvisionRule;
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
 use App\Modules\User\Domain\Models\User;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
@@ -54,12 +55,21 @@ class CostService
     }
 
     /** @return LengthAwarePaginator<int, CollaboratorCost> */
-    public function paginateCosts(SortQuery $sort, PaginationQuery $pagination, ?int $userId = null): LengthAwarePaginator
+    public function paginateCosts(SortQuery $sort, PaginationQuery $pagination, User $authUser, ?int $userId = null): LengthAwarePaginator
     {
         $query = CollaboratorCost::query()->with(['user', 'category']);
 
         if ($userId) {
+            if (! $authUser->hasPermission(PermissionEnum::CostsViewAll->value)) {
+                $subordinateIds = User::query()->where('manager_id', $authUser->id)->pluck('id')->push($authUser->id)->unique();
+                abort_unless($subordinateIds->contains($userId), 403, 'Acesso negado.');
+            }
+
             $query->where('user_id', $userId);
+        } elseif (! $authUser->hasPermission(PermissionEnum::CostsViewAll->value)) {
+            $subordinateIds = User::query()->where('manager_id', $authUser->id)->pluck('id');
+            $ids = $subordinateIds->push($authUser->id)->unique();
+            $query->whereIn('user_id', $ids);
         }
 
         $sort->apply($query);

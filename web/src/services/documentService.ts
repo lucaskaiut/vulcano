@@ -26,6 +26,10 @@ export async function updateDocumentType(id: number, payload: { name?: string; e
   return response.data
 }
 
+export async function deleteDocumentType(id: number): Promise<void> {
+  await apiFetch<MessageResponse>(`/document-types/${id}`, { method: 'DELETE' })
+}
+
 export async function listDocuments(userId: number): Promise<Document[]> {
   const response = await apiFetch<ListResponse<Document>>(`/users/${userId}/documents`)
   return response.data

@@ -75,6 +75,7 @@ const userFormSchema = z.object({
   state: z.string().nullable().optional(),
   contract_type: z.string().nullable().optional(),
   contracting_company: z.string().nullable().optional(),
+  invoice_due_day: z.number().int().min(1).max(28).nullable().optional(),
   emergency_contacts: z.string().nullable().optional(),
   bank_details: z.string().nullable().optional(),
   observations: z.string().nullable().optional(),
@@ -168,7 +169,7 @@ export function UserFormPage() {
       salary: 0, email: "", password: "", role_ids: [],
       company_name: null, cnpj: null, cpf: null, rg: null, birth_date: null, phone: null,
       zip_code: null, street: null, number: null, neighborhood: null, city: null, state: null,
-      contract_type: null, contracting_company: null,
+      contract_type: null, contracting_company: null, invoice_due_day: null,
       emergency_contacts: null, bank_details: null, observations: null,
       benefits: [],
     } satisfies UserFormValues,
@@ -225,6 +226,7 @@ export function UserFormPage() {
       state: userQuery.data.state,
       contract_type: userQuery.data.contract_type,
       contracting_company: userQuery.data.contracting_company,
+      invoice_due_day: userQuery.data.invoice_due_day,
       emergency_contacts: userQuery.data.emergency_contacts,
       bank_details: userQuery.data.bank_details,
       observations: userQuery.data.observations,
@@ -256,6 +258,7 @@ export function UserFormPage() {
         state: values.state,
         contract_type: values.contract_type,
         contracting_company: values.contracting_company,
+        invoice_due_day: values.invoice_due_day,
         emergency_contacts: values.emergency_contacts,
         bank_details: values.bank_details,
         observations: values.observations,
@@ -382,6 +385,15 @@ export function UserFormPage() {
                 </div>
               )} />
               <Input label="Empresa tomadora" error={errors.contracting_company?.message} {...register("contracting_company")} />
+
+              <Input
+                label="Dia para emissão de NF"
+                type="number"
+                min="1"
+                max="28"
+                error={errors.invoice_due_day?.message}
+                {...register("invoice_due_day", { valueAsNumber: true })}
+              />
             </div>
           </div>
         </Card>
@@ -459,8 +471,8 @@ export function UserFormPage() {
           )}
           <div className="mt-4 space-y-3">
             {benefitFields.map((field, index) => (
-              <div key={field.id} className="flex items-start gap-3">
-                <div className="flex-1">
+              <div key={field.id} className="flex flex-col items-start gap-3 sm:flex-row">
+                <div className="w-full flex-1">
                   <Input
                     label={index === 0 ? "Nome" : ""}
                     error={errors.benefits?.[index]?.name?.message}
@@ -468,7 +480,7 @@ export function UserFormPage() {
                     placeholder="Ex: Vale Alimentação"
                   />
                 </div>
-                <div className="w-36">
+                <div className="w-full sm:w-36">
                   <Controller
                     name={`benefits.${index}.price`}
                     control={control}

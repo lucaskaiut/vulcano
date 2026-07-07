@@ -25,11 +25,16 @@ enum Permission: string
     case VacationBalancesView = 'vacation_balances.view';
     case VacationBalancesCreate = 'vacation_balances.create';
     case VacationBalancesUpdate = 'vacation_balances.update';
+    case VacationBalancesViewAll = 'vacation_balances.view_all';
     case VacationGrantsView = 'vacation_grants.view';
     case VacationGrantsCreate = 'vacation_grants.create';
+    case VacationGrantsUpdate = 'vacation_grants.update';
+    case VacationGrantsDelete = 'vacation_grants.delete';
+    case VacationGrantsViewAll = 'vacation_grants.view_all';
     case VacationPeriodsView = 'vacation_periods.view';
     case VacationPeriodsCreate = 'vacation_periods.create';
     case VacationPeriodsClose = 'vacation_periods.close';
+    case VacationPeriodsViewAll = 'vacation_periods.view_all';
     case VacationRequestsView = 'vacation_requests.view';
     case VacationRequestsCreate = 'vacation_requests.create';
     case VacationRequestsCancel = 'vacation_requests.cancel';
@@ -46,9 +51,11 @@ enum Permission: string
     case CostsCreate = 'costs.create';
     case CostsUpdate = 'costs.update';
     case CostsDelete = 'costs.delete';
+    case CostsViewAll = 'costs.view_all';
     case DocumentsView = 'documents.view';
     case DocumentsCreate = 'documents.create';
     case DocumentsDelete = 'documents.delete';
+    case DocumentsViewAll = 'documents.view_all';
     case InvoicesView = 'invoices.view';
     case InvoicesCreate = 'invoices.create';
     case InvoicesViewAll = 'invoices.view_all';
@@ -58,6 +65,7 @@ enum Permission: string
     case MedicalExamsCreate = 'medical_exams.create';
     case MedicalExamsUpdate = 'medical_exams.update';
     case MedicalExamsDelete = 'medical_exams.delete';
+    case MedicalExamsViewAll = 'medical_exams.view_all';
     case NotificationsView = 'notifications.view';
     case AuditView = 'audit.view';
 
@@ -85,11 +93,16 @@ enum Permission: string
             self::VacationBalancesView => 'Visualizar Saldos de Férias',
             self::VacationBalancesCreate => 'Criar Saldos de Férias',
             self::VacationBalancesUpdate => 'Atualizar Saldos de Férias',
+            self::VacationBalancesViewAll => 'Visualizar Todos os Saldos de Férias',
             self::VacationGrantsView => 'Visualizar Férias Concedidas',
             self::VacationGrantsCreate => 'Registrar Férias Concedidas',
+            self::VacationGrantsUpdate => 'Atualizar Férias Concedidas',
+            self::VacationGrantsDelete => 'Excluir Férias Concedidas',
+            self::VacationGrantsViewAll => 'Visualizar Todas as Férias Concedidas',
             self::VacationPeriodsView => 'Visualizar Períodos Aquisitivos',
             self::VacationPeriodsCreate => 'Criar Períodos Aquisitivos',
             self::VacationPeriodsClose => 'Encerrar Períodos Aquisitivos',
+            self::VacationPeriodsViewAll => 'Visualizar Todos os Períodos Aquisitivos',
             self::VacationRequestsView => 'Visualizar Solicitações de Férias',
             self::VacationRequestsCreate => 'Criar Solicitações de Férias',
             self::VacationRequestsCancel => 'Cancelar Solicitações de Férias',
@@ -106,9 +119,11 @@ enum Permission: string
             self::CostsCreate => 'Criar Custos',
             self::CostsUpdate => 'Atualizar Custos',
             self::CostsDelete => 'Excluir Custos',
+            self::CostsViewAll => 'Visualizar Todos os Custos',
             self::DocumentsView => 'Visualizar Documentos',
             self::DocumentsCreate => 'Criar Documentos',
             self::DocumentsDelete => 'Excluir Documentos',
+            self::DocumentsViewAll => 'Visualizar Todos os Documentos',
             self::InvoicesView => 'Visualizar Notas Fiscais',
             self::InvoicesCreate => 'Criar Notas Fiscais',
             self::InvoicesViewAll => 'Visualizar Todas as Notas Fiscais',
@@ -118,6 +133,7 @@ enum Permission: string
             self::MedicalExamsCreate => 'Criar Exames',
             self::MedicalExamsUpdate => 'Atualizar Exames',
             self::MedicalExamsDelete => 'Excluir Exames',
+            self::MedicalExamsViewAll => 'Visualizar Todos os Exames',
             self::NotificationsView => 'Visualizar Notificações',
             self::AuditView => 'Visualizar Auditoria',
         };

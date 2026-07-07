@@ -3,8 +3,11 @@
 namespace App\Modules\Vacation\Http\Controllers;
 
 use App\Http\Controllers\Controller;
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
+use App\Modules\Vacation\Domain\Models\VacationGrant;
 use App\Modules\Vacation\Domain\Services\VacationGrantService;
 use App\Modules\Vacation\Http\Requests\StoreVacationGrantRequest;
+use App\Modules\Vacation\Http\Requests\UpdateVacationGrantRequest;
 use App\Modules\Vacation\Http\Resources\VacationGrantResource;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,11 +20,27 @@ class VacationGrantController extends Controller
     {
         $userId = $request->query('user_id');
 
-        abort_unless($userId, 422, 'Informe o colaborador.');
+        if ($userId) {
+            if (! $request->user()->hasPermission(PermissionEnum::VacationGrantsViewAll->value)) {
+                $subordinateIds = \App\Modules\User\Domain\Models\User::query()
+                    ->where('manager_id', $request->user()->id)
+                    ->pluck('id')
+                    ->push($request->user()->id)
+                    ->unique();
+
+                abort_unless($subordinateIds->contains((int) $userId), 403, 'Acesso negado.');
+            }
+
+            return response()->json([
+                'data' => VacationGrantResource::collection(
+                    $this->vacationGrantService->listForUser((int) $userId),
+                ),
+            ]);
+        }
 
         return response()->json([
             'data' => VacationGrantResource::collection(
-                $this->vacationGrantService->listForUser((int) $userId),
+                $this->vacationGrantService->listAll($request->user()),
             ),
         ]);
     }
@@ -34,5 +53,22 @@ class VacationGrantController extends Controller
             'data' => new VacationGrantResource($grant),
             'message' => 'Férias concedidas registradas com sucesso.',
         ], 201);
+    }
+
+    public function update(UpdateVacationGrantRequest $request, VacationGrant $vacationGrant): JsonResponse
+    {
+        $grant = $this->vacationGrantService->update($vacationGrant, $request->validated());
+
+        return response()->json([
+            'data' => new VacationGrantResource($grant),
+            'message' => 'Férias concedidas atualizadas com sucesso.',
+        ]);
+    }
+
+    public function destroy(VacationGrant $vacationGrant): JsonResponse
+    {
+        $this->vacationGrantService->delete($vacationGrant);
+
+        return response()->json(['message' => 'Férias concedidas removidas com sucesso.']);
     }
 }

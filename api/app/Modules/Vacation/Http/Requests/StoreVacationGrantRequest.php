@@ -19,6 +19,7 @@ class StoreVacationGrantRequest extends FormRequest
             'start_date' => ['required', 'date'],
             'end_date' => ['required', 'date', 'after_or_equal:start_date'],
             'days_used' => ['required', 'integer', 'min:1'],
+            'reason' => ['nullable', 'string', 'max:500'],
         ];
     }
 

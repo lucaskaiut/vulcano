@@ -13,6 +13,9 @@ use App\Modules\Document\Http\Resources\DocumentResource;
 use App\Modules\Document\Http\Resources\DocumentTypeResource;
 use App\Modules\User\Domain\Models\User;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
+use App\Modules\User\Domain\Models\User;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class DocumentController extends Controller
@@ -46,15 +49,33 @@ class DocumentController extends Controller
         ]);
     }
 
-    public function index(User $user): JsonResponse
+    public function destroyType(DocumentType $documentType): JsonResponse
     {
+        $this->documentService->deleteType($documentType);
+
+        return response()->json(['message' => 'Tipo de documento removido com sucesso.']);
+    }
+
+    public function index(Request $request, User $user): JsonResponse
+    {
+        $this->ensureCanAccessUser($request->user(), $user, PermissionEnum::DocumentsViewAll->value);
+
         return response()->json([
             'data' => DocumentResource::collection($this->documentService->listByUser($user->id)),
         ]);
     }
 
+    public function indexAll(Request $request): JsonResponse
+    {
+        return response()->json([
+            'data' => DocumentResource::collection($this->documentService->listAll($request->user())),
+        ]);
+    }
+
     public function store(StoreDocumentRequest $request, User $user): JsonResponse
     {
+        $this->ensureCanAccessUser($request->user(), $user, PermissionEnum::DocumentsViewAll->value);
+
         $document = $this->documentService->store($user->id, $request->file('file'), $request->validated());
 
         return response()->json([
@@ -84,5 +105,23 @@ class DocumentController extends Controller
             $this->documentService->getDownloadPath($document),
             ['Content-Type' => $document->mime_type ?? 'application/octet-stream'],
         );
+    }
+
+    private function ensureCanAccessUser(User $authUser, User $targetUser, string $viewAllPermission): void
+    {
+        if ($authUser->id === $targetUser->id) {
+            return;
+        }
+
+        if ($authUser->hasPermission($viewAllPermission)) {
+            return;
+        }
+
+        $isSubordinate = User::query()
+            ->where('id', $targetUser->id)
+            ->where('manager_id', $authUser->id)
+            ->exists();
+
+        abort_unless($isSubordinate, 403, 'Acesso negado.');
     }
 }

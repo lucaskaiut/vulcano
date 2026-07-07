@@ -73,7 +73,7 @@ export function TablePagination({
             disabled={!canGoPrevious}
             onClick={() => onPageChange(meta.current_page - 1)}
             aria-label="Página anterior"
-            className="size-8 rounded-md! p-0 text-primary hover:bg-primary-muted"
+            className="size-11 rounded-md! p-0 text-primary hover:bg-primary-muted"
           >
             <ChevronLeft className="size-4" aria-hidden />
           </Button>
@@ -89,7 +89,7 @@ export function TablePagination({
             disabled={!canGoNext}
             onClick={() => onPageChange(meta.current_page + 1)}
             aria-label="Próxima página"
-            className="size-8 rounded-md! p-0 text-primary hover:bg-primary-muted"
+            className="size-11 rounded-md! p-0 text-primary hover:bg-primary-muted"
           >
             <ChevronRight className="size-4" aria-hidden />
           </Button>

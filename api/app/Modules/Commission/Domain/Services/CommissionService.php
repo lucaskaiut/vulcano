@@ -63,8 +63,8 @@ class CommissionService
         return $query->orderByDesc('created_at')->get();
     }
 
-    /** @param  array{enterprise_id: int, unit: string, sale_date: string, sale_amount: float|string, percentage: float|string, notes?: string|null}  $data */
-    public function create(User $user, array $data): Sale
+    /** @param  array{enterprise_id: int, unit: string, sale_date: string, sale_amount: float|string, percentage: float|string, notes?: string|null, invoice_number?: string|null}  $data */
+    public function create(User $user, array $data, ?\Illuminate\Http\UploadedFile $invoiceFile = null): Sale
     {
         $saleAmount = (float) $data['sale_amount'];
         $percentage = (float) $data['percentage'];
@@ -74,8 +74,8 @@ class CommissionService
         $enterprise = Enterprise::query()->find($data['enterprise_id']);
         $enterpriseName = $enterprise?->name ?? '—';
 
-        $sale = DB::transaction(function () use ($user, $data, $saleAmount, $percentage, $commissionAmount, $title) {
-            $sale = Sale::query()->create([
+        $sale = DB::transaction(function () use ($user, $data, $saleAmount, $percentage, $commissionAmount, $title, $invoiceFile) {
+            $saleAttributes = [
                 'user_id' => $user->id,
                 'enterprise_id' => $data['enterprise_id'],
                 'unit' => $data['unit'],
@@ -84,7 +84,17 @@ class CommissionService
                 'percentage' => $percentage,
                 'commission_amount' => $commissionAmount,
                 'notes' => $data['notes'] ?? null,
-            ]);
+                'invoice_number' => $data['invoice_number'] ?? null,
+            ];
+
+            if ($invoiceFile) {
+                $saleAttributes['invoice_file_name'] = $invoiceFile->getClientOriginalName();
+                $saleAttributes['invoice_file_path'] = $invoiceFile->store('invoices', 'local');
+                $saleAttributes['invoice_file_mime'] = $invoiceFile->getMimeType();
+                $saleAttributes['invoice_file_size'] = $invoiceFile->getSize();
+            }
+
+            $sale = Sale::query()->create($saleAttributes);
 
             $commission = Commission::query()->create([
                 'sale_id' => $sale->id,

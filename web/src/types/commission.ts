@@ -32,6 +32,8 @@ export type Sale = {
   percentage: string
   commission_amount: string
   notes: string | null
+  invoice_number: string | null
+  invoice_file_name: string | null
   user: { id: number; name: string }
   commission: Commission | null
   created_at: string

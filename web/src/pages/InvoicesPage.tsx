@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tanstack/react-query'
 import { useState } from 'react'
+import { useSearch } from '@tanstack/react-router'
 import { approveInstance, rejectInstance } from '../services/workflowService'
 import { createInvoice, getInvoiceDownloadUrl, listInvoices } from '../services/invoiceService'
 import { Button } from '../components/ui/Button'
@@ -41,7 +42,8 @@ function mapToKanban(invoice: Invoice) {
 
 export function InvoicesPage() {
   const queryClient = useQueryClient()
-  const [showForm, setShowForm] = useState(false)
+  const search = useSearch({ strict: false }) as { novo?: string }
+  const [showForm, setShowForm] = useState(search.novo !== undefined)
   const [competence, setCompetence] = useState(new Date().toISOString().slice(0, 7))
   const [invoiceNumber, setInvoiceNumber] = useState('')
   const [amount, setAmount] = useState(0)

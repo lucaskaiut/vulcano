@@ -1,13 +1,23 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, Navigate, useNavigate, useParams } from '@tanstack/react-router'
+import { Download } from 'lucide-react'
 import * as aclService from '../services/aclService'
+import * as documentService from '../services/documentService'
+import * as invoiceService from '../services/invoiceService'
+import * as medicalExamService from '../services/medicalExamService'
+import * as vacationService from '../services/vacationService'
 import { Alert } from '../components/ui/Alert'
 import { Button } from '../components/ui/Button'
 import { Card } from '../components/ui/Card'
 import { UserSalaryHistorySection } from '../components/users/UserSalaryHistorySection'
 import { PageHeader } from '../components/ui/PageHeader'
+import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../components/ui/Table'
 import { formatDate, formatSalary } from '../lib/format'
 import type { AclUser } from '../types/acl'
+import type { VacationGrant } from '../types/vacation'
+import type { Document } from '../types/document'
+import type { Invoice } from '../types/invoice'
+import type { MedicalExam } from '../types/medicalExam'
 
 const CONTRACT_LABELS: Record<string, string> = {
   clt: 'CLT', pj: 'PJ', hybrid: 'Híbrido', other: 'Outros',
@@ -38,6 +48,166 @@ function formatAddress(user: AclUser): string | null {
   return `${user.street ?? ''}${user.number ? `, ${user.number}` : ''}${user.neighborhood ? ` - ${user.neighborhood}` : ''}${user.city ? ` - ${user.city}` : ''}${user.state ? `/${user.state}` : ''}`
 }
 
+function SectionHeader({ title }: { title: string }) {
+  return <h2 className="text-base font-semibold text-foreground">{title}</h2>
+}
+
+function EmptyState({ message }: { message: string }) {
+  return (
+    <p className="rounded-lg border border-dashed border-surface-sunken px-4 py-6 text-center text-sm text-foreground-muted">
+      {message}
+    </p>
+  )
+}
+
+function VacationGrantsTable({ grants }: { grants: VacationGrant[] }) {
+  if (grants.length === 0) return <EmptyState message="Nenhuma concessão de férias registrada." />
+
+  return (
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell>Início</TableHeaderCell>
+          <TableHeaderCell>Fim</TableHeaderCell>
+          <TableHeaderCell>Dias</TableHeaderCell>
+          <TableHeaderCell>Motivo</TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {grants.map((grant) => (
+          <TableRow key={grant.id}>
+            <TableCell className="text-foreground-muted">{formatDate(grant.start_date)}</TableCell>
+            <TableCell className="text-foreground-muted">{formatDate(grant.end_date)}</TableCell>
+            <TableCell className="font-medium">{grant.days_used}</TableCell>
+            <TableCell className="text-foreground-muted">{grant.reason || '—'}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+function DocumentsTable({ documents }: { documents: Document[] }) {
+  if (documents.length === 0) return <EmptyState message="Nenhum documento cadastrado." />
+
+  return (
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell>Nome</TableHeaderCell>
+          <TableHeaderCell>Tipo</TableHeaderCell>
+          <TableHeaderCell>Vencimento</TableHeaderCell>
+          <TableHeaderCell> </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {documents.map((doc) => (
+          <TableRow key={doc.id}>
+            <TableCell className="font-medium text-foreground">{doc.original_name}</TableCell>
+            <TableCell className="text-foreground-muted">{doc.document_type?.name ?? '—'}</TableCell>
+            <TableCell className="text-foreground-muted">{formatDate(doc.expiration_date)}</TableCell>
+            <TableCell>
+              <a
+                href={documentService.getDocumentDownloadUrl(doc.id)}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary-muted"
+              >
+                <Download className="size-3.5" aria-hidden />
+                Baixar
+              </a>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+function MedicalExamsTable({ exams }: { exams: MedicalExam[] }) {
+  if (exams.length === 0) return <EmptyState message="Nenhum exame cadastrado." />
+
+  return (
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell>Tipo</TableHeaderCell>
+          <TableHeaderCell>Realização</TableHeaderCell>
+          <TableHeaderCell>Vencimento</TableHeaderCell>
+          <TableHeaderCell>Observações</TableHeaderCell>
+          <TableHeaderCell> </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {exams.map((exam) => (
+          <TableRow key={exam.id}>
+            <TableCell className="font-medium text-foreground">{exam.exam_type}</TableCell>
+            <TableCell className="text-foreground-muted">{formatDate(exam.execution_date)}</TableCell>
+            <TableCell className={new Date(exam.expiration_date) < new Date() ? 'font-medium text-danger' : 'text-foreground-muted'}>
+              {formatDate(exam.expiration_date)}
+            </TableCell>
+            <TableCell className="text-foreground-muted">{exam.notes || '—'}</TableCell>
+            <TableCell>
+              {exam.original_name && (
+                <a
+                  href={medicalExamService.getMedicalExamDownloadUrl(exam.id)}
+                  className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary-muted"
+                >
+                  <Download className="size-3.5" aria-hidden />
+                  Baixar
+                </a>
+              )}
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
+function InvoicesTable({ invoices }: { invoices: Invoice[] }) {
+  if (invoices.length === 0) return <EmptyState message="Nenhuma nota fiscal cadastrada." />
+
+  return (
+    <Table>
+      <TableHead>
+        <TableRow>
+          <TableHeaderCell>Competência</TableHeaderCell>
+          <TableHeaderCell>Nº Nota</TableHeaderCell>
+          <TableHeaderCell>Valor</TableHeaderCell>
+          <TableHeaderCell>Emissão</TableHeaderCell>
+          <TableHeaderCell>Status</TableHeaderCell>
+          <TableHeaderCell> </TableHeaderCell>
+        </TableRow>
+      </TableHead>
+      <TableBody>
+        {invoices.map((invoice) => (
+          <TableRow key={invoice.id}>
+            <TableCell className="font-medium text-foreground">{invoice.competence}</TableCell>
+            <TableCell className="text-foreground-muted">{invoice.invoice_number}</TableCell>
+            <TableCell>{formatSalary(invoice.amount)}</TableCell>
+            <TableCell className="text-foreground-muted">{formatDate(invoice.issue_date)}</TableCell>
+            <TableCell>
+              <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                invoice.status === 'approved' ? 'bg-success/10 text-success' :
+                invoice.status === 'rejected' ? 'bg-danger/10 text-danger' :
+                'bg-warning/10 text-warning'
+              }`}>{invoice.status}</span>
+            </TableCell>
+            <TableCell>
+              <a
+                href={invoiceService.getInvoiceDownloadUrl(invoice.id)}
+                className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-primary transition-colors hover:bg-primary-muted"
+              >
+                <Download className="size-3.5" aria-hidden />
+                Baixar
+              </a>
+            </TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+    </Table>
+  )
+}
+
 export function UserDetailPage() {
   const { id } = useParams({ strict: false })
   const navigate = useNavigate()
@@ -46,6 +216,30 @@ export function UserDetailPage() {
   const userQuery = useQuery({
     queryKey: ['users', userId],
     queryFn: () => aclService.getUser(userId!),
+    enabled: userId !== null && !Number.isNaN(userId),
+  })
+
+  const grantsQuery = useQuery({
+    queryKey: ['vacation-grants', userId],
+    queryFn: () => vacationService.listVacationGrants(userId!),
+    enabled: userId !== null && !Number.isNaN(userId),
+  })
+
+  const documentsQuery = useQuery({
+    queryKey: ['documents', userId],
+    queryFn: () => documentService.listDocuments(userId!),
+    enabled: userId !== null && !Number.isNaN(userId),
+  })
+
+  const examsQuery = useQuery({
+    queryKey: ['medical-exams', userId],
+    queryFn: () => medicalExamService.listMedicalExams(userId!),
+    enabled: userId !== null && !Number.isNaN(userId),
+  })
+
+  const invoicesQuery = useQuery({
+    queryKey: ['invoices', userId],
+    queryFn: () => invoiceService.listUserInvoices(userId!),
     enabled: userId !== null && !Number.isNaN(userId),
   })
 
@@ -95,6 +289,7 @@ export function UserDetailPage() {
             <DetailItem label="Remuneração" value={formatSalary(user.salary)} />
             <OptionalDetail label="Modalidade" value={formatContract(user)} />
             <OptionalDetail label="Empresa tomadora" value={user.contracting_company} />
+            <OptionalDetail label="Dia emissão NF" value={user.invoice_due_day ? `Dia ${user.invoice_due_day}` : null} />
           </dl>
         </Card>
 
@@ -170,6 +365,50 @@ export function UserDetailPage() {
           <p className="text-sm text-foreground-muted whitespace-pre-wrap">{user.observations}</p>
         </Card>
       )}
+
+      <Card className="mt-4 p-6">
+        <SectionHeader title="Férias concedidas" />
+        <div className="mt-4 overflow-x-auto rounded-xl border border-surface-sunken">
+          {!grantsQuery.isLoading && grantsQuery.data ? (
+            <VacationGrantsTable grants={grantsQuery.data} />
+          ) : (
+            <p className="px-4 py-6 text-center text-sm text-foreground-muted">Carregando...</p>
+          )}
+        </div>
+      </Card>
+
+      <Card className="mt-4 p-6">
+        <SectionHeader title="Documentos" />
+        <div className="mt-4 overflow-x-auto rounded-xl border border-surface-sunken">
+          {!documentsQuery.isLoading && documentsQuery.data ? (
+            <DocumentsTable documents={documentsQuery.data} />
+          ) : (
+            <p className="px-4 py-6 text-center text-sm text-foreground-muted">Carregando...</p>
+          )}
+        </div>
+      </Card>
+
+      <Card className="mt-4 p-6">
+        <SectionHeader title="Exames" />
+        <div className="mt-4 overflow-x-auto rounded-xl border border-surface-sunken">
+          {!examsQuery.isLoading && examsQuery.data ? (
+            <MedicalExamsTable exams={examsQuery.data} />
+          ) : (
+            <p className="px-4 py-6 text-center text-sm text-foreground-muted">Carregando...</p>
+          )}
+        </div>
+      </Card>
+
+      <Card className="mt-4 p-6">
+        <SectionHeader title="Notas Fiscais" />
+        <div className="mt-4 overflow-x-auto rounded-xl border border-surface-sunken">
+          {!invoicesQuery.isLoading && invoicesQuery.data ? (
+            <InvoicesTable invoices={invoicesQuery.data} />
+          ) : (
+            <p className="px-4 py-6 text-center text-sm text-foreground-muted">Carregando...</p>
+          )}
+        </div>
+      </Card>
 
       <Card className="mt-4 p-6">
         <UserSalaryHistorySection userId={user.id} currentSalary={user.salary} readonly />

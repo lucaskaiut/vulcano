@@ -15,7 +15,7 @@ class StoreDocumentRequest extends FormRequest
     {
         return [
             'document_type_id' => ['required', 'integer', 'exists:document_types,id'],
-            'file' => ['required', 'file', 'max:10240'],
+            'file' => ['required', 'file', 'max:10240', 'mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png,txt'],
             'expiration_date' => ['sometimes', 'nullable', 'date'],
         ];
     }

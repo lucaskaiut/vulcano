@@ -1,31 +1,36 @@
 import { useQuery } from '@tanstack/react-query'
 import { FileSpreadsheet, FileText, Loader2 } from 'lucide-react'
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useCallback } from 'react'
 import * as reportService from '../services/reportService'
-import { getReportDownloadUrl } from '../services/reportService'
 import type { ReportCollaborator, ReportVacationRequest, ReportInvoice, ReportMedicalExam } from '../types/report'
 import { formatDate, formatSalary } from '../lib/format'
+import { getSavedColumns, type ReportType } from '../lib/reportColumns'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Input } from '../components/ui/Input'
 import { Select } from '../components/ui/Select'
+import { ReportColumnModal } from '../components/ui/ReportColumnModal'
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../components/ui/Table'
+import { useAuth } from '../contexts/AuthContext'
 import { usePermissions } from '../hooks/usePermissions'
 
-const TABS = [
+const TABS: { key: ReportType; label: string; permission: string }[] = [
   { key: 'collaborators', label: 'Colaboradores', permission: 'users.view' },
   { key: 'vacation-requests', label: 'Férias', permission: 'vacation_requests.view' },
   { key: 'invoices', label: 'Notas Fiscais', permission: 'invoices.view' },
   { key: 'medical-exams', label: 'Exames', permission: 'medical_exams.view' },
-] as const
+]
 
 type TabKey = typeof TABS[number]['key']
 
 export function ReportsPage() {
+  const { user, mergePreferences } = useAuth()
   const { can } = usePermissions()
   const [tab, setTab] = useState<TabKey>('collaborators')
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [expiredFilter, setExpiredFilter] = useState('')
+  const [downloading, setDownloading] = useState<string | null>(null)
+  const [columnModal, setColumnModal] = useState<{ format: 'pdf' | 'xlsx' } | null>(null)
 
   const filters = useMemo(() => ({ search: search || undefined }), [search])
 
@@ -65,12 +70,39 @@ export function ReportsPage() {
     : tab === 'invoices' ? invoiceQuery.isLoading
     : examQuery.isLoading
 
+  const savedColumns = useMemo(
+    () => getSavedColumns(tab, user?.preferences),
+    [tab, user?.preferences],
+  )
+
   function getDownloadFilter(): Record<string, string | undefined> {
     if (tab === 'collaborators') return { search: search || undefined }
     if (tab === 'vacation-requests') return { status: statusFilter || undefined }
     if (tab === 'invoices') return { status: statusFilter || undefined }
     return { expired: expiredFilter || undefined }
   }
+
+  const handleExportClick = useCallback((format: 'pdf' | 'xlsx') => {
+    setColumnModal({ format })
+  }, [])
+
+  const handleColumnExport = useCallback(async (selectedColumns: string[]) => {
+    if (!columnModal) return
+    setColumnModal(null)
+    setDownloading(columnModal.format)
+
+    try {
+      await reportService.downloadReportFile(tab, getDownloadFilter(), columnModal.format, selectedColumns)
+    } catch {
+      // ignore
+    } finally {
+      setDownloading(null)
+    }
+
+    mergePreferences({
+      report_columns: { [tab]: selectedColumns },
+    })
+  }, [columnModal, tab, search, statusFilter, expiredFilter, mergePreferences])
 
   if (availableTabs.length === 0) {
     return <PageHeader title="Relatórios" description="Você não tem permissão para acessar nenhum relatório." />
@@ -101,7 +133,7 @@ export function ReportsPage() {
       {/* Filters */}
       <div className="mb-4 flex flex-wrap items-end gap-3">
         {tab === 'collaborators' && (
-          <div className="w-64">
+          <div className="max-w-64 w-full">
             <Input
               label=""
               placeholder="Buscar por nome..."
@@ -111,7 +143,7 @@ export function ReportsPage() {
           </div>
         )}
         {tab === 'vacation-requests' && (
-          <div className="w-44">
+          <div className="max-w-44 w-full">
             <Select
               value={statusFilter}
               options={[
@@ -127,7 +159,7 @@ export function ReportsPage() {
           </div>
         )}
         {tab === 'invoices' && (
-          <div className="w-44">
+          <div className="max-w-44 w-full">
             <Select
               value={statusFilter}
               options={[
@@ -142,7 +174,7 @@ export function ReportsPage() {
           </div>
         )}
         {tab === 'medical-exams' && (
-          <div className="w-44">
+          <div className="max-w-44 w-full">
             <Select
               value={expiredFilter}
               options={[
@@ -158,20 +190,32 @@ export function ReportsPage() {
 
         {/* Export buttons */}
         <div className="flex gap-2 sm:ml-auto">
-          <a
-            href={getReportDownloadUrl(tab, getDownloadFilter(), 'xlsx')}
-            className="inline-flex items-center gap-1.5 rounded-md bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-success-muted hover:text-success"
+          <button
+            type="button"
+            disabled={downloading !== null}
+            onClick={() => handleExportClick('xlsx')}
+            className="inline-flex items-center gap-1.5 rounded-md bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-success-muted hover:text-success disabled:opacity-50"
           >
-            <FileSpreadsheet className="size-4" aria-hidden />
+            {downloading === 'xlsx' ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <FileSpreadsheet className="size-4" aria-hidden />
+            )}
             Excel
-          </a>
-          <a
-            href={getReportDownloadUrl(tab, getDownloadFilter(), 'pdf')}
-            className="inline-flex items-center gap-1.5 rounded-md bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger/10 hover:text-danger"
+          </button>
+          <button
+            type="button"
+            disabled={downloading !== null}
+            onClick={() => handleExportClick('pdf')}
+            className="inline-flex items-center gap-1.5 rounded-md bg-surface-sunken px-3 py-2 text-sm font-medium text-foreground-muted transition-colors hover:bg-danger/10 hover:text-danger disabled:opacity-50"
           >
-            <FileText className="size-4" aria-hidden />
+            {downloading === 'pdf' ? (
+              <Loader2 className="size-4 animate-spin" aria-hidden />
+            ) : (
+              <FileText className="size-4" aria-hidden />
+            )}
             PDF
-          </a>
+          </button>
         </div>
       </div>
 
@@ -285,6 +329,14 @@ export function ReportsPage() {
           <p className="text-sm text-foreground-muted">Nenhum dado encontrado com os filtros atuais.</p>
         </div>
       )}
+
+      <ReportColumnModal
+        open={columnModal !== null}
+        reportType={tab}
+        savedColumns={savedColumns}
+        onExport={handleColumnExport}
+        onCancel={() => setColumnModal(null)}
+      />
     </div>
   )
 }

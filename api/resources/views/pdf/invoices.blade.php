@@ -6,10 +6,20 @@
 <body>
 <h1>Relatório de Notas Fiscais</h1>
 <table>
-<thead><tr><th>Colaborador</th><th>Competência</th><th>Nº Nota</th><th>Valor</th><th>Emissão</th><th>Status</th></tr></thead>
+<thead><tr>@foreach(($headers ?? ['Colaborador','Competência','Nº Nota','Valor','Emissão','Status']) as $h)<th>{{$h}}</th>@endforeach</tr></thead>
 <tbody>
-@foreach($rows as $r)
-<tr><td>{{$r->user->name}}</td><td>{{$r->competence}}</td><td>{{$r->invoice_number}}</td><td>R$ {{number_format((float)$r->amount,2,',','.')}}</td><td>{{$r->issue_date->format('d/m/Y')}}</td><td>{{$r->status}}</td></tr>
+@foreach($rows as $i)
+<tr>
+@foreach(($headers ?? ['Colaborador','Competência','Nº Nota','Valor','Emissão','Status']) as $h)
+@if($h === 'Colaborador')<td>{{$i->user->name}}</td>
+@elseif($h === 'Competência')<td>{{$i->competence}}</td>
+@elseif($h === 'Nº Nota')<td>{{$i->invoice_number}}</td>
+@elseif($h === 'Valor')<td>R$ {{number_format((float)$i->amount,2,',','.')}}</td>
+@elseif($h === 'Emissão')<td>{{$i->issue_date->format('d/m/Y')}}</td>
+@elseif($h === 'Status')<td>{{$i->status}}</td>
+@endif
+@endforeach
+</tr>
 @endforeach
 </tbody>
 </table>

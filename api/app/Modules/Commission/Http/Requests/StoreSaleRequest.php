@@ -21,6 +21,8 @@ class StoreSaleRequest extends FormRequest
             'sale_amount' => ['required', 'numeric', 'min:0.01'],
             'percentage' => ['required', 'numeric', 'min:0.01', 'max:100'],
             'notes' => ['sometimes', 'nullable', 'string', 'max:500'],
+            'invoice_number' => ['sometimes', 'nullable', 'string', 'max:255'],
+            'invoice_file' => ['sometimes', 'nullable', 'file', 'max:10240', 'mimes:pdf,png,jpg,jpeg'],
         ];
     }
 

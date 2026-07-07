@@ -11,7 +11,7 @@ import { Alert } from '../components/ui/Alert'
 import { Card } from '../components/ui/Card'
 import { FormActions } from '../components/ui/FormActions'
 import { Input } from '../components/ui/Input'
-import { PermissionGroupPicker } from '../components/ui/PermissionGroupPicker'
+import { PermissionModulePicker } from '../components/ui/PermissionModulePicker'
 import { PageHeader } from '../components/ui/PageHeader'
 
 export function RoleFormPage() {
@@ -147,7 +147,7 @@ export function RoleFormPage() {
             name="permission_slugs"
             control={control}
             render={({ field }) => (
-              <PermissionGroupPicker
+              <PermissionModulePicker
                 permissions={permissionsQuery.data?.data ?? []}
                 value={field.value}
                 onChange={field.onChange}

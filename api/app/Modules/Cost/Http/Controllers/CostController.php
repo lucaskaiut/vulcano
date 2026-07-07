@@ -12,15 +12,21 @@ use App\Modules\Cost\Http\Requests\UpdateCostCategoryRequest;
 use App\Modules\Cost\Http\Requests\UpdateCostRequest;
 use App\Modules\Cost\Http\Resources\CollaboratorCostResource;
 use App\Modules\Cost\Http\Resources\CostCategoryResource;
+use App\Modules\Report\Domain\Services\ReportService;
 use App\Modules\User\Domain\Support\PaginationQuery;
 use App\Modules\User\Domain\Support\SortQuery;
 use App\Modules\User\Http\Support\PaginationMeta;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\StreamedResponse;
 
 class CostController extends Controller
 {
-    public function __construct(private readonly CostService $costService) {}
+    public function __construct(
+        private readonly CostService $costService,
+        private readonly ReportService $reportService,
+    ) {}
 
     public function categories(Request $request): JsonResponse
     {
@@ -73,7 +79,7 @@ class CostController extends Controller
         $sort = SortQuery::fromRequest($request, CostService::COST_SORTABLE_COLUMNS);
         $pagination = PaginationQuery::fromRequest($request);
         $userId = $request->query('user_id');
-        $costs = $this->costService->paginateCosts($sort, $pagination, $userId ? (int) $userId : null);
+        $costs = $this->costService->paginateCosts($sort, $pagination, $request->user(), $userId ? (int) $userId : null);
 
         return response()->json([
             'data' => CollaboratorCostResource::collection($costs->items()),
@@ -115,10 +121,53 @@ class CostController extends Controller
         return response()->json(['message' => 'Custo removido com sucesso.']);
     }
 
-    public function report(Request $request): JsonResponse
+    public function report(Request $request): JsonResponse|Response|StreamedResponse
     {
         $month = $request->query('month');
+        $format = $request->query('format', 'json');
         $report = $this->costService->monthlyReport($month);
+
+        $columnMap = [
+            'user_name' => 'Colaborador',
+            'category' => 'Categoria',
+            'amount' => 'Valor',
+        ];
+
+        $columnsParam = $request->query('columns');
+
+        if ($columnsParam) {
+            $selected = explode(',', $columnsParam);
+            $filteredMap = array_intersect_key($columnMap, array_flip($selected));
+            $columnMap = ! empty($filteredMap) ? $filteredMap : $columnMap;
+        }
+
+        $headers = array_values($columnMap);
+        $keys = array_keys($columnMap);
+
+        if ($format === 'xlsx') {
+            $rows = [];
+
+            foreach ($report['data'] as $row) {
+                foreach ($row['categories'] as $cat => $val) {
+                    $values = [
+                        'user_name' => $row['user_name'],
+                        'category' => $cat,
+                        'amount' => number_format((float) $val, 2, ',', '.'),
+                    ];
+
+                    $rows[] = array_map(fn ($k) => $values[$k] ?? '', $keys);
+                }
+            }
+
+            return $this->reportService->generateXlsx('custos', $headers, $rows);
+        }
+
+        if ($format === 'pdf') {
+            return $this->reportService->generatePdf('pdf.costs', 'custos', [
+                'rows' => $report['data'],
+                'headers' => $headers,
+            ]);
+        }
 
         return response()->json([
             'data' => $report['data'],

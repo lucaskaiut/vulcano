@@ -21,7 +21,7 @@ use Illuminate\Support\Collection;
     'name', 'job_title', 'hired_at', 'manager_id', 'sector_id', 'salary', 'email', 'password',
     'company_name', 'cnpj', 'cpf', 'rg', 'birth_date', 'phone',
     'zip_code', 'street', 'number', 'neighborhood', 'city', 'state',
-    'contract_type', 'contracting_company',
+    'contract_type', 'contracting_company', 'invoice_due_day',
     'emergency_contacts', 'bank_details', 'observations',
 ])]
 #[Hidden(['password', 'remember_token'])]
@@ -37,6 +37,7 @@ class User extends Authenticatable
             'hired_at' => 'date',
             'birth_date' => 'date',
             'salary' => 'decimal:2',
+            'invoice_due_day' => 'integer',
             'password' => 'hashed',
         ];
     }

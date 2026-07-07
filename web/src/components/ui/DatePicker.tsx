@@ -199,12 +199,12 @@ export function DatePicker({
                     type="button"
                     onClick={() => setShowYearPicker(false)}
                     aria-label="Voltar para calendário"
-                    className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
+                    className="flex size-11 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
                   >
                     <ChevronLeft className="size-4" aria-hidden />
                   </button>
                   <p className="text-sm font-semibold text-foreground">Selecione o ano</p>
-                  <div className="size-8" />
+                  <div className="size-11" />
                 </div>
                 <div
                   ref={yearListRef}
@@ -236,7 +236,7 @@ export function DatePicker({
                     type="button"
                     onClick={goToPreviousMonth}
                     aria-label="Mês anterior"
-                    className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
+                    className="flex size-11 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
                   >
                     <ChevronLeft className="size-4" aria-hidden />
                   </button>
@@ -254,7 +254,7 @@ export function DatePicker({
                     type="button"
                     onClick={goToNextMonth}
                     aria-label="Próximo mês"
-                    className="flex size-8 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
+                    className="flex size-11 items-center justify-center rounded-lg text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
                   >
                     <ChevronRight className="size-4" aria-hidden />
                   </button>
@@ -285,7 +285,7 @@ export function DatePicker({
                         key={toIsoDate(day)}
                         type="button"
                         onClick={() => selectDate(day)}
-                        className={`flex size-9 items-center justify-center rounded-lg text-sm transition ${
+                        className={`flex size-11 items-center justify-center rounded-lg text-sm transition ${
                           isSelected
                             ? 'bg-primary font-semibold text-primary-foreground shadow-surface'
                             : isToday

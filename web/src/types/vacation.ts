@@ -10,6 +10,7 @@ export type VacationGrant = {
   start_date: string
   end_date: string
   days_used: number
+  reason: string | null
   created_at: string
   updated_at: string
 }

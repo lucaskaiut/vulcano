@@ -92,6 +92,56 @@ export async function getReport(month?: string): Promise<{ data: MonthlyCostRepo
   return apiFetch<{ data: MonthlyCostReport[]; groups: Record<string, CategoryGroup> }>(`/costs-report${query}`)
 }
 
+export function getCostReportDownloadUrl(format: 'pdf' | 'xlsx', columns?: string[]): string {
+  const base = import.meta.env.VITE_API_BASE_URL ?? '/api'
+  const qs = new URLSearchParams()
+  qs.set('format', format)
+  if (columns && columns.length > 0) {
+    qs.set('columns', columns.join(','))
+  }
+  return `${base}/costs-report?${qs.toString()}`
+}
+
+export async function downloadCostReport(format: 'pdf' | 'xlsx', columns?: string[]): Promise<void> {
+  function getCsrfToken(): string | null {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)
+    return match ? decodeURIComponent(match[1]) : null
+  }
+
+  const headers = new Headers()
+  headers.set('Accept', format === 'xlsx'
+    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    : 'application/pdf')
+
+  const xsrfToken = getCsrfToken()
+  if (xsrfToken) {
+    headers.set('X-XSRF-TOKEN', xsrfToken)
+  }
+
+  const response = await fetch(getCostReportDownloadUrl(format, columns), {
+    credentials: 'include',
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error('Falha ao baixar o relatório de custos.')
+  }
+
+  const blob = await response.blob()
+  const disposition = response.headers.get('Content-Disposition')
+  const filenameMatch = disposition?.match(/filename="?([^"]+)"?/)
+  const filename = filenameMatch?.[1] ?? `custos.${format}`
+
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
+}
+
 export async function listProvisionRules(): Promise<ProvisionRule[]> {
   const response = await apiFetch<{ data: ProvisionRule[] }>('/provision-rules/list')
   return response.data

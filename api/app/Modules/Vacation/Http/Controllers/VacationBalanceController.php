@@ -26,6 +26,7 @@ class VacationBalanceController extends Controller
         $balances = $this->vacationBalanceService->paginate(
             $sort,
             $pagination,
+            $request->user(),
             $userId ? (int) $userId : null,
         );
 

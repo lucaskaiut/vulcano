@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-#[Fillable(['user_id', 'notification_channel_id', 'type', 'title', 'body', 'data', 'sent_at'])]
+#[Fillable(['user_id', 'notification_channel_id', 'type', 'title', 'body', 'data', 'sent_at', 'status', 'error'])]
 class Notification extends Model
 {
     public function user(): BelongsTo

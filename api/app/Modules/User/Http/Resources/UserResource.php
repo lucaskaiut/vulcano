@@ -37,6 +37,7 @@ class UserResource extends JsonResource
             'state' => $this->state,
             'contract_type' => $this->contract_type,
             'contracting_company' => $this->contracting_company,
+            'invoice_due_day' => $this->invoice_due_day,
             'emergency_contacts' => $this->emergency_contacts,
             'bank_details' => $this->bank_details,
             'observations' => $this->observations,

@@ -1,18 +1,34 @@
-import { useQuery } from '@tanstack/react-query'
-import { Pencil } from 'lucide-react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Pencil, Trash2 } from 'lucide-react'
 import { Link } from '@tanstack/react-router'
+import { useState } from 'react'
 import * as documentService from '../services/documentService'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Button } from '../components/ui/Button'
+import { ConfirmModal } from '../components/ui/ConfirmModal'
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../components/ui/Table'
 import { usePermissions } from '../hooks/usePermissions'
+import type { DocumentType } from '../types/document'
 
 export function DocumentTypesPage() {
   const { can } = usePermissions()
+  const queryClient = useQueryClient()
+  const [deleting, setDeleting] = useState<DocumentType | null>(null)
 
   const { data: types = [], isLoading } = useQuery({
     queryKey: ['document-types'],
     queryFn: () => documentService.listDocumentTypes(),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => documentService.deleteDocumentType(id),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['document-types'] })
+      setDeleting(null)
+    },
+    onError: () => {
+      setDeleting(null)
+    },
   })
 
   return (
@@ -56,14 +72,22 @@ export function DocumentTypesPage() {
                     )}
                   </TableCell>
                   <TableCell>
-                    {can('documents.create') && (
-                      <Link to="/document-types/$id/editar" params={{ id: String(type.id) }}>
-                        <Button variant="ghost" size="sm">
-                          <Pencil className="size-4" aria-hidden />
-                          Editar
+                    <div className="flex items-center gap-1">
+                      {can('documents.create') && (
+                        <Link to="/document-types/$id/editar" params={{ id: String(type.id) }}>
+                          <Button variant="ghost" size="sm">
+                            <Pencil className="size-4" aria-hidden />
+                            Editar
+                          </Button>
+                        </Link>
+                      )}
+                      {can('documents.delete') && (
+                        <Button variant="ghost" size="sm" onClick={() => setDeleting(type)}>
+                          <Trash2 className="size-4 text-danger" aria-hidden />
+                          Excluir
                         </Button>
-                      </Link>
-                    )}
+                      )}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
@@ -71,6 +95,18 @@ export function DocumentTypesPage() {
           </TableBody>
         </Table>
       )}
+
+      <ConfirmModal
+        open={deleting !== null}
+        title="Excluir tipo de documento"
+        description={`Tem certeza que deseja excluir o tipo "${deleting?.name}"?`}
+        confirmLabel="Excluir"
+        isLoading={deleteMutation.isPending}
+        onConfirm={() => {
+          if (deleting) deleteMutation.mutate(deleting.id)
+        }}
+        onCancel={() => setDeleting(null)}
+      />
     </>
   )
 }

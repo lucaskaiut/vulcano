@@ -163,7 +163,7 @@ export function UsersPage() {
               <TableHeaderCellCollapsible>Setor</TableHeaderCellCollapsible>
               <TableHeaderCellCollapsible>Remuneração</TableHeaderCellCollapsible>
               <TableHeaderCellExpand />
-              <TableHeaderCell className="w-28 text-right">Ações</TableHeaderCell>
+              <TableHeaderCell className="w-32 text-right md:w-32">Ações</TableHeaderCell>
             </TableRow>
           </TableHead>
           <TableBody>

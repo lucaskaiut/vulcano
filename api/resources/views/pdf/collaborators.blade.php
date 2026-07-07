@@ -6,10 +6,20 @@
 <body>
 <h1>Relatório de Colaboradores</h1>
 <table>
-<thead><tr><th>Nome</th><th>Cargo</th><th>E-mail</th><th>Remuneração</th><th>Contratação</th></tr></thead>
+<thead><tr>@foreach(($headers ?? ['Nome','Cargo','E-mail','Remuneração','Contratação','Perfis']) as $h)<th>{{$h}}</th>@endforeach</tr></thead>
 <tbody>
 @foreach($rows as $r)
-<tr><td>{{$r->name}}</td><td>{{$r->job_title}}</td><td>{{$r->email}}</td><td>R$ {{number_format((float)$r->salary,2,',','.')}}</td><td>{{$r->hired_at?->format('d/m/Y')}}</td></tr>
+<tr>
+@foreach(($headers ?? ['Nome','Cargo','E-mail','Remuneração','Contratação','Perfis']) as $h)
+@if($h === 'Nome')<td>{{$r->name}}</td>
+@elseif($h === 'Cargo')<td>{{$r->job_title}}</td>
+@elseif($h === 'E-mail')<td>{{$r->email}}</td>
+@elseif($h === 'Remuneração')<td>R$ {{number_format((float)$r->salary,2,',','.')}}</td>
+@elseif($h === 'Contratação')<td>{{$r->hired_at?->format('d/m/Y')}}</td>
+@elseif($h === 'Perfis')<td>{{$r->roles->pluck('name')->implode(', ')}}</td>
+@endif
+@endforeach
+</tr>
 @endforeach
 </tbody>
 </table>

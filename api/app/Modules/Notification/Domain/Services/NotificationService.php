@@ -44,12 +44,14 @@ class NotificationService
                 'title' => $title,
                 'body' => $body,
                 'data' => $data,
+                'status' => 'pending',
             ]);
 
             try {
                 $this->channels[$channel->name]->send($notification);
-                $notification->update(['sent_at' => now()]);
+                $notification->update(['sent_at' => now(), 'status' => 'sent']);
             } catch (\Exception $e) {
+                $notification->update(['status' => 'failed', 'error' => $e->getMessage()]);
                 report($e);
             }
         }

@@ -42,12 +42,60 @@ export async function reportMedicalExams(filters: {
   return r.data
 }
 
-export function getReportDownloadUrl(type: string, filters: Record<string, string | undefined>, format: 'pdf' | 'xlsx'): string {
+export function getReportDownloadUrl(type: string, filters: Record<string, string | undefined>, format: 'pdf' | 'xlsx', columns?: string[]): string {
   const base = import.meta.env.VITE_API_BASE_URL ?? '/api'
   const qs = new URLSearchParams()
   for (const [k, v] of Object.entries(filters)) {
     if (v) qs.set(k, v)
   }
   qs.set('format', format)
+  if (columns && columns.length > 0) {
+    qs.set('columns', columns.join(','))
+  }
   return `${base}/reports/${type}?${qs.toString()}`
+}
+
+export async function downloadReportFile(
+  type: string,
+  filters: Record<string, string | undefined>,
+  format: 'pdf' | 'xlsx',
+  columns?: string[],
+): Promise<void> {
+  function getCsrfToken(): string | null {
+    const match = document.cookie.match(/(?:^|;\s*)XSRF-TOKEN=([^;]+)/)
+    return match ? decodeURIComponent(match[1]) : null
+  }
+
+  const headers = new Headers()
+  headers.set('Accept', format === 'xlsx'
+    ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+    : 'application/pdf')
+
+  const xsrfToken = getCsrfToken()
+  if (xsrfToken) {
+    headers.set('X-XSRF-TOKEN', xsrfToken)
+  }
+
+  const response = await fetch(getReportDownloadUrl(type, filters, format, columns), {
+    credentials: 'include',
+    headers,
+  })
+
+  if (!response.ok) {
+    throw new Error('Falha ao baixar o relatório.')
+  }
+
+  const blob = await response.blob()
+  const disposition = response.headers.get('Content-Disposition')
+  const filenameMatch = disposition?.match(/filename="?([^"]+)"?/)
+  const filename = filenameMatch?.[1] ?? `relatorio.${format}`
+
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
 }

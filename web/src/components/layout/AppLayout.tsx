@@ -44,6 +44,9 @@ export default function AppLayout() {
   }
 
   if (!isAuthenticated) {
+    if (location.pathname !== '/login') {
+      sessionStorage.setItem('redirect_after_login', location.pathname + location.searchStr)
+    }
     return <Navigate to="/login" />
   }
 

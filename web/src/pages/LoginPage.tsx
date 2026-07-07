@@ -23,7 +23,9 @@ export function LoginPage() {
 
     try {
       await login(email, password)
-      navigate({ to: '/', replace: true })
+      const redirect = sessionStorage.getItem('redirect_after_login')
+      sessionStorage.removeItem('redirect_after_login')
+      navigate({ to: redirect || '/', replace: true })
     } catch (submitError) {
       if (submitError instanceof ApiError) {
         setError(getApiErrorMessage(submitError, 'email'))

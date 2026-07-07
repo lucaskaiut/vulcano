@@ -3,6 +3,8 @@
 namespace App\Modules\MedicalExam\Domain\Services;
 
 use App\Modules\MedicalExam\Domain\Models\MedicalExam;
+use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
+use App\Modules\User\Domain\Models\User;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
@@ -16,6 +18,22 @@ class MedicalExamService
             ->where('user_id', $userId)
             ->orderBy('expiration_date', 'desc')
             ->get();
+    }
+
+    /** @return Collection<int, MedicalExam> */
+    public function listAll(User $user): Collection
+    {
+        $query = MedicalExam::query()
+            ->with('user')
+            ->orderBy('expiration_date', 'desc');
+
+        if (! $user->hasPermission(PermissionEnum::MedicalExamsViewAll->value)) {
+            $subordinateIds = User::query()->where('manager_id', $user->id)->pluck('id');
+            $ids = $subordinateIds->push($user->id)->unique();
+            $query->whereIn('user_id', $ids);
+        }
+
+        return $query->get();
     }
 
     /** @param  array{exam_type: string, execution_date: string, expiration_date: string, notes?: string|null}  $data */

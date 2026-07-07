@@ -14,6 +14,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'start_date',
     'end_date',
     'days_used',
+    'reason',
 ])]
 class VacationGrant extends Model
 {

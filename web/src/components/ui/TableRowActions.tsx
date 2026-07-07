@@ -25,7 +25,7 @@ export function TableRowActions({
           onClick={onView}
           aria-label={viewLabel}
           title={viewLabel}
-          className="flex size-8 items-center justify-center rounded-lg text-primary transition hover:bg-primary-muted"
+          className="flex size-10 items-center justify-center rounded-lg text-primary transition hover:bg-primary-muted"
         >
           <Eye className="size-4" aria-hidden />
         </button>
@@ -35,7 +35,7 @@ export function TableRowActions({
         onClick={onEdit}
         aria-label={editLabel}
         title={editLabel}
-        className="flex size-8 items-center justify-center rounded-lg text-secondary transition hover:bg-secondary-muted"
+        className="flex size-10 items-center justify-center rounded-lg text-secondary transition hover:bg-secondary-muted"
       >
         <Pencil className="size-4" aria-hidden />
       </button>
@@ -44,7 +44,7 @@ export function TableRowActions({
         onClick={onDelete}
         aria-label={deleteLabel}
         title={deleteLabel}
-        className="flex size-8 items-center justify-center rounded-lg text-danger transition hover:bg-danger-muted"
+        className="flex size-10 items-center justify-center rounded-lg text-danger transition hover:bg-danger-muted"
       >
         <Trash2 className="size-4" aria-hidden />
       </button>

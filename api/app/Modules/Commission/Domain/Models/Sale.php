@@ -18,6 +18,11 @@ use App\Modules\Audit\Domain\Traits\Auditable;
     'percentage',
     'commission_amount',
     'notes',
+    'invoice_number',
+    'invoice_file_name',
+    'invoice_file_path',
+    'invoice_file_mime',
+    'invoice_file_size',
 ])]
 class Sale extends Model
 {
