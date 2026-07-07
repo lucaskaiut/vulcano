@@ -23,7 +23,7 @@ class UserService
         'name', 'job_title', 'hired_at', 'email',
         'company_name', 'cnpj', 'cpf', 'rg', 'birth_date', 'phone',
         'zip_code', 'street', 'number', 'neighborhood', 'city', 'state',
-        'contract_type', 'contracting_company',
+        'contract_type', 'contracting_company', 'invoice_due_day',
         'emergency_contacts', 'bank_details', 'observations',
     ];
 

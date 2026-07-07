@@ -12,7 +12,6 @@ use App\Modules\User\Domain\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use App\Modules\User\Domain\Enums\Permission as PermissionEnum;
-use App\Modules\User\Domain\Models\User;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class MedicalExamController extends Controller

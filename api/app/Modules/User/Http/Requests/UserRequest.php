@@ -33,6 +33,7 @@ abstract class UserRequest extends FormRequest
             'state' => ['nullable', 'string', 'max:2'],
             'contract_type' => ['nullable', 'string', 'in:clt,pj,hybrid,other'],
             'contracting_company' => ['nullable', 'string', 'max:255'],
+            'invoice_due_day' => ['nullable', 'integer', 'min:1', 'max:28'],
             'emergency_contacts' => ['nullable', 'string'],
             'bank_details' => ['nullable', 'string'],
             'observations' => ['nullable', 'string'],
