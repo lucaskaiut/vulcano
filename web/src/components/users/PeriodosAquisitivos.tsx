@@ -4,6 +4,12 @@ function fmt(date: Date): string {
   return date.toLocaleDateString('pt-BR')
 }
 
+function parseLocalDate(value: string): Date {
+  const [datePart] = value.split('T')
+  const [year, month, day] = datePart.split('-').map(Number)
+  return new Date(year, month - 1, day)
+}
+
 type AcquisitionPeriod = {
   yearNumber: number
   startDate: Date
@@ -31,7 +37,7 @@ type PeriodosAquisitivosProps = {
 
 export function PeriodosAquisitivos({ hireDate }: PeriodosAquisitivosProps) {
   const periods = useMemo<AcquisitionPeriod[]>(() => {
-    const hire = new Date(hireDate)
+    const hire = parseLocalDate(hireDate)
     const today = new Date()
 
     // First period starts at hire date, each is 12 months
