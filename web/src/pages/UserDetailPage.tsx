@@ -12,9 +12,9 @@ import { Card } from '../components/ui/Card'
 import { UserSalaryHistorySection } from '../components/users/UserSalaryHistorySection'
 import { PageHeader } from '../components/ui/PageHeader'
 import { Table, TableBody, TableCell, TableHead, TableHeaderCell, TableRow } from '../components/ui/Table'
-import { formatDate, formatSalary } from '../lib/format'
+import { formatDate, formatDays, formatSalary } from '../lib/format'
 import type { AclUser } from '../types/acl'
-import type { VacationGrant } from '../types/vacation'
+import type { VacationBalance, VacationGrant } from '../types/vacation'
 import type { Document } from '../types/document'
 import type { Invoice } from '../types/invoice'
 import type { MedicalExam } from '../types/medicalExam'
@@ -57,6 +57,29 @@ function EmptyState({ message }: { message: string }) {
     <p className="rounded-lg border border-dashed border-surface-sunken px-4 py-6 text-center text-sm text-foreground-muted">
       {message}
     </p>
+  )
+}
+
+function VacationBalanceSummary({ balance }: { balance: VacationBalance }) {
+  return (
+    <dl className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div>
+        <dt className="text-xs font-medium uppercase tracking-wide text-foreground-muted">Saldo disponível</dt>
+        <dd className="mt-1 text-lg font-semibold text-foreground">{formatDays(balance.available_days)}</dd>
+      </div>
+      <div>
+        <dt className="text-xs font-medium uppercase tracking-wide text-foreground-muted">Dias adquiridos</dt>
+        <dd className="mt-1 text-sm text-foreground">{formatDays(balance.accrued_days)}</dd>
+      </div>
+      <div>
+        <dt className="text-xs font-medium uppercase tracking-wide text-foreground-muted">Dias utilizados</dt>
+        <dd className="mt-1 text-sm text-foreground">{formatDays(balance.used_days)}</dd>
+      </div>
+      <div>
+        <dt className="text-xs font-medium uppercase tracking-wide text-foreground-muted">Dias adicionais</dt>
+        <dd className="mt-1 text-sm text-foreground">{formatDays(balance.additional_days)}</dd>
+      </div>
+    </dl>
   )
 }
 
@@ -225,6 +248,12 @@ export function UserDetailPage() {
     enabled: userId !== null && !Number.isNaN(userId),
   })
 
+  const balanceQuery = useQuery({
+    queryKey: ['vacation-balances', 'user', userId],
+    queryFn: () => vacationService.getVacationBalanceForUser(userId!),
+    enabled: userId !== null && !Number.isNaN(userId),
+  })
+
   const documentsQuery = useQuery({
     queryKey: ['documents', userId],
     queryFn: () => documentService.listDocuments(userId!),
@@ -368,6 +397,7 @@ export function UserDetailPage() {
 
       <Card className="mt-4 p-6">
         <SectionHeader title="Férias concedidas" />
+        {balanceQuery.data && <div className="mt-4"><VacationBalanceSummary balance={balanceQuery.data} /></div>}
         <div className="mt-4 overflow-x-auto rounded-xl border border-surface-sunken">
           {!grantsQuery.isLoading && grantsQuery.data ? (
             <VacationGrantsTable grants={grantsQuery.data} />
