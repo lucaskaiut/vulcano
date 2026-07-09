@@ -20,3 +20,23 @@ it('retorna zero para contratacao futura', function () {
 
     expect($days)->toEqual(0.0);
 });
+
+it('conta o mes corrente quando atinge 15 dias trabalhados', function () {
+    \Carbon\Carbon::setTestNow('2026-07-09');
+
+    $days = VacationEntitlementCalculator::calculateAccruedDays('2026-01-22');
+
+    expect($days)->toEqual(15.0);
+
+    \Carbon\Carbon::setTestNow();
+});
+
+it('nao conta o mes corrente quando trabalhou menos de 15 dias', function () {
+    \Carbon\Carbon::setTestNow('2026-07-05');
+
+    $days = VacationEntitlementCalculator::calculateAccruedDays('2026-01-22');
+
+    expect($days)->toEqual(12.5);
+
+    \Carbon\Carbon::setTestNow();
+});
