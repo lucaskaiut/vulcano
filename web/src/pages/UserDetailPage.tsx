@@ -60,6 +60,10 @@ function EmptyState({ message }: { message: string }) {
   )
 }
 
+function truncate(value: string, max: number): string {
+  return value.length > max ? `${value.slice(0, max)}...` : value
+}
+
 function VacationBalanceSummary({ balance }: { balance: VacationBalance }) {
   return (
     <dl className="mb-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -126,7 +130,11 @@ function DocumentsTable({ documents }: { documents: Document[] }) {
       <TableBody>
         {documents.map((doc) => (
           <TableRow key={doc.id}>
-            <TableCell className="font-medium text-foreground">{doc.original_name}</TableCell>
+            <TableCell className="font-medium text-foreground">
+              <span title={doc.original_name.length > 35 ? doc.original_name : undefined}>
+                {truncate(doc.original_name, 35)}
+              </span>
+            </TableCell>
             <TableCell className="text-foreground-muted">{doc.document_type?.name ?? '—'}</TableCell>
             <TableCell className="text-foreground-muted">{formatDate(doc.expiration_date)}</TableCell>
             <TableCell>
