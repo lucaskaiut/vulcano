@@ -46,4 +46,9 @@ class EnterpriseService
 
         return $enterprise->fresh();
     }
+
+    public function delete(Enterprise $enterprise): void
+    {
+        $enterprise->delete();
+    }
 }

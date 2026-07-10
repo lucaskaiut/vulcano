@@ -26,7 +26,7 @@ export function EnterprisesPage() {
       <PageHeader
         title="Empreendimentos"
         action={
-          can('commissions.create') && (
+          can('enterprises.create') && (
             <Link to="/enterprises/novo">
               <Button variant="primary" size="sm">Novo empreendimento</Button>
             </Link>
@@ -54,7 +54,7 @@ export function EnterprisesPage() {
                 <TableRow key={enterprise.id}>
                   <TableCell className="font-medium">{enterprise.name}</TableCell>
                   <TableCell>
-                    {can('commissions.create') && (
+                    {can('enterprises.update') && (
                       <Link to="/enterprises/$id/editar" params={{ id: String(enterprise.id) }}>
                         <Button variant="ghost" size="sm" aria-label="Editar">
                           <Pencil className="size-4" />

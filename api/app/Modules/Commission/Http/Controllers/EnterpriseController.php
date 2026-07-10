@@ -63,4 +63,13 @@ class EnterpriseController extends Controller
             'message' => 'Empreendimento atualizado com sucesso.',
         ]);
     }
+
+    public function destroy(Enterprise $enterprise): JsonResponse
+    {
+        $this->enterpriseService->delete($enterprise);
+
+        return response()->json([
+            'message' => 'Empreendimento excluído com sucesso.',
+        ]);
+    }
 }

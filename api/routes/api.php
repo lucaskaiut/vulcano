@@ -192,13 +192,14 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:commissions.create');
 
     Route::get('enterprises/list', [EnterpriseController::class, 'list'])
-        ->middleware('permission:commissions.view');
+        ->middleware('permission:enterprises.view');
     Route::apiResource('enterprises', EnterpriseController::class)->middleware([
-        'index' => 'permission:commissions.view',
-        'store' => 'permission:commissions.create',
-        'show' => 'permission:commissions.view',
-        'update' => 'permission:commissions.create',
-    ])->except(['destroy']);
+        'index' => 'permission:enterprises.view',
+        'store' => 'permission:enterprises.create',
+        'show' => 'permission:enterprises.view',
+        'update' => 'permission:enterprises.update',
+        'destroy' => 'permission:enterprises.delete',
+    ]);
     Route::post('commissions/{commission}/pay', [CommissionController::class, 'pay'])
         ->middleware('permission:commissions.pay');
     Route::get('sales/{sale}/invoice-download', [CommissionController::class, 'downloadInvoice'])
@@ -239,13 +240,13 @@ Route::middleware('auth:sanctum')->group(function () {
         ->middleware('permission:costs.view');
 
     Route::get('document-types', [DocumentController::class, 'listTypes'])
-        ->middleware('permission:documents.view');
+        ->middleware('permission:document_types.view');
     Route::post('document-types', [DocumentController::class, 'storeType'])
-        ->middleware('permission:documents.create');
+        ->middleware('permission:document_types.create');
     Route::put('document-types/{document_type}', [DocumentController::class, 'updateType'])
-        ->middleware('permission:documents.create');
+        ->middleware('permission:document_types.update');
     Route::delete('document-types/{document_type}', [DocumentController::class, 'destroyType'])
-        ->middleware('permission:documents.delete');
+        ->middleware('permission:document_types.delete');
 
     Route::get('documents', [DocumentController::class, 'indexAll'])
         ->middleware('permission:documents.view');

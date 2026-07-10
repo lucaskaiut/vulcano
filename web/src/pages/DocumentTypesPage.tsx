@@ -36,7 +36,7 @@ export function DocumentTypesPage() {
       <PageHeader
         title="Tipos de documento"
         action={
-          can('documents.create') && (
+          can('document_types.create') && (
             <Link to="/document-types/novo">
               <Button variant="primary" size="sm">Novo tipo</Button>
             </Link>
@@ -73,7 +73,7 @@ export function DocumentTypesPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-1">
-                      {can('documents.create') && (
+                      {can('document_types.update') && (
                         <Link to="/document-types/$id/editar" params={{ id: String(type.id) }}>
                           <Button variant="ghost" size="sm">
                             <Pencil className="size-4" aria-hidden />
@@ -81,7 +81,7 @@ export function DocumentTypesPage() {
                           </Button>
                         </Link>
                       )}
-                      {can('documents.delete') && (
+                      {can('document_types.delete') && (
                         <Button variant="ghost" size="sm" onClick={() => setDeleting(type)}>
                           <Trash2 className="size-4 text-danger" aria-hidden />
                           Excluir

@@ -47,6 +47,10 @@ enum Permission: string
     case CommissionsViewAll = 'commissions.view_all';
     case CommissionsApprove = 'commissions.approve';
     case CommissionsReject = 'commissions.reject';
+    case EnterprisesView = 'enterprises.view';
+    case EnterprisesCreate = 'enterprises.create';
+    case EnterprisesUpdate = 'enterprises.update';
+    case EnterprisesDelete = 'enterprises.delete';
     case CostsView = 'costs.view';
     case CostsCreate = 'costs.create';
     case CostsUpdate = 'costs.update';
@@ -56,6 +60,10 @@ enum Permission: string
     case DocumentsCreate = 'documents.create';
     case DocumentsDelete = 'documents.delete';
     case DocumentsViewAll = 'documents.view_all';
+    case DocumentTypesView = 'document_types.view';
+    case DocumentTypesCreate = 'document_types.create';
+    case DocumentTypesUpdate = 'document_types.update';
+    case DocumentTypesDelete = 'document_types.delete';
     case InvoicesView = 'invoices.view';
     case InvoicesCreate = 'invoices.create';
     case InvoicesViewAll = 'invoices.view_all';
@@ -115,6 +123,10 @@ enum Permission: string
             self::CommissionsViewAll => 'Visualizar Todas as Comissões',
             self::CommissionsApprove => 'Aprovar Comissões',
             self::CommissionsReject => 'Reprovar Comissões',
+            self::EnterprisesView => 'Visualizar Empreendimentos',
+            self::EnterprisesCreate => 'Criar Empreendimentos',
+            self::EnterprisesUpdate => 'Atualizar Empreendimentos',
+            self::EnterprisesDelete => 'Excluir Empreendimentos',
             self::CostsView => 'Visualizar Custos',
             self::CostsCreate => 'Criar Custos',
             self::CostsUpdate => 'Atualizar Custos',
@@ -124,6 +136,10 @@ enum Permission: string
             self::DocumentsCreate => 'Criar Documentos',
             self::DocumentsDelete => 'Excluir Documentos',
             self::DocumentsViewAll => 'Visualizar Todos os Documentos',
+            self::DocumentTypesView => 'Visualizar Tipos de Documento',
+            self::DocumentTypesCreate => 'Criar Tipos de Documento',
+            self::DocumentTypesUpdate => 'Atualizar Tipos de Documento',
+            self::DocumentTypesDelete => 'Excluir Tipos de Documento',
             self::InvoicesView => 'Visualizar Notas Fiscais',
             self::InvoicesCreate => 'Criar Notas Fiscais',
             self::InvoicesViewAll => 'Visualizar Todas as Notas Fiscais',
