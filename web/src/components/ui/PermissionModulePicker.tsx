@@ -12,9 +12,11 @@ import {
   CalendarDays,
   CalendarCheck,
   CalendarPlus,
+  Building,
   DollarSign,
   Coins,
   FileText,
+  FolderOpen,
   ReceiptText,
   Stethoscope,
   Bell,
@@ -123,6 +125,15 @@ const MODULES: ModuleDef[] = [
     ],
   },
   {
+    key: 'enterprises',
+    label: 'Empreendimentos',
+    icon: Building,
+    groups: [
+      { label: 'Visualização', keys: ['view'] },
+      { label: 'Gerenciamento', keys: ['create', 'update', 'delete'] },
+    ],
+  },
+  {
     key: 'costs',
     label: 'Custos',
     icon: Coins,
@@ -138,6 +149,15 @@ const MODULES: ModuleDef[] = [
     groups: [
       { label: 'Visualização', keys: ['view', 'view_all'] },
       { label: 'Gerenciamento', keys: ['create', 'delete'] },
+    ],
+  },
+  {
+    key: 'document_types',
+    label: 'Tipos de Documento',
+    icon: FolderOpen,
+    groups: [
+      { label: 'Visualização', keys: ['view'] },
+      { label: 'Gerenciamento', keys: ['create', 'update', 'delete'] },
     ],
   },
   {
