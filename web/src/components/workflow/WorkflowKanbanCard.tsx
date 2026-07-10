@@ -1,4 +1,4 @@
-import { Download } from 'lucide-react'
+import { Download, Eye } from 'lucide-react'
 import { useAuth } from '../../contexts/AuthContext'
 import type { WorkflowInstance } from '../../types/workflow'
 import { Button } from '../ui/Button'
@@ -8,6 +8,7 @@ type WorkflowKanbanCardProps = {
   onApprove: (id: number) => void
   onReject: (id: number) => void
   downloadUrl?: string | null
+  onViewDetails?: (instanceId: number) => void
 }
 
 export function WorkflowKanbanCard({
@@ -15,6 +16,7 @@ export function WorkflowKanbanCard({
   onApprove,
   onReject,
   downloadUrl,
+  onViewDetails,
 }: WorkflowKanbanCardProps) {
   const { user } = useAuth()
   const currentStep = instance.current_step
@@ -45,7 +47,7 @@ export function WorkflowKanbanCard({
       )}
 
       {showActions && (
-        <div className="mt-2 flex gap-2">
+        <div className="mt-2 flex flex-wrap items-center gap-2">
           <Button size="sm" variant="primary" onClick={() => onApprove(instance.id)}>
             Aprovar
           </Button>
@@ -57,6 +59,16 @@ export function WorkflowKanbanCard({
           >
             Reprovar
           </Button>
+          {onViewDetails && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => onViewDetails(instance.id)}
+            >
+              <Eye className="size-3.5" aria-hidden />
+              Detalhes
+            </Button>
+          )}
         </div>
       )}
 

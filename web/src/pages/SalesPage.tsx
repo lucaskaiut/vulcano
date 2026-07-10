@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient, keepPreviousData } from '@tansta
 import { useCallback, useRef, useState } from 'react'
 import { approveInstance, rejectInstance } from '../services/workflowService'
 import { createSale, listEnterprises, listSales, payCommission } from '../services/commissionService'
+import { SaleDetailModal } from '../components/commission/SaleDetailModal'
 import { Button } from '../components/ui/Button'
 import { Card, CardHeader, CardTitle } from '../components/ui/Card'
 import { CurrencyInput } from '../components/ui/CurrencyInput'
@@ -11,11 +12,13 @@ import { PageHeader } from '../components/ui/PageHeader'
 import { SearchSelect } from '../components/ui/SearchSelect'
 import { Textarea } from '../components/ui/Textarea'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
+import type { Sale } from '../types/commission'
 import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
 
 export function SalesPage() {
   const queryClient = useQueryClient()
   const [showForm, setShowForm] = useState(false)
+  const [selectedSale, setSelectedSale] = useState<Sale | null>(null)
   const [enterpriseId, setEnterpriseId] = useState<number | null>(null)
   const [unit, setUnit] = useState('')
   const [saleDate, setSaleDate] = useState('')
@@ -100,6 +103,14 @@ export function SalesPage() {
       queryClient.invalidateQueries({ queryKey: ['sales'] })
     },
   })
+
+  const handleViewDetails = useCallback(
+    (instanceId: number) => {
+      const sale = sales.find((s) => s.commission?.workflow_instance?.id === instanceId)
+      if (sale) setSelectedSale(sale)
+    },
+    [sales],
+  )
 
   const kanbanInstances = sales
     .filter((s) => s.commission?.workflow_instance)
@@ -253,8 +264,15 @@ export function SalesPage() {
           onApprove={(id) => approveMutation.mutate(id)}
           onReject={(id) => rejectMutation.mutate(id)}
           onRefresh={() => queryClient.invalidateQueries({ queryKey: ['sales'] })}
+          onViewDetails={handleViewDetails}
         />
       )}
+
+      <SaleDetailModal
+        open={selectedSale !== null}
+        sale={selectedSale}
+        onClose={() => setSelectedSale(null)}
+      />
     </>
   )
 }

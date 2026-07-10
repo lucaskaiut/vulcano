@@ -14,6 +14,7 @@ type WorkflowKanbanProps = {
   onReject: (id: number) => void
   onRefresh: () => void
   getDownloadUrl?: (instanceId: number) => string | null
+  onViewDetails?: (instanceId: number) => void
 }
 
 export function WorkflowKanban({
@@ -23,6 +24,7 @@ export function WorkflowKanban({
   onReject,
   onRefresh: _onRefresh,
   getDownloadUrl,
+  onViewDetails,
 }: WorkflowKanbanProps) {
   const [rejectTarget, setRejectTarget] = useState<number | null>(null)
 
@@ -101,6 +103,7 @@ export function WorkflowKanban({
                       onApprove={onApprove}
                       onReject={(id) => setRejectTarget(id)}
                       downloadUrl={getDownloadUrl?.(instance.id) ?? null}
+                      onViewDetails={onViewDetails}
                     />
                   ))}
                 </div>
@@ -133,6 +136,7 @@ export function WorkflowKanban({
                   onApprove={onApprove}
                   onReject={(id) => setRejectTarget(id)}
                   downloadUrl={getDownloadUrl?.(instance.id) ?? null}
+                  onViewDetails={onViewDetails}
                 />
               ))}
             </div>
