@@ -64,9 +64,9 @@ export function WorkflowKanbanCard({
               size="sm"
               variant="ghost"
               onClick={() => onViewDetails(instance.id)}
+              aria-label="Detalhes"
             >
-              <Eye className="size-3.5" aria-hidden />
-              Detalhes
+              <Eye className="size-3.5" />
             </Button>
           )}
         </div>
