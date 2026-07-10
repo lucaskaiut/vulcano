@@ -63,6 +63,7 @@ function StatCard({
   return (
     <div className="rounded-xl bg-surface p-5 shadow-overlay">
       {content}
+      <div className="mt-3 h-4" />
     </div>
   )
 }
