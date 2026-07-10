@@ -2,7 +2,6 @@ import { Download, ExternalLink, FileText, X } from 'lucide-react'
 import { useEffect, useId, useRef, useState } from 'react'
 import type { Sale } from '../../types/commission'
 import { getInvoiceDownloadUrl } from '../../services/commissionService'
-import { Button } from '../ui/Button'
 import { formatDate } from '../../lib/format'
 
 type SaleDetailModalProps = {
