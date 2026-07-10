@@ -100,7 +100,7 @@ export function HomePage() {
 
       {isLoading ? (
         <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse rounded-xl bg-surface p-5 shadow-overlay">
                 <div className="flex items-start gap-4">
@@ -116,78 +116,6 @@ export function HomePage() {
         </div>
       ) : data ? (
         <div className="space-y-6">
-          {/* Primary metrics */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            {can('users.view') && (
-              <StatCard
-                icon={Users}
-                label="Colaboradores ativos"
-                value={number(data.total_collaborators)}
-                href="/users"
-                color={colors.blue}
-              />
-            )}
-            {can('costs.view') && (
-              <StatCard
-                icon={DollarSign}
-                label="Custo mensal estimado"
-                value={currency(data.total_cost)}
-                href="/costs"
-                color={colors.green}
-              />
-            )}
-            {can('vacation_requests.view') && (
-              <StatCard
-                icon={Clock}
-                label="Férias pendentes"
-                value={number(data.pending_vacation_requests)}
-                href="/vacation-requests"
-                color={colors.amber}
-              />
-            )}
-            {can('commissions.view') && (
-              <StatCard
-                icon={Percent}
-                label="Comissões pendentes"
-                value={number(data.pending_commissions)}
-                href="/sales"
-                color={colors.secondary}
-              />
-            )}
-          </div>
-
-          {/* Secondary metrics */}
-          {(can('invoices.view') || can('medical_exams.view')) && (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {can('invoices.view') && (
-                <StatCard
-                  icon={FileText}
-                  label="Notas fiscais pendentes"
-                  value={number(data.pending_invoices)}
-                  href="/invoices"
-                  color={colors.accent}
-                />
-              )}
-              {can('medical_exams.view') && (
-                <StatCard
-                  icon={AlertTriangle}
-                  label="Exames vencidos"
-                  value={number(data.expired_exams)}
-                  color={colors.red}
-                />
-              )}
-              {can('medical_exams.view') && (
-                <StatCard
-                  icon={Stethoscope}
-                  label="Exames vencendo em 30 dias"
-                  value={number(data.expiring_exams)}
-                  color={colors.amber}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Quick actions */}
           {hasAnyQuickAction && (
             <Card className="p-5">
               <h2 className="text-sm font-semibold text-foreground">Acesso rápido</h2>
@@ -231,6 +159,70 @@ export function HomePage() {
               </div>
             </Card>
           )}
+
+          <div className="grid gap-4 grid-cols-[repeat(auto-fill,minmax(260px,1fr))]">
+            {can('users.view') && (
+              <StatCard
+                icon={Users}
+                label="Colaboradores ativos"
+                value={number(data.total_collaborators)}
+                href="/users"
+                color={colors.blue}
+              />
+            )}
+            {can('costs.view') && (
+              <StatCard
+                icon={DollarSign}
+                label="Custo mensal estimado"
+                value={currency(data.total_cost)}
+                href="/costs"
+                color={colors.green}
+              />
+            )}
+            {can('vacation_requests.view') && (
+              <StatCard
+                icon={Clock}
+                label="Férias pendentes"
+                value={number(data.pending_vacation_requests)}
+                href="/vacation-requests"
+                color={colors.amber}
+              />
+            )}
+            {can('commissions.view') && (
+              <StatCard
+                icon={Percent}
+                label="Comissões pendentes"
+                value={number(data.pending_commissions)}
+                href="/sales"
+                color={colors.secondary}
+              />
+            )}
+            {can('invoices.view') && (
+              <StatCard
+                icon={FileText}
+                label="Notas fiscais pendentes"
+                value={number(data.pending_invoices)}
+                href="/invoices"
+                color={colors.accent}
+              />
+            )}
+            {can('medical_exams.view') && (
+              <StatCard
+                icon={AlertTriangle}
+                label="Exames vencidos"
+                value={number(data.expired_exams)}
+                color={colors.red}
+              />
+            )}
+            {can('medical_exams.view') && (
+              <StatCard
+                icon={Stethoscope}
+                label="Exames vencendo em 30 dias"
+                value={number(data.expiring_exams)}
+                color={colors.amber}
+              />
+            )}
+          </div>
         </div>
       ) : (
         <Card className="p-8 text-center">
