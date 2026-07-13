@@ -17,8 +17,8 @@ class WorkflowStepFactory extends Factory
             'workflow_type' => WorkflowType::VacationRequest->value,
             'name' => fake()->jobTitle(),
             'order' => 1,
-            'responsible_role_id' => null,
-            'responsible_user_id' => null,
+            'visibility_rules' => null,
+            'approval_rules' => null,
         ];
     }
 

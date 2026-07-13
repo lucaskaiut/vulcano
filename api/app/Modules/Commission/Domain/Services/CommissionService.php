@@ -26,7 +26,7 @@ class CommissionService
     public function list(User $user): Collection
     {
         $query = Sale::query()
-            ->with(['user', 'enterprise', 'commission.workflowInstance.currentStep.responsibleRole']);
+            ->with(['user', 'enterprise', 'commission.workflowInstance.currentStep']);
 
         if ($user->hasPermission(PermissionEnum::CommissionsViewAll->value)) {
             return $query->orderByDesc('created_at')->get();
@@ -40,18 +40,28 @@ class CommissionService
                 ->pluck('id');
 
             if ($subordinateIds->isNotEmpty()) {
-                $q->orWhereIn('user_id', $subordinateIds);
+                $q->orWhere(function ($subQ) use ($subordinateIds) {
+                    $subQ->whereIn('user_id', $subordinateIds)
+                        ->whereHas('commission.workflowInstance.currentStep', function ($stepQuery) {
+                            $stepQuery->whereJsonContains('visibility_rules', ['type' => 'manager']);
+                        });
+                });
             }
 
             $roleIds = $user->roles()->pluck('roles.id');
-            $q->orWhereHas('commission.workflowInstance.currentStep', function ($stepQuery) use ($user, $roleIds) {
-                $stepQuery->where(function ($q) use ($user, $roleIds) {
-                    $q->where('responsible_user_id', $user->id);
 
-                    if ($roleIds->isNotEmpty()) {
-                        $q->orWhereIn('responsible_role_id', $roleIds);
-                    }
+            if ($roleIds->isNotEmpty()) {
+                $q->orWhereHas('commission.workflowInstance.currentStep', function ($stepQuery) use ($roleIds) {
+                    $stepQuery->where(function ($sq) use ($roleIds) {
+                        foreach ($roleIds as $roleId) {
+                            $sq->orWhereJsonContains('visibility_rules', ['type' => 'role', 'id' => $roleId]);
+                        }
+                    });
                 });
+            }
+
+            $q->orWhereHas('commission.workflowInstance.currentStep', function ($stepQuery) use ($user) {
+                $stepQuery->whereJsonContains('visibility_rules', ['type' => 'user', 'id' => $user->id]);
             });
         });
 

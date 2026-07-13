@@ -23,7 +23,7 @@ class WorkflowInstanceService
     public function list(User $user): Collection
     {
         $query = WorkflowInstance::query()
-            ->with(['currentStep.responsibleRole', 'initiatedBy', 'histories.user']);
+            ->with(['currentStep', 'initiatedBy', 'histories.user']);
 
         if ($user->hasPermission(PermissionEnum::WorkflowInstancesViewAll->value)) {
             return $query->orderByDesc('created_at')->get();
@@ -39,19 +39,26 @@ class WorkflowInstanceService
                 ->pluck('id');
 
             if ($subordinateIds->isNotEmpty()) {
-                $q->orWhereIn('initiated_by_user_id', $subordinateIds);
+                $q->orWhere(function ($subQ) use ($subordinateIds) {
+                    $subQ->whereIn('initiated_by_user_id', $subordinateIds)
+                        ->whereHas('currentStep', function ($stepQuery) {
+                            $stepQuery->whereJsonContains('visibility_rules', ['type' => 'manager']);
+                        });
+                });
             }
 
-            $q->orWhere(function ($subQuery) use ($user, $roleIds) {
-                $subQuery->whereHas('currentStep', function ($stepQuery) use ($user, $roleIds) {
-                    $stepQuery->where(function ($q) use ($user, $roleIds) {
-                        $q->where('responsible_user_id', $user->id);
-
-                        if ($roleIds->isNotEmpty()) {
-                            $q->orWhereIn('responsible_role_id', $roleIds);
+            if ($roleIds->isNotEmpty()) {
+                $q->orWhereHas('currentStep', function ($stepQuery) use ($roleIds) {
+                    $stepQuery->where(function ($sq) use ($roleIds) {
+                        foreach ($roleIds as $roleId) {
+                            $sq->orWhereJsonContains('visibility_rules', ['type' => 'role', 'id' => $roleId]);
                         }
                     });
                 });
+            }
+
+            $q->orWhereHas('currentStep', function ($stepQuery) use ($user) {
+                $stepQuery->whereJsonContains('visibility_rules', ['type' => 'user', 'id' => $user->id]);
             });
         });
 
@@ -106,7 +113,7 @@ class WorkflowInstanceService
     {
         return WorkflowInstance::query()
             ->with([
-                'currentStep.responsibleRole',
+                'currentStep',
                 'initiatedBy',
                 'histories.user',
                 'histories.step',
@@ -118,7 +125,7 @@ class WorkflowInstanceService
     {
         $this->assertInProgress($instance);
         $currentStep = $this->resolveCurrentStep($instance);
-        $this->assertCanActOnStep($approver, $currentStep);
+        $this->assertCanActOnStep($approver, $currentStep, $instance);
 
         $nextStep = null;
 
@@ -165,7 +172,7 @@ class WorkflowInstanceService
     {
         $this->assertInProgress($instance);
         $currentStep = $this->resolveCurrentStep($instance);
-        $this->assertCanActOnStep($rejector, $currentStep);
+        $this->assertCanActOnStep($rejector, $currentStep, $instance);
 
         DB::transaction(function () use ($instance, $rejector, $currentStep, $notes) {
             $this->recordHistory(
@@ -233,19 +240,39 @@ class WorkflowInstanceService
         return $step;
     }
 
-    private function assertCanActOnStep(User $user, WorkflowStep $step): void
+    private function assertCanActOnStep(User $user, WorkflowStep $step, WorkflowInstance $instance): void
     {
-        if ($step->responsible_user_id && $step->responsible_user_id === $user->id) {
-            return;
-        }
+        $rules = $step->approval_rules ?? [];
 
-        if ($step->responsible_role_id) {
-            $hasRole = $user->roles()
-                ->where('roles.id', $step->responsible_role_id)
-                ->exists();
+        foreach ($rules as $rule) {
+            $type = $rule['type'] ?? null;
 
-            if ($hasRole) {
+            if ($type === 'user' && ($rule['id'] ?? null) === $user->id) {
                 return;
+            }
+
+            if ($type === 'role') {
+                $hasRole = $user->roles()
+                    ->where('roles.id', $rule['id'] ?? null)
+                    ->exists();
+
+                if ($hasRole) {
+                    return;
+                }
+            }
+
+            if ($type === 'manager') {
+                if ($user->id === $instance->initiated_by_user_id) {
+                    return;
+                }
+
+                $subordinateIds = \App\Modules\User\Domain\Models\User::query()
+                    ->where('manager_id', $user->id)
+                    ->pluck('id');
+
+                if ($subordinateIds->contains($instance->initiated_by_user_id)) {
+                    return;
+                }
             }
         }
 
@@ -353,16 +380,28 @@ class WorkflowInstanceService
 
         $approvers = collect();
 
-        if ($step->responsible_user_id && $step->responsible_user_id !== $initiatorId) {
-            $approvers->push(\App\Modules\User\Domain\Models\User::find($step->responsible_user_id));
-        }
+        foreach (($step->approval_rules ?? []) as $rule) {
+            $type = $rule['type'] ?? null;
 
-        if ($step->responsible_role_id) {
-            $roleUsers = \App\Modules\User\Domain\Models\User::query()
-                ->whereHas('roles', fn ($q) => $q->where('roles.id', $step->responsible_role_id))
-                ->where('id', '!=', $initiatorId)
-                ->get();
-            $approvers = $approvers->concat($roleUsers);
+            if ($type === 'user' && ($rule['id'] ?? null) !== $initiatorId) {
+                $approvers->push(\App\Modules\User\Domain\Models\User::find($rule['id']));
+            }
+
+            if ($type === 'role') {
+                $roleUsers = \App\Modules\User\Domain\Models\User::query()
+                    ->whereHas('roles', fn ($q) => $q->where('roles.id', $rule['id'] ?? null))
+                    ->where('id', '!=', $initiatorId)
+                    ->get();
+                $approvers = $approvers->concat($roleUsers);
+            }
+
+            if ($type === 'manager') {
+                $managerId = User::find($initiatorId)?->manager_id;
+
+                if ($managerId && $managerId !== $initiatorId) {
+                    $approvers->push(\App\Modules\User\Domain\Models\User::find($managerId));
+                }
+            }
         }
 
         foreach ($approvers->unique('id') as $approver) {

@@ -102,16 +102,25 @@ class VacationFlowSeeder extends Seeder
             'workflow_type' => 'vacation_request',
             'name' => 'Gestor',
             'order' => 1,
-            'responsible_role_id' => $gestorRole->id,
-            'responsible_user_id' => null,
+            'visibility_rules' => [
+                ['type' => 'manager'],
+            ],
+            'approval_rules' => [
+                ['type' => 'manager'],
+            ],
         ]);
 
         WorkflowStep::query()->create([
             'workflow_type' => 'vacation_request',
             'name' => 'RH',
             'order' => 2,
-            'responsible_role_id' => $rhRole->id,
-            'responsible_user_id' => null,
+            'visibility_rules' => [
+                ['type' => 'manager'],
+                ['type' => 'role', 'id' => $rhRole->id],
+            ],
+            'approval_rules' => [
+                ['type' => 'role', 'id' => $rhRole->id],
+            ],
         ]);
 
         $this->command?->info('Configurando workflow de comissão...');
@@ -124,16 +133,25 @@ class VacationFlowSeeder extends Seeder
             'workflow_type' => 'commission',
             'name' => 'Gestor',
             'order' => 1,
-            'responsible_role_id' => $gestorRole->id,
-            'responsible_user_id' => null,
+            'visibility_rules' => [
+                ['type' => 'manager'],
+            ],
+            'approval_rules' => [
+                ['type' => 'manager'],
+            ],
         ]);
 
         WorkflowStep::query()->create([
             'workflow_type' => 'commission',
             'name' => 'Financeiro',
             'order' => 2,
-            'responsible_role_id' => $financeiroRole->id,
-            'responsible_user_id' => null,
+            'visibility_rules' => [
+                ['type' => 'manager'],
+                ['type' => 'role', 'id' => $financeiroRole->id],
+            ],
+            'approval_rules' => [
+                ['type' => 'role', 'id' => $financeiroRole->id],
+            ],
         ]);
 
         $this->command?->info('Seed de teste concluído!');

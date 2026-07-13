@@ -16,9 +16,9 @@ it('executa cenário completo de aprovação de férias', function () {
     $rhRole = Role::query()->where('name', 'RH')->firstOrFail();
 
     foreach ([
-        ['name' => 'Gestora', 'order' => 1, 'responsible_role_id' => $gestorRole->id],
-        ['name' => 'Controlador', 'order' => 2, 'responsible_role_id' => $controladorRole->id],
-        ['name' => 'RH', 'order' => 3, 'responsible_role_id' => $rhRole->id],
+        ['name' => 'Gestora', 'order' => 1, 'visibility_rules' => [['type' => 'manager']], 'approval_rules' => [['type' => 'manager']]],
+        ['name' => 'Controlador', 'order' => 2, 'visibility_rules' => [['type' => 'manager'], ['type' => 'role', 'id' => $controladorRole->id]], 'approval_rules' => [['type' => 'role', 'id' => $controladorRole->id]]],
+        ['name' => 'RH', 'order' => 3, 'visibility_rules' => [['type' => 'manager'], ['type' => 'role', 'id' => $rhRole->id]], 'approval_rules' => [['type' => 'role', 'id' => $rhRole->id]]],
     ] as $step) {
         $this->actingAs($admin)
             ->postJson('/api/workflow-types/vacation_request/steps', $step)

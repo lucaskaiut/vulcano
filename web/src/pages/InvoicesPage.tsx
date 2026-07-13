@@ -27,13 +27,15 @@ function mapToKanban(invoice: Invoice) {
           name: invoice.workflow_instance.current_step.name,
           workflow_type: 'invoice' as WorkflowType,
           order: invoice.workflow_instance.current_step.order,
+          visibility_rules: invoice.workflow_instance.current_step.visibility_rules ?? [],
+          approval_rules: invoice.workflow_instance.current_step.approval_rules ?? [],
           created_at: '',
           updated_at: '',
-          responsible_role: invoice.workflow_instance.current_step.responsible_role,
-          responsible_user: invoice.workflow_instance.current_step.responsible_user,
         }
       : null,
-    initiated_by: invoice.user ?? { id: 0, name: '—' },
+    initiated_by: invoice.user
+      ? { id: invoice.user.id, name: invoice.user.name, manager_id: invoice.user.manager_id ?? null }
+      : { id: 0, name: '—', manager_id: null },
     histories: [],
     created_at: invoice.created_at,
     updated_at: invoice.created_at,

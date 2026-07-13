@@ -1,6 +1,7 @@
 import { apiFetch } from './api'
 import type {
   WorkflowInstance,
+  WorkflowRule,
   WorkflowStep,
   WorkflowType,
 } from '../types/workflow'
@@ -31,8 +32,8 @@ export async function createStep(
   payload: {
     name: string
     order?: number
-    responsible_role_id?: number | null
-    responsible_user_id?: number | null
+    visibility_rules?: WorkflowRule[] | null
+    approval_rules?: WorkflowRule[] | null
   },
 ): Promise<WorkflowStep> {
   const json = await apiFetch<{ data: WorkflowStep; message: string }>(
@@ -50,8 +51,8 @@ export async function updateStep(
   payload: {
     name?: string
     order?: number
-    responsible_role_id?: number | null
-    responsible_user_id?: number | null
+    visibility_rules?: WorkflowRule[] | null
+    approval_rules?: WorkflowRule[] | null
   },
 ): Promise<WorkflowStep> {
   const json = await apiFetch<{ data: WorkflowStep; message: string }>(

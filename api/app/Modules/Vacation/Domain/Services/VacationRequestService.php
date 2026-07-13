@@ -26,7 +26,7 @@ class VacationRequestService
     public function list(User $user): Collection
     {
         $query = VacationRequest::query()
-            ->with(['user', 'workflowInstance.currentStep.responsibleRole', 'workflowInstance.currentStep.responsibleUser']);
+            ->with(['user', 'workflowInstance.currentStep']);
 
         if ($user->hasPermission(PermissionEnum::VacationRequestsViewAll->value)) {
             return $query->orderByDesc('created_at')->get();
@@ -42,17 +42,26 @@ class VacationRequestService
                 ->pluck('id');
 
             if ($subordinateIds->isNotEmpty()) {
-                $q->orWhereIn('user_id', $subordinateIds);
+                $q->orWhere(function ($subQ) use ($subordinateIds) {
+                    $subQ->whereIn('user_id', $subordinateIds)
+                        ->whereHas('workflowInstance.currentStep', function ($stepQuery) {
+                            $stepQuery->whereJsonContains('visibility_rules', ['type' => 'manager']);
+                        });
+                });
             }
 
-            $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($user, $roleIds) {
-                $stepQuery->where(function ($q) use ($user, $roleIds) {
-                    $q->where('responsible_user_id', $user->id);
-
-                    if ($roleIds->isNotEmpty()) {
-                        $q->orWhereIn('responsible_role_id', $roleIds);
-                    }
+            if ($roleIds->isNotEmpty()) {
+                $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($roleIds) {
+                    $stepQuery->where(function ($sq) use ($roleIds) {
+                        foreach ($roleIds as $roleId) {
+                            $sq->orWhereJsonContains('visibility_rules', ['type' => 'role', 'id' => $roleId]);
+                        }
+                    });
                 });
+            }
+
+            $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($user) {
+                $stepQuery->whereJsonContains('visibility_rules', ['type' => 'user', 'id' => $user->id]);
             });
         });
 

@@ -22,15 +22,41 @@ export function WorkflowKanbanCard({
   const currentStep = instance.current_step
   const isInProgress = instance.status === 'in_progress'
 
-  const stepResponsibleRoleId = currentStep?.responsible_role?.id
-  const stepResponsibleUserId = currentStep?.responsible_user?.id
   const userRoleIds = user?.roles?.map((r) => r.id) ?? []
 
-  const isResponsible =
-    (!!stepResponsibleUserId && stepResponsibleUserId === user?.id) ||
-    (!!stepResponsibleRoleId && userRoleIds.includes(stepResponsibleRoleId))
+  const approvalRules = Array.isArray(currentStep?.approval_rules) ? currentStep.approval_rules : []
+
+  const isResponsible = (() => {
+    if (!currentStep || !user) return false
+
+    for (const rule of approvalRules) {
+      if (rule.type === 'user' && rule.id === user.id) return true
+      if (rule.type === 'role' && rule.id && userRoleIds.includes(rule.id)) return true
+      if (rule.type === 'manager') {
+        const initiatorManagerId = instance.initiated_by?.manager_id ?? null
+        if (user.id === initiatorManagerId) return true
+      }
+    }
+
+    return false
+  })()
 
   const showActions = isInProgress && isResponsible
+
+  const responsibleLabel = (() => {
+    if (!currentStep) return null
+    const rules = approvalRules
+    if (rules.length === 0) return null
+
+    const labels = rules.map((rule) => {
+      if (rule.type === 'manager') return 'Gestor do solicitante'
+      if (rule.type === 'role') return 'Perfil'
+      if (rule.type === 'user') return 'Usuário'
+      return null
+    }).filter(Boolean)
+
+    return labels.length > 0 ? labels.join(', ') : null
+  })()
 
   return (
     <div className="rounded-lg bg-surface p-3 shadow-sm">
@@ -40,9 +66,9 @@ export function WorkflowKanbanCard({
         {instance.initiated_by?.name ?? '-'}
       </p>
 
-      {isInProgress && !isResponsible && currentStep && (
+      {isInProgress && !isResponsible && responsibleLabel && (
         <p className="mt-1 text-[10px] leading-tight text-foreground-subtle">
-          Responsável: {currentStep.responsible_role?.name ?? currentStep.responsible_user?.name ?? '—'}
+          Aprovação: {responsibleLabel}
         </p>
       )}
 

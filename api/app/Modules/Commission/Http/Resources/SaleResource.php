@@ -39,12 +39,8 @@ class SaleResource extends JsonResource
                                 'id' => $this->commission->workflowInstance->currentStep->id,
                                 'name' => $this->commission->workflowInstance->currentStep->name,
                                 'order' => $this->commission->workflowInstance->currentStep->order,
-                                'responsible_role' => $this->commission->workflowInstance->currentStep->relationLoaded('responsibleRole') && $this->commission->workflowInstance->currentStep->responsibleRole
-                                    ? ['id' => $this->commission->workflowInstance->currentStep->responsibleRole->id, 'name' => $this->commission->workflowInstance->currentStep->responsibleRole->name]
-                                    : null,
-                                'responsible_user' => $this->commission->workflowInstance->currentStep->relationLoaded('responsibleUser') && $this->commission->workflowInstance->currentStep->responsibleUser
-                                    ? ['id' => $this->commission->workflowInstance->currentStep->responsibleUser->id, 'name' => $this->commission->workflowInstance->currentStep->responsibleUser->name]
-                                    : null,
+                                'visibility_rules' => $this->commission->workflowInstance->currentStep->visibility_rules ?? [],
+                                'approval_rules' => $this->commission->workflowInstance->currentStep->approval_rules ?? [],
                             ]
                             : null,
                     ]

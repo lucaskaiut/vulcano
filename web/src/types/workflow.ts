@@ -19,10 +19,15 @@ export interface WorkflowStep {
   workflow_type: WorkflowType
   name: string
   order: number
-  responsible_role: WorkflowStepResponsible | null
-  responsible_user: WorkflowStepResponsible | null
+  visibility_rules: WorkflowRule[]
+  approval_rules: WorkflowRule[]
   created_at: string
   updated_at: string
+}
+
+export interface WorkflowRule {
+  type: 'requester' | 'manager' | 'role' | 'user'
+  id?: number
 }
 
 export interface WorkflowInstanceHistory {
@@ -43,7 +48,7 @@ export interface WorkflowInstance {
   status: WorkflowInstanceStatus
   status_label: string
   current_step: WorkflowStep | null
-  initiated_by: { id: number; name: string } | null
+  initiated_by: { id: number; name: string; manager_id: number | null } | null
   histories: WorkflowInstanceHistory[]
   created_at: string
   updated_at: string

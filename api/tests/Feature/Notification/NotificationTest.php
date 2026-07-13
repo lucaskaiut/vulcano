@@ -13,7 +13,8 @@ describe('notifications', function () {
             'workflow_type' => 'vacation_request',
             'name' => 'Aprovação',
             'order' => 1,
-            'responsible_role_id' => $role->id,
+            'visibility_rules' => [['type' => 'role', 'id' => $role->id]],
+            'approval_rules' => [['type' => 'role', 'id' => $role->id]],
         ]);
 
         // Create vacation balance
@@ -53,7 +54,8 @@ describe('notifications', function () {
             'workflow_type' => 'vacation_request',
             'name' => 'Aprovação',
             'order' => 1,
-            'responsible_role_id' => $role->id,
+            'visibility_rules' => [['type' => 'role', 'id' => $role->id]],
+            'approval_rules' => [['type' => 'role', 'id' => $role->id]],
         ]);
 
         $instance = app(\App\Modules\Workflow\Domain\Services\WorkflowInstanceService::class)

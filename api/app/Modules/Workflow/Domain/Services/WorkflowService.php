@@ -11,7 +11,7 @@ class WorkflowService
     public function list(): Collection
     {
         return Workflow::query()
-            ->with(['steps.responsibleRole', 'steps.responsibleUser'])
+            ->with(['steps'])
             ->orderBy('name')
             ->get();
     }
@@ -19,7 +19,7 @@ class WorkflowService
     public function find(int $id): Workflow
     {
         return Workflow::query()
-            ->with(['steps.responsibleRole', 'steps.responsibleUser'])
+            ->with(['steps'])
             ->findOrFail($id);
     }
 
@@ -30,7 +30,7 @@ class WorkflowService
             'name' => $data['name'],
             'description' => $data['description'] ?? null,
             'is_active' => $data['is_active'] ?? true,
-        ])->load(['steps.responsibleRole', 'steps.responsibleUser']);
+        ])->load(['steps']);
     }
 
     /** @param  array{name?: string, description?: string|null, is_active?: bool}  $data */
@@ -48,6 +48,6 @@ class WorkflowService
             $workflow->update($attributes);
         }
 
-        return $workflow->fresh(['steps.responsibleRole', 'steps.responsibleUser']);
+        return $workflow->fresh(['steps']);
     }
 }

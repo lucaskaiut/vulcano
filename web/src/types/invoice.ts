@@ -1,7 +1,7 @@
 export type Invoice = {
   id: number
   user_id: number
-  user: { id: number; name: string } | null
+  user: { id: number; name: string; manager_id: number | null } | null
   competence: string
   invoice_number: string
   amount: string
@@ -18,8 +18,8 @@ export type Invoice = {
       id: number
       name: string
       order: number
-      responsible_role: { id: number; name: string } | null
-      responsible_user: { id: number; name: string } | null
+      visibility_rules: { type: string; id?: number }[]
+      approval_rules: { type: string; id?: number }[]
     } | null
   } | null
   created_at: string

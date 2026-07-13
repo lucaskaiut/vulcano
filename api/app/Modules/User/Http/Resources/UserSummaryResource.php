@@ -14,6 +14,7 @@ class UserSummaryResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'job_title' => $this->job_title,
+            'manager_id' => $this->manager_id,
         ];
     }
 }

@@ -2,6 +2,7 @@ export type VacationUserSummary = {
   id: number
   name: string
   job_title: string
+  manager_id: number | null
 }
 
 export type VacationGrant = {
@@ -57,8 +58,8 @@ export type VacationRequestWorkflowInstance = {
     id: number
     name: string
     order: number
-    responsible_role: { id: number; name: string } | null
-    responsible_user: { id: number; name: string } | null
+    visibility_rules: { type: string; id?: number }[]
+    approval_rules: { type: string; id?: number }[]
   } | null
 }
 

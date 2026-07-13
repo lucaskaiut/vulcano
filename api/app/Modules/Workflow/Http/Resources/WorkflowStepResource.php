@@ -15,14 +15,8 @@ class WorkflowStepResource extends JsonResource
             'workflow_type' => $this->workflow_type,
             'name' => $this->name,
             'order' => $this->order,
-            'responsible_role' => $this->whenLoaded('responsibleRole', fn () => $this->responsibleRole ? [
-                'id' => $this->responsibleRole->id,
-                'name' => $this->responsibleRole->name,
-            ] : null),
-            'responsible_user' => $this->whenLoaded('responsibleUser', fn () => $this->responsibleUser ? [
-                'id' => $this->responsibleUser->id,
-                'name' => $this->responsibleUser->name,
-            ] : null),
+            'visibility_rules' => $this->visibility_rules ?? [],
+            'approval_rules' => $this->approval_rules ?? [],
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),
         ];

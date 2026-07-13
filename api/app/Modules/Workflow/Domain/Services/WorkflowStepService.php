@@ -18,11 +18,10 @@ class WorkflowStepService
         return WorkflowStep::query()
             ->where('workflow_type', $type->value)
             ->orderBy('order')
-            ->with(['responsibleRole', 'responsibleUser'])
             ->get();
     }
 
-    /** @param  array{name: string, order?: int, responsible_role_id?: int|null, responsible_user_id?: int|null}  $data */
+    /** @param  array{name: string, order?: int, visibility_rules?: array|null, approval_rules?: array|null}  $data */
     public function create(WorkflowType $type, array $data): WorkflowStep
     {
         $order = $data['order'] ?? ($this->maxOrder($type) + 1);
@@ -31,12 +30,12 @@ class WorkflowStepService
             'workflow_type' => $type->value,
             'name' => $data['name'],
             'order' => $order,
-            'responsible_role_id' => $data['responsible_role_id'] ?? null,
-            'responsible_user_id' => $data['responsible_user_id'] ?? null,
-        ])->load(['responsibleRole', 'responsibleUser']);
+            'visibility_rules' => $data['visibility_rules'] ?? null,
+            'approval_rules' => $data['approval_rules'] ?? null,
+        ]);
     }
 
-    /** @param  array{name?: string, order?: int, responsible_role_id?: int|null, responsible_user_id?: int|null}  $data */
+    /** @param  array{name?: string, order?: int, visibility_rules?: array|null, approval_rules?: array|null}  $data */
     public function update(WorkflowStep $step, array $data): WorkflowStep
     {
         return DB::transaction(function () use ($step, $data) {
@@ -46,7 +45,7 @@ class WorkflowStepService
 
             $attributes = [];
 
-            foreach (['name', 'responsible_role_id', 'responsible_user_id'] as $field) {
+            foreach (['name', 'visibility_rules', 'approval_rules'] as $field) {
                 if (array_key_exists($field, $data)) {
                     $attributes[$field] = $data[$field];
                 }
@@ -56,7 +55,7 @@ class WorkflowStepService
                 $step->update($attributes);
             }
 
-            return $step->fresh(['responsibleRole', 'responsibleUser']);
+            return $step->fresh();
         });
     }
 

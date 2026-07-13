@@ -11,8 +11,8 @@ export type Commission = {
       id: number
       name: string
       order: number
-      responsible_role: { id: number; name: string } | null
-      responsible_user: { id: number; name: string } | null
+      visibility_rules: { type: string; id?: number }[]
+      approval_rules: { type: string; id?: number }[]
     } | null
   } | null
 }
@@ -34,7 +34,7 @@ export type Sale = {
   notes: string | null
   invoice_number: string | null
   invoice_file_name: string | null
-  user: { id: number; name: string }
+  user: { id: number; name: string; manager_id: number | null }
   commission: Commission | null
   created_at: string
 }

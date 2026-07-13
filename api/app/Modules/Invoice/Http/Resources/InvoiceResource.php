@@ -34,18 +34,8 @@ class InvoiceResource extends JsonResource
                         'id' => $this->workflowInstance->currentStep->id,
                         'name' => $this->workflowInstance->currentStep->name,
                         'order' => $this->workflowInstance->currentStep->order,
-                        'responsible_role' => $this->when($this->workflowInstance->currentStep->relationLoaded('responsibleRole') && $this->workflowInstance->currentStep->responsibleRole, function () {
-                            return [
-                                'id' => $this->workflowInstance->currentStep->responsibleRole->id,
-                                'name' => $this->workflowInstance->currentStep->responsibleRole->name,
-                            ];
-                        }),
-                        'responsible_user' => $this->when($this->workflowInstance->currentStep->relationLoaded('responsibleUser') && $this->workflowInstance->currentStep->responsibleUser, function () {
-                            return [
-                                'id' => $this->workflowInstance->currentStep->responsibleUser->id,
-                                'name' => $this->workflowInstance->currentStep->responsibleUser->name,
-                            ];
-                        }),
+                        'visibility_rules' => $this->workflowInstance->currentStep->visibility_rules ?? [],
+                        'approval_rules' => $this->workflowInstance->currentStep->approval_rules ?? [],
                     ];
                 }),
             ]),

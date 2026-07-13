@@ -35,7 +35,8 @@ describe('workflow steps store', function () {
 
         $response = $this->actingAs($admin)->postJson('/api/workflow-types/vacation_request/steps', [
             'name' => 'Gestora',
-            'responsible_role_id' => $role->id,
+            'visibility_rules' => [['type' => 'role', 'id' => $role->id]],
+            'approval_rules' => [['type' => 'role', 'id' => $role->id]],
         ]);
 
         $response

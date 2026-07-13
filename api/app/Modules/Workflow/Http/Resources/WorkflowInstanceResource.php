@@ -21,7 +21,15 @@ class WorkflowInstanceResource extends JsonResource
                 $this->relationLoaded('currentStep') && $this->currentStep,
                 fn () => new WorkflowStepResource($this->currentStep),
             ),
-            'initiated_by' => new UserSummaryResource($this->whenLoaded('initiatedBy')),
+            'initiated_by' => $this->whenLoaded('initiatedBy', function () {
+                $initiator = $this->initiatedBy;
+
+                return [
+                    'id' => $initiator->id,
+                    'name' => $initiator->name,
+                    'manager_id' => $initiator->manager_id,
+                ];
+            }),
             'histories' => WorkflowInstanceHistoryResource::collection($this->whenLoaded('histories')),
             'created_at' => $this->created_at?->toIso8601String(),
             'updated_at' => $this->updated_at?->toIso8601String(),

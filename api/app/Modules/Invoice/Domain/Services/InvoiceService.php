@@ -42,25 +42,33 @@ class InvoiceService
         $roleIds = $user->roles()->pluck('roles.id');
 
         $query->where(function ($q) use ($user, $roleIds) {
-            // Own invoices
             $q->where('user_id', $user->id);
 
-            // Subordinates' invoices
             $subordinateIds = User::query()
                 ->where('manager_id', $user->id)
                 ->pluck('id');
 
             if ($subordinateIds->isNotEmpty()) {
-                $q->orWhereIn('user_id', $subordinateIds);
+                $q->orWhere(function ($subQ) use ($subordinateIds) {
+                    $subQ->whereIn('user_id', $subordinateIds)
+                        ->whereHas('workflowInstance.currentStep', function ($stepQuery) {
+                            $stepQuery->whereJsonContains('visibility_rules', ['type' => 'manager']);
+                        });
+                });
             }
 
-            // Invoices where user is responsible for a workflow step
-            $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($user, $roleIds) {
-                $stepQuery->where('responsible_user_id', $user->id);
+            if ($roleIds->isNotEmpty()) {
+                $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($roleIds) {
+                    $stepQuery->where(function ($sq) use ($roleIds) {
+                        foreach ($roleIds as $roleId) {
+                            $sq->orWhereJsonContains('visibility_rules', ['type' => 'role', 'id' => $roleId]);
+                        }
+                    });
+                });
+            }
 
-                if ($roleIds->isNotEmpty()) {
-                    $stepQuery->orWhereIn('responsible_role_id', $roleIds);
-                }
+            $q->orWhereHas('workflowInstance.currentStep', function ($stepQuery) use ($user) {
+                $stepQuery->whereJsonContains('visibility_rules', ['type' => 'user', 'id' => $user->id]);
             });
         });
 

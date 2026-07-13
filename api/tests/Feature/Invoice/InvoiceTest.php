@@ -16,7 +16,8 @@ describe('invoices', function () {
             'workflow_type' => 'invoice',
             'name' => 'Aprovação RH',
             'order' => 1,
-            'responsible_role_id' => $role->id,
+            'visibility_rules' => [['type' => 'role', 'id' => $role->id]],
+            'approval_rules' => [['type' => 'role', 'id' => $role->id]],
         ]);
 
         $file = \Illuminate\Http\UploadedFile::fake()->create('nf.pdf', 100);

@@ -65,7 +65,7 @@ class WorkflowStepController extends Controller
         );
 
         return response()->json([
-            'data' => new WorkflowStepResource($workflowStep->fresh(['responsibleRole', 'responsibleUser'])),
+            'data' => new WorkflowStepResource($workflowStep->fresh()),
             'message' => 'Etapa reordenada com sucesso.',
         ]);
     }

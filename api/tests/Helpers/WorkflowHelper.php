@@ -59,12 +59,23 @@ function createWorkflowStepsForType(WorkflowType $type): void
         'workflow_type' => $type->value,
         'name' => 'Gestora',
         'order' => 1,
-        'responsible_role_id' => $gestor->id,
+        'visibility_rules' => [
+            ['type' => 'manager'],
+        ],
+        'approval_rules' => [
+            ['type' => 'manager'],
+        ],
     ]);
     WorkflowStep::factory()->create([
         'workflow_type' => $type->value,
         'name' => 'Controlador',
         'order' => 2,
-        'responsible_role_id' => $controlador->id,
+        'visibility_rules' => [
+            ['type' => 'manager'],
+            ['type' => 'role', 'id' => $controlador->id],
+        ],
+        'approval_rules' => [
+            ['type' => 'role', 'id' => $controlador->id],
+        ],
     ]);
 }
