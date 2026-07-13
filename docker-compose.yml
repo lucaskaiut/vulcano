@@ -64,7 +64,6 @@ services:
     container_name: vulcano-mailhog
     restart: unless-stopped
     ports:
-      - "${MAILHOG_SMTP_PORT:-1025}:1025"
       - "${MAILHOG_UI_PORT:-8025}:8025"
     networks:
       - vulcano
