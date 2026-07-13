@@ -43,17 +43,14 @@ class WorkflowInstanceService
             }
 
             $q->orWhere(function ($subQuery) use ($user, $roleIds) {
-                $subQuery->whereExists(function ($existsQuery) use ($user, $roleIds) {
-                    $existsQuery->selectRaw('1')
-                        ->from('workflow_steps')
-                        ->whereColumn('workflow_steps.workflow_type', 'workflow_instances.workflow_type')
-                        ->where(function ($stepQuery) use ($user, $roleIds) {
-                            $stepQuery->where('workflow_steps.responsible_user_id', $user->id);
+                $subQuery->whereHas('currentStep', function ($stepQuery) use ($user, $roleIds) {
+                    $stepQuery->where(function ($q) use ($user, $roleIds) {
+                        $q->where('responsible_user_id', $user->id);
 
-                            if ($roleIds->isNotEmpty()) {
-                                $stepQuery->orWhereIn('workflow_steps.responsible_role_id', $roleIds);
-                            }
-                        });
+                        if ($roleIds->isNotEmpty()) {
+                            $q->orWhereIn('responsible_role_id', $roleIds);
+                        }
+                    });
                 });
             });
         });
