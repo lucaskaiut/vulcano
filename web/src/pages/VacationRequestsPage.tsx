@@ -17,7 +17,7 @@ import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { formatDate } from '../lib/format'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
-import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
+import type { WorkflowInstanceStatus, WorkflowRule, WorkflowType } from '../types/workflow'
 
 export function VacationRequestsPage() {
   const queryClient = useQueryClient()
@@ -103,8 +103,8 @@ export function VacationRequestsPage() {
             name: r.workflow_instance!.current_step.name,
             workflow_type: 'vacation_request' as WorkflowType,
             order: r.workflow_instance!.current_step.order,
-            visibility_rules: r.workflow_instance!.current_step.visibility_rules ?? [],
-            approval_rules: r.workflow_instance!.current_step.approval_rules ?? [],
+            visibility_rules: (r.workflow_instance!.current_step.visibility_rules ?? []) as WorkflowRule[],
+            approval_rules: (r.workflow_instance!.current_step.approval_rules ?? []) as WorkflowRule[],
             created_at: '',
             updated_at: '',
           }

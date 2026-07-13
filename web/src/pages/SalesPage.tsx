@@ -13,7 +13,7 @@ import { SearchSelect } from '../components/ui/SearchSelect'
 import { Textarea } from '../components/ui/Textarea'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
 import type { Sale } from '../types/commission'
-import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
+import type { WorkflowInstanceStatus, WorkflowRule, WorkflowType } from '../types/workflow'
 
 export function SalesPage() {
   const queryClient = useQueryClient()
@@ -126,8 +126,8 @@ export function SalesPage() {
             name: s.commission!.workflow_instance!.current_step.name,
             workflow_type: 'commission' as WorkflowType,
             order: s.commission!.workflow_instance!.current_step.order,
-            visibility_rules: s.commission!.workflow_instance!.current_step.visibility_rules ?? [],
-            approval_rules: s.commission!.workflow_instance!.current_step.approval_rules ?? [],
+            visibility_rules: (s.commission!.workflow_instance!.current_step.visibility_rules ?? []) as WorkflowRule[],
+            approval_rules: (s.commission!.workflow_instance!.current_step.approval_rules ?? []) as WorkflowRule[],
             created_at: '',
             updated_at: '',
           }

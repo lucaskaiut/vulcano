@@ -145,6 +145,7 @@ function RuleEditor({
           />
           {(rule.type === 'role' || rule.type === 'user') && (
             <SearchSelect
+              label={rule.type === 'role' ? 'Perfil' : 'Usuário'}
               value={rule.id ?? null}
               selectedOption={null}
               onChange={(id) => handleIdChange(index, id)}
@@ -157,7 +158,6 @@ function RuleEditor({
               searchPlaceholder={
                 rule.type === 'role' ? 'Buscar perfis...' : 'Buscar usuários...'
               }
-              className="flex-1"
             />
           )}
           <Button

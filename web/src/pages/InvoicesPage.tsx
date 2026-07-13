@@ -10,7 +10,7 @@ import { DatePicker } from '../components/ui/DatePicker'
 import { Input } from '../components/ui/Input'
 import { PageHeader } from '../components/ui/PageHeader'
 import { WorkflowKanban } from '../components/workflow/WorkflowKanban'
-import type { WorkflowInstanceStatus, WorkflowType } from '../types/workflow'
+import type { WorkflowInstanceStatus, WorkflowRule, WorkflowType } from '../types/workflow'
 import type { Invoice } from '../types/invoice'
 
 function mapToKanban(invoice: Invoice) {
@@ -27,8 +27,8 @@ function mapToKanban(invoice: Invoice) {
           name: invoice.workflow_instance.current_step.name,
           workflow_type: 'invoice' as WorkflowType,
           order: invoice.workflow_instance.current_step.order,
-          visibility_rules: invoice.workflow_instance.current_step.visibility_rules ?? [],
-          approval_rules: invoice.workflow_instance.current_step.approval_rules ?? [],
+          visibility_rules: (invoice.workflow_instance.current_step.visibility_rules ?? []) as WorkflowRule[],
+          approval_rules: (invoice.workflow_instance.current_step.approval_rules ?? []) as WorkflowRule[],
           created_at: '',
           updated_at: '',
         }
