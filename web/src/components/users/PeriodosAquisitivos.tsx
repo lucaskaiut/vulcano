@@ -82,7 +82,7 @@ export function PeriodosAquisitivos({ hireDate }: PeriodosAquisitivosProps) {
       })
     }
 
-    return result
+    return result.reverse()
   }, [hireDate])
 
   if (periods.length === 0) {

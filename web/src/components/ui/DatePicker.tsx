@@ -1,6 +1,6 @@
 import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react'
-import { useEffect, useId, useMemo, useRef, useState } from 'react'
-import { formatDate, toInputDate } from '../../lib/format'
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
+import { formatDate, maskDate, toInputDate } from '../../lib/format'
 
 type DatePickerProps = {
   label: string
@@ -31,15 +31,11 @@ const YEAR_RANGE_START = 1900
 const YEAR_RANGE_END = new Date().getFullYear() + 10
 
 function parseDateValue(value: string): Date | null {
-  if (!value) {
-    return null
-  }
+  if (!value) return null
 
   const [year, month, day] = value.split('-').map(Number)
 
-  if (!year || !month || !day) {
-    return null
-  }
+  if (!year || !month || !day) return null
 
   return new Date(year, month - 1, day)
 }
@@ -60,16 +56,33 @@ function isSameDay(left: Date, right: Date): boolean {
   )
 }
 
+function isValidDate(day: number, month: number, year: number): boolean {
+  const date = new Date(year, month - 1, day)
+  return (
+    !isNaN(date.getTime()) &&
+    date.getDate() === day &&
+    date.getMonth() === month - 1 &&
+    date.getFullYear() === year
+  )
+}
+
+function inputDisplayDate(isoValue: string): string {
+  if (!isoValue) return ''
+  const formatted = formatDate(isoValue)
+  return formatted !== '—' ? formatted : ''
+}
+
 export function DatePicker({
   label,
   value,
   onChange,
   error,
-  placeholder = 'Selecione uma data',
+  placeholder = 'dd/mm/aaaa',
   disabled = false,
 }: DatePickerProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const yearListRef = useRef<HTMLDivElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
   const listboxId = useId()
   const selectedDate = parseDateValue(value)
   const today = useMemo(() => new Date(), [])
@@ -77,17 +90,12 @@ export function DatePicker({
   const [isOpen, setIsOpen] = useState(false)
   const [viewDate, setViewDate] = useState(() => selectedDate ?? today)
   const [showYearPicker, setShowYearPicker] = useState(false)
+  const [draft, setDraft] = useState<string | null>(null)
+
+  const inputValue = draft !== null ? draft : inputDisplayDate(value)
 
   useEffect(() => {
-    if (selectedDate) {
-      setViewDate(selectedDate)
-    }
-  }, [value, selectedDate])
-
-  useEffect(() => {
-    if (!isOpen) {
-      return
-    }
+    if (!isOpen) return
 
     function handlePointerDown(event: MouseEvent) {
       if (!containerRef.current?.contains(event.target as Node)) {
@@ -111,9 +119,7 @@ export function DatePicker({
   }, [isOpen])
 
   useEffect(() => {
-    if (!showYearPicker || !yearListRef.current) {
-      return
-    }
+    if (!showYearPicker || !yearListRef.current) return
 
     const selectedEl = yearListRef.current.querySelector('[data-selected="true"]')
     if (selectedEl) {
@@ -128,9 +134,7 @@ export function DatePicker({
     const daysInMonth = new Date(year, month + 1, 0).getDate()
 
     return Array.from({ length: firstWeekday + daysInMonth }, (_, index) => {
-      if (index < firstWeekday) {
-        return null
-      }
+      if (index < firstWeekday) return null
 
       return new Date(year, month, index - firstWeekday + 1)
     })
@@ -144,8 +148,28 @@ export function DatePicker({
     return list
   }, [])
 
+  const commitDate = useCallback(
+    (isoDate: string) => {
+      setDraft(null)
+      onChange(isoDate)
+    },
+    [onChange],
+  )
+
+  function openCalendar() {
+    if (selectedDate) {
+      setViewDate(selectedDate)
+    }
+    setIsOpen(true)
+  }
+
   function selectDate(date: Date) {
-    onChange(toIsoDate(date))
+    commitDate(toIsoDate(date))
+    setIsOpen(false)
+  }
+
+  function clearDate() {
+    commitDate('')
     setIsOpen(false)
   }
 
@@ -162,28 +186,92 @@ export function DatePicker({
     setShowYearPicker(false)
   }
 
-  const displayValue = value ? formatDate(value) : placeholder
+  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const masked = maskDate(e.target.value)
+    setDraft(masked)
+
+    if (masked.length === 10) {
+      const [day, month, year] = masked.split('/').map(Number)
+      if (isValidDate(day, month, year)) {
+        onChange(toIsoDate(new Date(year, month - 1, day)))
+      }
+    }
+  }
+
+  function handleInputBlur() {
+    if (draft === null) return
+
+    if (draft.length === 0) {
+      setDraft(null)
+      if (value) {
+        onChange('')
+      }
+      return
+    }
+
+    if (draft.length === 10) {
+      const [day, month, year] = draft.split('/').map(Number)
+      if (isValidDate(day, month, year)) {
+        setDraft(null)
+        onChange(toIsoDate(new Date(year, month - 1, day)))
+        return
+      }
+    }
+
+    setDraft(null)
+  }
+
+  function handleInputClick() {
+    if (disabled) return
+    if (!isOpen) {
+      openCalendar()
+    }
+  }
+
+  function handleChevronClick() {
+    if (disabled) return
+    if (isOpen) {
+      setIsOpen(false)
+    } else {
+      openCalendar()
+      setTimeout(() => inputRef.current?.focus(), 0)
+    }
+  }
 
   return (
     <div ref={containerRef}>
       <label className="mb-1.5 block text-sm font-medium text-foreground-muted">{label}</label>
 
       <div className="relative">
-        <button
-          type="button"
-          disabled={disabled}
-          aria-expanded={isOpen}
-          aria-haspopup="dialog"
-          aria-controls={listboxId}
-          onClick={() => setIsOpen((open) => !open)}
-          className={`flex w-full items-center justify-between rounded-lg bg-surface-sunken px-3 py-2.5 text-left text-sm shadow-inset transition hover:bg-surface focus:bg-surface focus:shadow-raised disabled:cursor-not-allowed disabled:opacity-50 ${error ? 'ring-2 ring-danger/30' : ''}`}
-        >
-          <span className={value ? 'text-foreground' : 'text-foreground-subtle'}>{displayValue}</span>
-          <ChevronDown
-            className={`size-4 shrink-0 text-foreground-muted transition ${isOpen ? 'rotate-180' : ''}`}
-            aria-hidden
+        <div className="relative">
+          <input
+            ref={inputRef}
+            type="text"
+            inputMode="numeric"
+            value={inputValue}
+            onChange={handleInputChange}
+            onBlur={handleInputBlur}
+            onClick={handleInputClick}
+            placeholder={placeholder}
+            disabled={disabled}
+            aria-expanded={isOpen}
+            aria-haspopup="dialog"
+            aria-controls={listboxId}
+            className={`w-full rounded-lg bg-surface-sunken px-3 py-2.5 pr-10 text-sm shadow-inset transition placeholder:text-foreground-subtle hover:bg-surface focus:bg-surface focus:shadow-raised focus:outline-none disabled:cursor-not-allowed disabled:opacity-50 ${error ? 'ring-2 ring-danger/30' : ''}`}
           />
-        </button>
+          <button
+            type="button"
+            onClick={handleChevronClick}
+            disabled={disabled}
+            tabIndex={-1}
+            className="absolute right-0 top-0 flex h-full items-center justify-center px-2 text-foreground-muted transition hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <ChevronDown
+              className={`size-4 shrink-0 transition ${isOpen ? 'rotate-180' : ''}`}
+              aria-hidden
+            />
+          </button>
+        </div>
 
         {isOpen && (
           <div
@@ -302,10 +390,7 @@ export function DatePicker({
                 <div className="mt-3 flex items-center justify-between gap-2 border-t border-surface-sunken pt-3">
                   <button
                     type="button"
-                    onClick={() => {
-                      onChange('')
-                      setIsOpen(false)
-                    }}
+                    onClick={clearDate}
                     className="rounded-lg px-2.5 py-1.5 text-xs font-medium text-foreground-muted transition hover:bg-surface-sunken hover:text-foreground"
                   >
                     Limpar
